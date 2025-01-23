@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Custom CSS -->
+    <style>
+        .main-content {
+            margin-left: 250px; /* Adjust based on your sidebar width */
+            padding: 20px;
+            background-image: url(/img/sneakers/customersadmin.jpg);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        .page-item.active .page-link {
+            background-color: #94cc86  !important;
+            border-color: #56cec8  !important;
+            color: #ffffff !important;
+        }
+
+
+
+        .search-bar {
+            max-width: 600px;
+            margin: auto;
+            
+        }
+
+        .table-container table {
+            background-color: rgba(196, 255, 101, 0.5) !important; /* Add transparency */
+            color: white; /* Set text color for contrast */
+            border-radius: 10px;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .table-container table th {
+            background-color: rgba(59, 57, 57, 0.7) !important; /* Header background */
+            color: white !important; /* Header text color */
+        }
+
+        .table-container table td {
+            background-color: rgba(172, 172, 172, 0.7) !important; /* Cell background */
+            color: white !important; /* Cell text color */
+        }
+
+
+        .pagination {
+            justify-content: center;
+        }
+
+        .btn-custom{
+        background-color: #94cc86 !important; 
+            
+        }
+
+        /* Custom styles for the minimal toast */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .custom-toast {
+            background: rgba(0, 0, 0, 0.85) !important;
+            color: white !important;
+            font-size: 14px !important;
+            padding: 10px 15px !important;
+            border-radius: 4px !important;
+            max-width: 200px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        .custom-toast::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            z-index: 0;
+            transition: width 2s ease-in-out;
+            opacity: 0.3;
+        }
+
+        .custom-toast.success::after {
+            background: #25ff2c;
+            animation: fillAnimation 2s ease-in-out forwards;
+        }
+
+        .custom-toast.error::after {
+            background: #ff1f0f;
+            animation: fillAnimation 2s ease-in-out forwards;
+        }
+
+        .custom-toast i, .custom-toast span {
+            z-index: 1;
+        }
+
+        @keyframes fillAnimation {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .spin-icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Include Sidebar -->
+    <%- include("../../views/admin/adminpartials/sidebar") %>
+    <%- include('../admin/adminPartials/cursor') %>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="row my-4">
+                <div class="col text-center">
+                    <h2 class="fw-bold text-dark">Customer Management</h2>
+                    <p class="text-muted">Manage your customers efficiently</p>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <header class="mb-4">
+                <form action="/admin/users/" method="get" class="search-bar">
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            class="form-control"
+                            placeholder="Search customers by name or email..."
+                            name="search"
+                            value="<%= search %>"
+                        />
+                        <button class="btn btn-custom searching text-white" type="submit">Search</button>
+                    </div>
+                </form>
+            </header>
+
+            <!-- Customer Table -->
+            <div class="table-container">
+                <table class="table ">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone No</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (data.length === 0) { %>
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No customers found</td>
+                            </tr>
+                        <% } else { %>
+                            <% for (let i = 0; i < data.length; i++) { %>
+                                <tr>
+                                    <td><%= data[i].name %></td>
+                                    <td><%= data[i].email %></td>
+                                    <td><%= data[i].phone %></td>
+                                    <td>
+                                        <% if (data[i].isBlocked) { %>
+                                            <button onclick="unblockUser('<%= data[i]._id %>', this)" class="btn btn-success">
+                                                <i class="fas fa-lock-open"></i> Unblock
+                                            </button>
+                                        <% } else { %>
+                                            <button onclick="blockUser('<%= data[i]._id %>', this)" class="btn btn-danger">
+                                                <i class="fas fa-lock"></i> Block
+                                            </button>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4">
+                <ul class="pagination">
+                    <% for (let i = 1; i <= totalPage; i++) { %>
+                        <li class="page-item <%= (i === currentPage) ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script>
+        function blockUser(userId, button) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                background: '#dc3545', 
+                color: 'white',
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            $.ajax({
+                url: `/admin/blockCustomer?id=${userId}`,
+                method: 'PATCH',
+                success: function(response) {
+                    if(response.success) {
+                        // Update button appearance
+                        button.classList.remove('btn-danger');
+                        button.classList.add('btn-success');
+                        button.setAttribute('onclick', `unblockUser('${userId}', this)`);
+                        button.innerHTML = '<i class="fas fa-lock-open"></i> Unblock';
+                        
+                        // Update status badge
+                        const statusBadge = button.closest('tr').querySelector('.status-badge');
+                        if (statusBadge) {
+                            statusBadge.classList.remove('bg-success');
+                            statusBadge.classList.add('bg-danger');
+                            statusBadge.textContent = 'Blocked';
+                        }
+
+                        Toast.fire({
+                            icon: 'success',
+                            title: response.message || 'User blocked successfully'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr);
+                    const errorMessage = xhr.responseJSON?.message || 'Failed to block user';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage
+                    });
+                }
+            });
+        }
+
+        function unblockUser(userId, button) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                background: '#4CAF50',
+                color: 'white',
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            $.ajax({
+                url: `/admin/unblockCustomer?id=${userId}`,
+                method: 'PATCH',
+                success: function(response) {
+                    if(response.success) {
+                        // Update button appearance
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-danger');
+                        button.setAttribute('onclick', `blockUser('${userId}', this)`);
+                        button.innerHTML = '<i class="fas fa-lock"></i> Block';
+                        
+                        // Update status badge
+                        const statusBadge = button.closest('tr').querySelector('.status-badge');
+                        if (statusBadge) {
+                            statusBadge.classList.remove('bg-danger');
+                            statusBadge.classList.add('bg-success');
+                            statusBadge.textContent = 'Active';
+                        }
+
+                        Toast.fire({
+                            icon: 'success',
+                            title: response.message || 'User unblocked successfully'
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr);
+                    const errorMessage = xhr.responseJSON?.message || 'Failed to unblock user';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMessage
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

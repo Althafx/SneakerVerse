@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In - SneakerVerse</title>
+    <style>
+                /* Reset and Base Styles */
+                * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #cecece;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url("/img/sneakers/verification.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .container {
+            display: flex;
+            background-color: rgba(255, 223, 118, 0.7);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            width: 80%;
+            max-width: 1200px;
+            backdrop-filter: blur(2px);
+        }
+ 
+        .image-section {
+            flex: 1;
+            background-image: url('img/sneakers/create password.jpg'); /* Replace with the image path */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .form-section {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .form-section h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .form-section p {
+            color: #000000;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #000000;
+        }
+
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+
+        .google-btn img {
+            margin-right: 10px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input {
+            margin-right: 10px;
+        }
+
+        .btn {
+            background-color: #b48322;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #a4711e;
+        }
+
+        .form-footer {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .form-footer a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .error-message{
+            color:red;
+            font-size: 0.75rem;
+            display:none;
+        }
+        .logo{
+            padding-left: 10px;
+        }
+        a{
+            text-decoration: none;
+            color: #000000;
+        }
+
+        .sneaker{
+            color: #fff;
+        }
+        .alert{
+            color:red !important;
+        }
+
+        /* Responsive Styles for Mobile Devices */
+        @media (max-width: 768px) {
+            .image-section {
+                display: none;
+            }
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .form-section {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-section h2 {
+                font-size: 1.5rem;
+            }
+            .btn {
+                font-size: 0.9rem;
+            }
+            .form-group {
+                padding: 0;
+            }
+
+
+        }
+    </style>
+</head>
+<body>
+    <%- include('../admin/adminPartials/cursor') %>
+    <div class="container">
+        <!-- Left Section: Image -->
+        <div class="image-section">
+            <div class="logo"><img src="img/logo.png" alt=""></div>
+        </div>
+
+        <!-- Right Section: Form -->
+        <div class="form-section">
+            <h2>Log In</h2>
+            <p>Log in to access any of our products</p>
+
+            <!-- Google Login -->
+            <a href="/auth/google">
+                <div class="google-btn">
+                    <img src="img/sneakers/google.png" alt="Google Logo" width="20">
+                    Continue With Google
+                </div>
+            </a>
+
+            <!-- Login Form -->
+            <form id="signform" method="post" action="/login">
+                <!-- Error Message -->
+                <% if (typeof error !== 'undefined') { %>
+                    <div class="alert alert-danger" role="alert">
+                        <%= error %>
+                    </div>
+                <% } %>
+
+                <!-- Email Input -->
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" class="form-control" required>
+                    <% if (message) { %>
+                        <div class="alert "><%= message %></div>
+                    <% } %>
+                </div>
+
+                <!-- Password Input -->
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                    <% if (message && message.includes('Incorrect password')) { %>
+                        <div class="alert al"><%= message %></div>
+                    <% } %>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn">Log in</button>
+            </form>
+
+            <!-- Footer Links -->
+            <div class="form-footer">
+                <div><a href="#">Forgot password?</a></div>
+                <p>Don't have an account? <a href="/signup">Sign up</a></p><br>
+                <p class="sneaker">SneakerVerse &copy; 2025 </p>   
+               
+            </div>
+        </div>
+    </div>
+</body>
+</html>

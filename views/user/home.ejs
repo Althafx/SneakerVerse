@@ -1,0 +1,364 @@
+<%-include("../../views/partials/user/header")%>
+<%- include('../admin/adminPartials/cursor') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+  .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #ff6b6b;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s, transform 0.3s;
+      cursor: pointer;
+      text-align: center;
+  }
+  
+
+
+  .btn:hover {
+      background-color: #ff4c4c;
+      transform: translateY(-2px);
+  }
+
+
+  .btn:active {
+      transform: translateY(1px);
+  }
+  .wishlist-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 50%;
+      color: #ff6b6b;
+      font-size: 18px;
+      z-index: 10;
+      transition: background-color 0.3s, color 0.3s, transform 0.3s;
+  }
+
+
+  .wishlist-btn:hover {
+      background-color: rgba(255, 255, 255, 1);
+      color: #ff4c4c;
+      transform: translateY(-2px);
+  }
+
+
+  .wishlist-btn:active {
+      transform: translateY(1px);
+  }
+
+
+  .product-img-action-wrap {
+      position: relative;
+      flex: 0 0 auto;  /* Don't allow this to stretch */
+  }
+
+
+  .product-img {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      padding-bottom: 100%;  /* Make image container square */
+      border-radius: 10px;
+
+      
+  }
+
+  .product-img img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;  /* Maintain aspect ratio while filling container */
+  }
+
+  .product-cart-wrap {
+      border: none;
+      padding: 20px;
+      margin-bottom: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(99, 231, 11, 0.87);
+      transition: all 0.3s ease;
+      height: 100%;  /* Make all cards take full height of their container */
+      display: flex;  /* Use flexbox for internal layout */
+      flex-direction: column;  /* Stack children vertically */
+  }
+  
+  .product-cart-wrap:hover{
+    transform: scale(1.03);
+    box-shadow: 0 15px 27px rgba(43, 241, 255, 0.87);
+  }
+
+  .product-content-wrap {
+      flex: 1;  /* Allow this to take remaining space */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-top: 15px;
+  }
+
+  .product-content-wrap h6 {
+      font-size: 18px;
+      color: #ffffff;
+      margin-bottom: 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;  /* Limit to 2 lines */
+      -webkit-box-orient: vertical;
+  }
+
+  .product-content-wrap h5 {
+      font-size: 16px;
+      color: #43e702;
+      margin-bottom: 10px;
+  }
+
+
+  .product-content-wrap a {
+      display: inline-block;
+      padding: 8px 12px;
+      background-color: #3f3f3f;
+      color: white;
+      text-transform: uppercase;
+      font-size: 14px;
+      border-radius: 4px;
+      text-decoration: none;
+  }
+
+  .data-setbg{
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+  }
+ 
+
+
+  .product-content-wrap a:hover {
+      background-color: #cfff4c;
+  }
+
+  .hero {
+    height: 500px ; /* Force the height for better visibility */
+    overflow: hidden; /* Prevent overflow */
+    position: relative; /* Position relative for absolute positioning of text */
+  }
+
+  .hero__items {
+    height:500px;
+    width: 100%; /* Ensure the items take full height */
+   
+  }
+
+  .hero__items.set-bg {
+    background-size: cover; /* Ensure the background image covers the area */
+    background-position: center; /* Center the background image */
+ 
+  
+  }
+
+  h6{   
+    color:"white"
+  }
+  
+
+
+
+
+
+
+  .filter__controls {
+      text-align: left;
+      margin-bottom: 45px;
+      padding-left: 0;
+  }
+
+  .filter__controls li {
+      list-style: none;
+      display: inline-block;
+      color: #ffffff;
+      margin-right: 22px;
+      position: relative;
+      cursor: pointer;
+      text-align: left;
+  }
+
+  .col-lg-3 {
+      margin-bottom: 30px;  /* Add consistent margin between rows */
+  }
+
+  .product__filter {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0 -15px;  /* Compensate for column padding */
+  }
+</style>
+<section class="hero">
+  <div class="hero__slider owl-carousel">
+      <div class="hero__items set-bg big" data-setbg="/img/sneakers/newBanner01.png">
+          <div class="container">
+              <div class="row">
+                  <div class="col-xl-5 col-lg-7 col-md-8">
+                      <div class="hero__text">
+                          <h6>Summer Collection</h6>
+                          <h2>Fall - Winter Sneaker Collections 2025</h2>
+                          <p>Exclusive sneakers for every season</p>
+                          <a href="#" class="primary-btn">Shop Sneakers now <span class="arrow_right"></span></a>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="hero__items set-bg" data-setbg="/img/sneakers/newBanner02.png">
+          <div class="container bann">
+              <div class="row">
+                  <div class="col-xl-5 col-lg-7 col-md-8 ">
+                      <div class="hero__text">
+                          <h6>Summer Collection</h6>
+                          <h2>Fall - Winter Sneaker Collections 2030</h2>
+                          <p>Exclusive sneakers for every season</p>
+                          <a href="#" class="primary-btn">Shop Sneakers now <span class="arrow_right"></span></a>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div> 
+</section><br><br><br>
+
+ <section class="product spad">
+  <div class="container">
+      <div class="row">
+          <div class="col-lg-12">
+              <ul class="filter__controls">
+                  <li data-filter=".new-arrivals">New Arrivals</li><br>
+              </ul>
+          </div>
+      </div>
+      <div class="row product__filter">
+        <%for(let i = 0; i < products.length; i++){%>
+              <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                  <div class="product-cart-wrap mb-30">
+                      <div class="product-img-action-wrap">
+                          <div class="product-img product-img-zoom">
+                              <a href="/productDetails?id=<%=products[i]._id%>">
+                                  <img class="default-img" src="/uploads/product-images/<%=products[i].productImage[0]%>" alt="<%=products[i].productName%>">
+                              </a>
+                          </div>
+                          <div class="product-action-1">
+                          <a aria-label="Add To Wishlist" href="/addToWishlist?id=<%=products[i]._id%>" class="action-btn hover-up">
+                              <i class="fas fa-cart"></i>
+                          </a>
+                          </div>
+                      </div>
+
+
+                      <div class="product-content-wrap">
+                          <h6><%= products[i].productName %></h6>
+                          <h5> ₹<%= products[i].salesPrice %></h5>
+                          <h6><%= products[i].category.name %></h6>
+                          <a href="/addToCart?id=<%=products[i]._id%>" class="btn">Add To Cart</a>
+                      </div>
+                  </div>
+              </div>
+              <%}%>
+      </div>
+  </div>
+</section>
+
+<style>
+  .brand-banner {
+    background: #777777;
+    padding: 40px 0;
+    margin: 40px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .brand-logo-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .brand-logo {
+    text-align: center;
+    padding: 20px;
+    transition: all 0.3s ease;
+    width: 200px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .brand-logo:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .brand-logo img {
+    max-width: 100%;
+    max-height: 80px;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+  }
+  
+  .brand-logo:hover img {
+    filter: grayscale(0%);
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .brand-logo {
+      width: 150px;
+      height: 80px;
+    }
+    .brand-logo img {
+      max-height: 60px;
+    }
+  }
+  .brand-title {
+        font-weight: bold;
+        text-align: center;
+        font-family: Arial, sans-serif; 
+        margin-bottom: 40px;
+        color: #ffffff;
+      }
+</style>
+
+<section class="brand-banner">
+  <div class="container">
+    <h3 class="brand-title">Shop the Latest from Your Favorite Brands</h3>
+    <div class="brand-logo-container">
+      <div class="brand-logo">
+        <img src="/img/sneakers/nikelogo.jpg" alt="Nike">
+      </div>
+      <div class="brand-logo">
+        <img src="https://1000logos.net/wp-content/uploads/2019/06/Adidas-Logo-1991.jpg" alt="Adidas">
+      </div>
+      <div class="brand-logo">
+        <img src="https://1000logos.net/wp-content/uploads/2017/05/PUMA-logo.jpg" alt="Puma">
+      </div>
+      <div class="brand-logo">
+        <img src="/img/sneakers/newbalancelogo.png" alt="New Balance">
+      </div>
+    </div>
+  </div>
+</section>
+
+<%-include("../../views/partials/user/footer")%>
+hello

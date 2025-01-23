@@ -585,7 +585,9 @@ ol {
 
 .hero__items {
 	height: 800px;
+	width: 100%;
 	padding-top: 230px;
+	background-size: contain;
 }
 
 .hero__text h6 {
@@ -594,10 +596,10 @@ ol {
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 2px;
-	margin-bottom: 28px;
-	position: relative;
+ 	position: relative;
 	top: 100px;
 	opacity: 0;
+	margin-top: -88px;
 	-webkit-transition: all, 0.3s;
 	-o-transition: all, 0.3s;
 	transition: all, 0.3s;
