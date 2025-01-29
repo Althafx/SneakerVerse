@@ -3,6 +3,8 @@ const Category = require("../../models/categorySchema");
 const User = require("../../models/userSchema");
 
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 const productDetails = async (req, res) => {
     try {
@@ -10,15 +12,15 @@ const productDetails = async (req, res) => {
         const userData = await User.findById(userId);
         const productId = req.query.id;
         
-        // Get the product and populate its category
         const product = await Product.findById(productId).populate('category');
 
         if (!product || !product.category.isListed) {
-            return res.redirect('/error');
+            return res.render("user/pageNotFound", { 
+                title: 'Product Not Found', 
+                message: "The product you're looking for is not available" 
+            });
         }
 
-        // Fetch related products from the same category that are not blocked
-        // and ensure the category is still listed
         const relatedProducts = await Product.find({
             category: product.category._id,
             _id: { $ne: productId },
@@ -30,7 +32,6 @@ const productDetails = async (req, res) => {
         })
         .limit(4);
 
-        // Filter out products whose categories didn't match (weren't listed)
         const filteredRelatedProducts = relatedProducts.filter(prod => prod.category);
 
         res.render("user/product-details", { 
@@ -40,10 +41,86 @@ const productDetails = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in product details:', error);
-        res.redirect('/error');
+        res.render("user/pageNotFound", { 
+            title: 'Error', 
+            message: "An error occurred while loading product details" 
+        });
+    }
+};
+
+const filterProducts = async (req, res) => {
+    try {
+        const { search, sort, category, brand } = req.query;
+        
+        // Build the filter query
+        const query = { isBlocked: false };
+        
+        // Add search filter
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+        
+        // Add category filter
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+        
+        // Add brand filter
+        if (brand && brand !== 'all') {
+            query.brand = brand.toLowerCase();
+        }
+        
+        // Create the sort object
+        let sortQuery = {};
+        switch (sort) {
+            case 'price-low':
+                sortQuery = { price: 1 };
+                break;
+            case 'price-high':
+                sortQuery = { price: -1 };
+                break;
+            case 'new':
+                sortQuery = { createdAt: -1 };
+                break;
+            case 'a-z':
+                sortQuery = { name: 1 };
+                break;
+            case 'z-a':
+                sortQuery = { name: -1 };
+                break;
+            default:
+                sortQuery = { createdAt: -1 }; // Default sort by newest
+        }
+        
+        // Fetch filtered products
+        const products = await Product.find(query)
+            .sort(sortQuery)
+            .populate('category');
+            
+        // Return only necessary product data
+        const filteredProducts = products.map(product => ({
+            _id: product._id,
+            name: product.name,
+            price: product.price,
+            images: product.images,
+            brand: product.brand,
+            category: product.category.name
+        }));
+        
+        res.json({ success: true, products: filteredProducts });
+    } catch (error) {
+        console.error('Error in filtering products:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error occurred while filtering products' 
+        });
     }
 };
 
 module.exports = {
-    productDetails
-}
+    productDetails,
+    filterProducts
+};

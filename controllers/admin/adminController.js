@@ -1,12 +1,15 @@
 const User = require("../../models/userSchema")
 const mongoose = require("mongoose")
-const bcrypt = require("bcrypt")
 
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//admin login
 const loadLogin=(req,res)=>{
     if(req.session.admin){
-        return res.redirect("/")
+        return res.redirect("/admin/dashboard")
     }
-    res.render("adminlogin",{message:null})
+    res.render("admin/adminLogin",{message:null})
 }
 
 const login=async(req,res)=>{
@@ -17,125 +20,77 @@ const login=async(req,res)=>{
         // Find the admin user in the database
         const findAdmin = await User.findOne({ email: email, isAdmin: true });
         if (!findAdmin) {
-            return res.render("adminlogin", { message: "No admin account found with this email" });
+            return res.render("admin/adminLogin", { message: "No admin account found with this email" });
         }
 
-        // Validate the password
-        const passwordMatch = await (password, findAdmin.password);
-        if (passwordMatch) {
+        // Direct password comparison since we're not using bcrypt
+        if (password === findAdmin.password) {
             req.session.admin = true;
             console.log("login success");
             return res.redirect("/admin/dashboard"); 
         } else {
             console.log("login failed");
-            return res.render("adminlogin", { message: "Incorrect password" });
+            return res.render("admin/adminLogin", { message: "Incorrect password" });
         }
     }catch(error){
         console.log("login error",error)
-        res.redirect("/page-not-found")
+        res.render("user/pageNotFound", { title: 'Error', message: "An error occurred during login" })
     }
 }
 
-const loadDashboard=(req,res)=>{
-    if(req.session.admin){
-        try{
-            res.render("dashboard")
-
-        }catch(error){
-            console.log("dashboard error",error)
-            res.redirect("/page-not-found")
-        }
-       
-    }
-}
-
-const pageerror=async(req,res)=>{
-    res.render("pageerror")
-}
 
 const logout=async(req,res)=>{
     try{
         req.session.destroy(err=>{
             if(err){
                 console.log("error destroying session",err)
-                return res.redirect("/pageerror")
+                return res.render("user/pageNotFound", { title: 'Error', message: "Error destroying session" })
             }
             res.redirect("/")
         })
        
     } catch(error){
         console.log("logout error",error)
-        res.redirect("/pageerror")
+        res.render("user/pageNotFound", { title: 'Error', message: "An error occurred during logout" })
     }
    
 }
 
-const blockCustomer = async (req, res) => {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//dshboard controlling
+const loadDashboard = async (req, res) => {
     try {
-        const userId = req.query.id;
-        await User.findByIdAndUpdate(userId, { isBlocked: true });
-
-        // Return JSON response for AJAX request
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.json({ 
-                success: true, 
-                message: 'User blocked successfully'
-            });
+        if (!req.session.admin) {
+            return res.redirect("/admin");
         }
-
-        req.session.message = {
-            type: 'success',
-            text: 'Customer blocked successfully!'
-        };
-        res.redirect('/admin/customers');
+        res.render("admin/dashboard", {
+            admin: req.session.admin,
+            path: '/admin/dashboard'
+        });
     } catch (error) {
-        console.error('Error blocking customer:', error);
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Error blocking user' 
-            });
-        }
-        res.redirect('/admin/pageerror');
+        console.log("Error loading dashboard:", error);
+        res.render("user/pageNotFound", { title: 'Error', message: "Error loading dashboard" })
     }
 };
 
-const unblockCustomer = async (req, res) => {
-    try {
-        const userId = req.query.id;
-        await User.findByIdAndUpdate(userId, { isBlocked: false });
-
-        // Return JSON response for AJAX request
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.json({ 
-                success: true, 
-                message: 'User unblocked successfully'
-            });
-        }
-
-        req.session.message = {
-            type: 'success',
-            text: 'Customer unblocked successfully!'
-        };
-        res.redirect('/admin/customers');
-    } catch (error) {
-        console.error('Error unblocking customer:', error);
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Error unblocking user' 
-            });
-        }
-        res.redirect('/admin/pageerror');
-    }
+// Add path middleware for all admin routes
+const addPathMiddleware = (req, res, next) => {
+    res.locals.path = req.path; // This will be available in all templates
+    next();
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 
 module.exports = {
     loadLogin,
     login,
-    loadDashboard,
-    pageerror,
     logout,
-    blockCustomer,
-    unblockCustomer
+    loadDashboard,
+
+    addPathMiddleware
 }

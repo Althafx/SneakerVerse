@@ -2,6 +2,10 @@ const Brand = require("../../models/brandSchema")
 // const Product = require("../..models/productSchema")
 const multer = require("../../helpers/multer")
 
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 const getBrandPage = async(req,res)=>{
     try{
         const page=parseInt(req.query.page) || 1
@@ -15,13 +19,17 @@ const getBrandPage = async(req,res)=>{
             data:reverseBrand,
             currentPage:page,
             totalPages:totalPages,
-            totalBrands:totalBrands
+            totalBrands:totalBrands,
+            path: '/admin/brands'
         })
     }
     catch(error){
-        res.redirect("/pageerror")
+        res.render("user/pageNotFound", { title: 'Error', message: "Error loading brands page" });
     }
 }
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 const addBrand = async(req,res)=>{
@@ -41,10 +49,14 @@ const addBrand = async(req,res)=>{
             res.redirect("/admin/brands")
         }
     }catch(error){
-        res.redirect("/pageerror")
-
+        res.render("user/pageNotFound", { title: 'Error', message: "Error adding brand" });
     }
+
 }
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 const blockBrand=async(req,res)=>{
     try{
@@ -52,10 +64,14 @@ const blockBrand=async(req,res)=>{
         await Brand.updateOne({_id:id},{$set:{isBlocked:true}})
         res.redirect("/admin/brands")
     }catch(error){
-        res.redirect("/pageerror")
-
+        res.render("user/pageNotFound", { title: 'Error', message: "Error blocking brand" });
     }
+
 }
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 const unBlockBrand = async(req,res)=>{
     try{
@@ -63,30 +79,35 @@ const unBlockBrand = async(req,res)=>{
         await Brand.updateOne({_id:id},{$set:{isBlocked:false}})
         res.redirect("/admin/brands")
     }catch(error){
-        res.redirect("/pageerror")
-
+        res.render("user/pageNotFound", { title: 'Error', message: "Error unblocking brand" });
     }
 
+
 }
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 const deleteBrand = async(req,res)=>{
     try{
         const{id}=req.query;
         if(!id){
-            return res.status(400).redirect("/pageerror")
+            return res.render("user/pageNotFound", { title: 'Error', message: "Brand ID not provided" });
         }
-        await Brand.deleteOne({_id:id})
-        res.redirect("/admin/brands")
-
+        await Brand.deleteOne({_id:id});
+        res.redirect("/admin/brands");
     }catch(error){
-        console.error("error deleting brand",error)
-        res.status(500).redirect("/pageerror")
-
-
+        console.error("error deleting brand",error);
+        res.render("user/pageNotFound", { title: 'Error', message: "Error deleting brand" });
     }
 
+
 }
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 module.exports={
     getBrandPage,

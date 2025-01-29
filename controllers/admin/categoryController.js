@@ -1,6 +1,7 @@
 const Category = require('../../models/categorySchema');
 
-const categoryInfo = async(req,res)=>{
+//load category page
+const categoryInfo = async(req,res,next)=>{
     try{
         const page = parseInt(req.query.page) || 1
         const limit = 4
@@ -17,17 +18,21 @@ const categoryInfo = async(req,res)=>{
             cat:categoryData,
             currentPage:page,
             totalPages:totalPages,
-            totalCategories:totalCategories
+            totalCategories:totalCategories,
+            path: '/admin/category'
         })
     }catch(error){
-
-        console.error(error)
-        res.redirect("/pageerror")
-
+        next(error);
     }
+
 }
 
-const addCategory = async(req,res)=>{
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//add categories 
+const addCategory = async(req,res,next)=>{
     const {name, description} = req.body;
     try {
         // Trim the name to remove any leading/trailing spaces
@@ -85,15 +90,17 @@ const addCategory = async(req,res)=>{
             message: "Category added successfully"
         });
     } catch(error) {
-        console.error('Error adding category:', error);
-        return res.status(500).json({
-            success: false,
-            error: "Internal server error"
-        });
+        next(error);
     }
+
 }
 
-const getListCategory = async(req,res)=>{
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+//get listed categories
+const getListCategory = async(req,res,next)=>{
     try {
         const id = req.params.id;
         
@@ -115,15 +122,20 @@ const getListCategory = async(req,res)=>{
             message: 'Category unlisted successfully'
         });
     } catch(error) {
-        console.error('Error unlisting category:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error unlisting category'
-        });
+        next(error);
     }
+
 }
 
-const getUnlistCategory = async(req,res)=>{
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+//get unlisted categories
+const getUnlistCategory = async(req,res,next)=>{
     try {
         const id = req.params.id;
         
@@ -145,25 +157,36 @@ const getUnlistCategory = async(req,res)=>{
             message: 'Category listed successfully'
         });
     } catch(error) {
-        console.error('Error listing category:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error listing category'
-        });
+        next(error);
     }
+
 }
 
-const getEditCategory = async(req,res)=>{
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+//get edit category
+const getEditCategory = async(req,res,next)=>{
     try{
         const id = req.query.id
         const category = await Category.findOne({_id:id})
-        res.render("edit-category",{category:category})
+        res.render("edit-category",{category:category, path: '/admin/category'})
     }catch(error){
-        res.redirect("/pageerror")
+        next(error);
     }
 }
 
-const editCategory = async (req, res) => {
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+//edit category
+const editCategory = async (req, res, next) => {
     try {
         const id = req.params.id;
         const { categoryName, description } = req.body;
@@ -229,15 +252,18 @@ const editCategory = async (req, res) => {
             category: updatedCategory
         });
     } catch (error) {
-        console.error('Error updating category:', error);
-        res.status(500).json({
-            success: false,
-            error: "Internal server error"
-        });
+        next(error);
     }
+
 };
 
-const deleteCategory = async (req, res) => {
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//delete category
+const deleteCategory = async (req, res, next) => {
     try {
         const categoryId = req.params.id;
         
@@ -269,13 +295,15 @@ const deleteCategory = async (req, res) => {
             message: 'Category deleted successfully'
         });
     } catch (error) {
-        console.error('Error deleting category:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error deleting category'
-        });
+        next(error);
     }
+
 };
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 module.exports = {
     categoryInfo,

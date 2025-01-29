@@ -1,5 +1,9 @@
 const User = require("../../models/userSchema");
 
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//controls customerpage
 const customerInfo = async (req, res) => {
   try {
     // Handle search and page input
@@ -39,35 +43,63 @@ const customerInfo = async (req, res) => {
       search,
       totalPage,
       currentPage: page,
+      path: '/admin/users'
     });
   } catch (error) {
     console.error("Error fetching customer data:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).json({ 
+      success: false, 
+      message: "An error occurred while fetching customer information" 
+    });
   }
 };
 
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//blocking user
 const customerBlocked = async(req,res)=>{
-    try{
+    try {
         let id=req.query.id;
         await User.updateOne({_id:id},{isBlocked:true});
-        res.json({ success: true, message: 'User blocked successfully' });
-    }catch(error){
+        res.status(200).json({ 
+          success: true, 
+          message: 'User blocked successfully' 
+        });
+    } catch(error) {
         console.error('Error blocking user:', error);
-        res.status(500).json({ success: false, message: 'Failed to block user' });
+        res.status(500).json({ 
+          success: false, 
+          message: 'An error occurred while blocking user' 
+        });
     }
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//unblocking user
 const customerunBlocked = async(req,res)=>{
-    try{
+    try {
         let id=req.query.id;
         await User.updateOne({_id:id},{isBlocked:false});
-        res.json({ success: true, message: 'User unblocked successfully' });
-    }catch(error){
+        res.status(200).json({ 
+          success: true, 
+          message: 'User unblocked successfully' 
+        });
+    } catch(error) {
         console.error('Error unblocking user:', error);
-        res.status(500).json({ success: false, message: 'Failed to unblock user' });
+        res.status(500).json({ 
+          success: false, 
+          message: 'An error occurred while unblocking user' 
+        });
     }
 }
 
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 module.exports = {

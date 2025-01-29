@@ -2,6 +2,7 @@
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
 
 <style>
     .breadcrumb {
@@ -225,6 +226,89 @@
         font-weight: bold;
         font-style: italic;
     }
+
+    .size-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .size-btn {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #ddd;
+        background: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .size-btn:hover {
+        border-color: #333;
+    }
+
+    .size-btn.selected {
+        background: #333;
+        color: white;
+        border-color: #333;
+    }
+
+    #addToCartBtn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .quantity-selector {
+        margin: 20px 0;
+    }
+
+    .quantity__control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .quantity__control input {
+        width: 60px;
+        height: 40px;
+        text-align: center;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    .quantity__control input:focus {
+        outline: none;
+        border-color: #333;
+    }
+
+    .quantity-btn {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #ddd;
+        background: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 18px;
+        transition: all 0.3s ease;
+    }
+
+    .quantity-btn:hover {
+        border-color: #333;
+        background: #f5f5f5;
+    }
+
+    /* Disable spinner buttons in number input */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
 </style>
 
 <main class="main">
@@ -280,11 +364,21 @@
                 <h4 class="product-priceR">₹<%=product.salesPrice%></h4>
                 <p><strong>Category:</strong> <%=product.category.name%></p>
                 <p><strong>Brand:</strong> <%=product.brand%></p>
-                <div class="size-selection mb-4">
-                    <h5>Select Size:</h5>
-                    <button class="btn btn-outline-secondary">S</button>
-                    <button class="btn btn-outline-secondary">M</button>
-                    <button class="btn btn-outline-secondary">L</button>
+                <div class="size-options mb-4">
+                    <h6 class="mb-2">Select Size:</h6>
+                    <div class="size-buttons">
+                        <button class="size-btn" onclick="selectSize('S')" id="sizeS">S</button>
+                        <button class="size-btn" onclick="selectSize('M')" id="sizeM">M</button>
+                        <button class="size-btn" onclick="selectSize('L')" id="sizeL">L</button>
+                    </div>
+                </div>
+                <div class="quantity-selector mb-4">
+                    <h6 class="mb-2">Quantity:</h6>
+                    <div class="quantity__control">
+                        <button class="quantity-btn" onclick="updateQuantity('decrease')">-</button>
+                        <input type="number" id="quantity" value="1" min="1" max="10" onchange="validateQuantity(this)">
+                        <button class="quantity-btn" onclick="updateQuantity('increase')">+</button>
+                    </div>
                 </div>
                 <div class="stock-quantities mb-4">
                     <h5>Stock Availability:</h5>
@@ -312,7 +406,7 @@
                 </div>
 
                 <div class="buttons mb-4">
-                    <button class="button">Add to Cart</button>
+                    <button class="button" onclick="addToCart('<%= product._id %>')" id="addToCartBtn" disabled>Add to Cart</button>
                     <button class="button1">Buy Now</button>
                 </div>
             </div>
@@ -357,6 +451,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 <script>
     // Configure Lightbox
     lightbox.option({
@@ -375,6 +470,134 @@
         shortDesc.classList.toggle('d-none');
         fullDesc.classList.toggle('d-none');
         readMore.textContent = readMore.textContent === 'Read More' ? 'Read Less' : 'Read More';
+    }
+
+    let selectedSize = null;
+
+    function selectSize(size) {
+        selectedSize = size;
+        
+        // Update button styles
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        document.getElementById('size' + size).classList.add('selected');
+        
+        // Enable add to cart button
+        document.getElementById('addToCartBtn').disabled = false;
+    }
+
+    function updateQuantity(action) {
+        const quantityInput = document.getElementById('quantity');
+        let currentValue = parseInt(quantityInput.value);
+        
+        if (action === 'increase' && currentValue < 10) {
+            quantityInput.value = currentValue + 1;
+        } else if (action === 'decrease' && currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+        }
+    }
+
+    function validateQuantity(input) {
+        let value = parseInt(input.value);
+        if (isNaN(value) || value < 1) {
+            input.value = 1;
+        } else if (value > 10) {
+            input.value = 10;
+        }
+    }
+
+    async function addToCart(productId) {
+        if (!selectedSize) {
+            Swal.fire({
+                title: 'Select Size',
+                text: 'Please select a size before adding to cart',
+                icon: 'warning',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            return;
+        }
+
+        const quantity = parseInt(document.getElementById('quantity').value);
+        if (isNaN(quantity) || quantity < 1) {
+            Swal.fire({
+                title: 'Invalid Quantity',
+                text: 'Please select a valid quantity',
+                icon: 'warning',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    productId,
+                    size: selectedSize,
+                    quantity: quantity
+                })
+            });
+
+            if (response.redirected || !response.ok) {
+                if (response.url.includes('login')) {
+                    window.location.href = '/login';
+                    return;
+                }
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: `Added ${quantity} item(s) to cart (Size ${selectedSize})`,
+                    icon: 'success',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message,
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            if (error.message.includes('JSON')) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred while adding to cart',
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
     }
 </script>
 

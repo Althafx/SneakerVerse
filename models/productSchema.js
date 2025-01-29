@@ -74,25 +74,6 @@ const productSchema = new Schema({
 
 },{timestamps:true})
 
-// // Pre-save middleware to calculate total quantity
-// productSchema.pre('save', function(next) {
-//     const quantities = this.quantities || {};
-//     this.totalQuantity = (quantities.small || 0) + (quantities.medium || 0) + (quantities.large || 0);
-//     next();
-// });
-
-// // Pre-update middleware to update the updatedAt timestamp
-// productSchema.pre('findOneAndUpdate', function(next) {
-//     this._update.updatedAt = new Date();
-    
-//     // Calculate total quantity if quantities are being updated
-//     if (this._update.quantities) {
-//         const quantities = this._update.quantities;
-//         this._update.totalQuantity = (quantities.small || 0) + (quantities.medium || 0) + (quantities.large || 0);
-//     }
-    
-//     next();
-// });
 
 const Product = mongoose.model("Product",productSchema)
 module.exports = Product

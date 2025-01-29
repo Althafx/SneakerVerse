@@ -1,0 +1,918 @@
+<%-include("../../views/partials/user/header")%>
+<%- include('../admin/adminPartials/cursor') %>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f9f9f9;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #fff;
+            border-right: 1px solid #e0e0e0;
+        }
+        .sidebar a {
+            color: #333;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+            font-weight: 500;
+        }
+        .sidebar a.active, .sidebar a:hover {
+            background-color: #f0f0f0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .address-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            background: #fff;
+        }
+        .address-card button {
+            font-size: 14px;
+        }
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+        }
+        a{
+            text-decoration: none;
+            color: white;
+        }
+        .colored-toast.swal2-icon-success {
+            background-color: #ffffff !important;
+            border-left: 6px solid #4CAF50 !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+        }
+
+        .colored-toast.swal2-icon-success {
+        background-color: #ffffff !important;
+        border-left: 6px solid #4CAF50 !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+       }
+    
+        /* Hide error divs by default */
+      #nameError, #phoneError, #passwordError {
+        display: none;
+        margin-top: 5px;
+        color: #dc3545;
+    }
+
+    /* Add styles for validation */
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+        border-color: #dc3545;
+        padding-right: calc(1.5em + 0.75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .invalid-feedback {
+        display: none;
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+    }
+
+    .form-control.is-invalid ~ .invalid-feedback,
+    .form-select.is-invalid ~ .invalid-feedback {
+        display: block;
+    }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 sidebar p-0">
+            <h5 class="text-center py-3">Hello Althaf</h5>
+            <a href="#" class="active">My info</a>
+            <a href="#">Wishlist</a>
+            <a href="#">My orders</a>
+            <a href="#">Sign out</a>
+            <a href="#">Wallet</a>
+        </div>
+
+        <!-- Content -->
+        <div class="col-md-9 content">
+            <h4>My Info</h4>
+            <h5 class="mt-4">Contact Details</h5>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" id="name" class="form-control" value="<%= user.name %>" readonly>
+                    <button class="btn btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#changeNameModal">Change</button>
+                </div>
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" class="form-control" value="<%= user.email %>" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label for="phone" class="form-label">Phone</label>
+                    <input type="tel" id="phone" class="form-control" value="<%= user.phone %>" readonly>
+                    <button class="btn btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#changePhoneModal">Change</button>
+                </div>
+                <div class="col-md-6">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" value="********" readonly>
+                    <button class="btn btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change</button>
+                </div>
+            </div>
+
+            <h5 class="mt-4">Address</h5>
+            <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addAddressModal">Add New</button>
+
+            <div class="container mt-4">
+                <div class="row">
+                    <!-- User Profile Section -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Addresses</h5>
+                                <div class="row gy-3">
+                                    <% if (user.addresses && user.addresses.length > 0) { %>
+                                        <% user.addresses.forEach(function(address) { %>
+                                            <div class="col-md-6">
+                                                <div class="address-card">
+                                                    <h6><%= address.name %></h6>
+                                                    <p><%= address.phone %></p>
+                                                    <p><%= address.landMark %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %></p>
+                                                    <div class="card-footer">
+                                                        <button class="btn btn-secondary"><%= address.addressType %></button>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <button class="btn btn-outline-primary btn-sm" onclick="editAddress('<%= address._id %>')">Edit</button>
+                                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteAddress('<%= address._id %>')">Delete</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <div class="col-12">
+                                            <p>No addresses found. Add a new address using the button above.</p>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+<!-- Modal for Name Change -->
+<div class="modal fade" id="changeNameModal" tabindex="-1" aria-labelledby="changeNameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeNameModalLabel">Change Name</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newName" class="form-label">New Name</label>
+                    <input type="text" class="form-control" id="newName" value="<%= user.name %>">
+                    <div id="nameError" class="text-danger" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updateName()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Phone Change -->
+<div class="modal fade" id="changePhoneModal" tabindex="-1" aria-labelledby="changePhoneModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePhoneModalLabel">Change Phone Number</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newPhone" class="form-label">New Phone Number</label>
+                    <input type="tel" class="form-control" id="newPhone" value="<%= user.phone %>">
+                    <div id="phoneError" class="text-danger" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updatePhone()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Password Change -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="oldPassword" class="form-label">Current Password</label>
+                    <input type="password" class="form-control" id="oldPassword">
+                </div>
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="newPassword">
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirmPassword">
+                    <div id="passwordError" class="text-danger" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updatePassword()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Address Modal -->
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="addressError" class="alert alert-danger" style="display: none;"></div>
+                <form id="addressForm" novalidate>
+                    <div class="mb-3">
+                        <label for="addressType" class="form-label">Address Type</label>
+                        <select class="form-select" id="addressType" required>
+                            <option value="">Select Type</option>
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback">Please select an address type.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="delivery_name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="delivery_name" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid name (3-50 characters, letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="delivery_phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="delivery_phone" required pattern="[0-9]{10}">
+                        <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="altPhone" class="form-label">Alternative Phone Number</label>
+                        <input type="tel" class="form-control" id="altPhone" pattern="[0-9]{10}">
+                        <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="landMark" class="form-label">Landmark</label>
+                        <input type="text" class="form-control" id="landMark" required minlength="3" maxlength="100">
+                        <div class="invalid-feedback">Please enter a valid landmark (3-100 characters).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="city" class="form-label">City</label>
+                        <input type="text" class="form-control" id="city" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid city name (letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="state" class="form-label">State</label>
+                        <input type="text" class="form-control" id="state" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid state name (letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pincode" class="form-label">Pincode</label>
+                        <input type="text" class="form-control" id="pincode" required pattern="[0-9]{6}">
+                        <div class="invalid-feedback">Please enter a valid 6-digit pincode.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveAddress()">Save Address</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Address Modal -->
+<div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAddressModalLabel">Edit Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="editAddressError" class="alert alert-danger" style="display: none;"></div>
+                <input type="hidden" id="editAddressId">
+                <form id="editAddressForm" novalidate>
+                    <div class="mb-3">
+                        <label for="editAddressType" class="form-label">Address Type</label>
+                        <select class="form-select" id="editAddressType" required>
+                            <option value="">Select Type</option>
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback">Please select an address type.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_delivery_name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="edit_delivery_name" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid name (3-50 characters, letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCity" class="form-label">City</label>
+                        <input type="text" class="form-control" id="editCity" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid city name (letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editLandMark" class="form-label">Landmark</label>
+                        <input type="text" class="form-control" id="editLandMark" required minlength="3" maxlength="100">
+                        <div class="invalid-feedback">Please enter a valid landmark (3-100 characters).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editState" class="form-label">State</label>
+                        <input type="text" class="form-control" id="editState" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid state name (letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPincode" class="form-label">Pincode</label>
+                        <input type="number" class="form-control" id="editPincode" required pattern="[0-9]{6}">
+                        <div class="invalid-feedback">Please enter a valid 6-digit pincode.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_delivery_phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="edit_delivery_phone" required pattern="[0-9]{10}">
+                        <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editAltPhone" class="form-label">Alternative Phone Number</label>
+                        <input type="tel" class="form-control" id="editAltPhone" pattern="[0-9]{10}">
+                        <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updateExistingAddress()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Js Plugins -->
+<script src="js/jquery.nice-select.min.js"></script>
+<script src="js/jquery.nicescroll.min.js"></script>
+<script src="js/jquery.magnific-popup.min.js"></script>
+<script src="js/jquery.countdown.min.js"></script>
+<script src="js/jquery.slicknav.js"></script>
+<script src="js/mixitup.min.js"></script>
+<script src="js/owl.carousel.min.js"></script>
+<script src="js/main.js"></script>
+
+<script>
+async function showSuccessToast(message) {
+    await Swal.fire({
+        position: 'top-end',
+        icon: 'success',
+        title: message,
+        showConfirmButton: false,
+        timer: 1500,
+        toast: true,
+        iconColor: '#4CAF50',
+        customClass: {
+            popup: 'colored-toast'
+        }
+    });
+}
+
+async function updateName() {
+    const newName = document.getElementById('newName').value.trim();
+    const errorDiv = document.getElementById('nameError');
+    errorDiv.style.display = 'none'; // Clear previous errors
+
+    if (!newName || newName.length < 2) {
+        errorDiv.textContent = 'Name must be at least 2 characters long';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/update-name', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newName })
+        });
+
+        const data = await response.json();
+        console.log('Update name response:', data);
+
+        if (data.success === true) {
+            document.getElementById('name').value = newName;
+            
+            // Close modal using jQuery
+            const modal = document.getElementById('changeNameModal');
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.hide();
+            
+            await showSuccessToast(data.message || 'Name updated successfully!');
+            location.reload();
+        } else {
+            errorDiv.textContent = data.message || 'Failed to update name';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error in updateName:', error);
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+    }
+}
+
+async function updatePhone() {
+    const newPhone = document.getElementById('newPhone').value.trim();
+    const errorDiv = document.getElementById('phoneError');
+    errorDiv.style.display = 'none'; // Clear previous errors
+    
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(newPhone)) {
+        errorDiv.textContent = 'Please enter a valid 10-digit phone number';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/update-phone', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newPhone })
+        });
+
+        const data = await response.json();
+        console.log('Update phone response:', data);
+
+        if (data.success === true) {
+            document.getElementById('phone').value = newPhone;
+            
+            // Close modal using jQuery
+            const modal = document.getElementById('changePhoneModal');
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.hide();
+            
+            await showSuccessToast(data.message || 'Phone number updated successfully!');
+            location.reload();
+        } else {
+            errorDiv.textContent = data.message || 'Failed to update phone number';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error in updatePhone:', error);
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+    }
+}
+
+async function updatePassword() {
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorDiv = document.getElementById('passwordError');
+    errorDiv.style.display = 'none'; // Clear any previous error message
+
+    // Validate passwords
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        errorDiv.textContent = 'All password fields are required';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        errorDiv.textContent = 'New passwords do not match';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    // Password validation regex: at least 8 chars, 1 letter, and 1 number
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+        errorDiv.textContent = 'Password must be at least 8 characters long and contain at least 1 letter and 1 number';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/update-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                oldPassword,
+                newPassword
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Clear any error message that might be showing
+            errorDiv.style.display = 'none';
+            
+            // Show success message
+            Swal.fire({
+                title: 'Success!',
+                text: 'Password updated successfully. Please login with your new password.',
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                customClass: {
+                    popup: 'colored-toast'
+                }
+            });
+
+            // Clear the form
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+            modal.hide();
+
+            // First destroy the session by calling logout endpoint
+            try {
+                await fetch('/logout');
+            } catch (error) {
+                console.error('Error during logout:', error);
+            }
+
+            // Then redirect to login page
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        // Only show error message if there's an actual error
+        if (!data || !data.success) {
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    }
+}
+
+async function saveAddress() {
+    const form = document.getElementById('addressForm');
+    const errorDiv = document.getElementById('addressError');
+    errorDiv.style.display = 'none';
+
+    // Remove all existing validation classes
+    form.querySelectorAll('.is-invalid').forEach(element => {
+        element.classList.remove('is-invalid');
+    });
+
+    // Validate all fields
+    let isValid = true;
+    const fields = {
+        addressType: { validate: value => value !== '', message: 'Please select an address type.' },
+        delivery_name: { 
+            validate: value => /^[A-Za-z ]{3,50}$/.test(value), 
+            message: 'Name should be 3-50 characters long and contain only letters.' 
+        },
+        delivery_phone: { 
+            validate: value => /^[0-9]{10}$/.test(value), 
+            message: 'Please enter a valid 10-digit phone number.' 
+        },
+        altPhone: { 
+            validate: value => value === '' || /^[0-9]{10}$/.test(value), 
+            message: 'Please enter a valid 10-digit phone number.' 
+        },
+        landMark: { 
+            validate: value => value.length >= 3 && value.length <= 100, 
+            message: 'Landmark should be 3-100 characters long.' 
+        },
+        city: { 
+            validate: value => /^[A-Za-z ]{3,50}$/.test(value), 
+            message: 'City should contain only letters.' 
+        },
+        state: { 
+            validate: value => /^[A-Za-z ]{2,50}$/.test(value), 
+            message: 'Please enter a valid state name.' 
+        },
+        pincode: { 
+            validate: value => /^[0-9]{6}$/.test(value), 
+            message: 'Please enter a valid 6-digit pincode.' 
+        }
+    };
+
+    // Validate each field
+    for (const [fieldId, validator] of Object.entries(fields)) {
+        const field = document.getElementById(fieldId);
+        if (!field) continue; // Skip if field not found
+        const value = field.value.trim();
+        
+        if (!validator.validate(value)) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        }
+    }
+
+    if (!isValid) {
+        return;
+    }
+
+    const addressData = {
+        addressType: document.getElementById('addressType').value,
+        name: document.getElementById('delivery_name').value.trim(),
+        phone: document.getElementById('delivery_phone').value.trim(),
+        altPhone: document.getElementById('altPhone').value.trim(),
+        landMark: document.getElementById('landMark').value.trim(),
+        city: document.getElementById('city').value.trim(),
+        state: document.getElementById('state').value,
+        pincode: document.getElementById('pincode').value.trim()
+    };
+
+    try {
+        const response = await fetch('/add-address', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(addressData)
+        });
+
+        const data = await response.json();
+        console.log('Add address response:', data);
+
+        if (data.success) {
+            // Show success message first
+            await Swal.fire({
+                title: 'Success!',
+                text: 'Address added successfully',
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                customClass: {
+                    popup: 'colored-toast'
+                }
+            });
+
+            // Then handle modal and page reload
+            const modal = document.getElementById('addAddressModal');
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+            window.location.reload();
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error saving address:', error);
+        errorDiv.textContent = 'An error occurred while saving the address.';
+        errorDiv.style.display = 'block';
+    }
+}
+
+async function deleteAddress(addressId) {
+    try {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            const response = await fetch(`/delete-address/${addressId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                await showSuccessToast(data.message || 'Address deleted successfully!');
+                location.reload();
+            } else {
+                Swal.fire('Error!', data.message || 'Failed to delete address', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Error deleting address:', error);
+        Swal.fire('Error!', 'An error occurred while deleting the address', 'error');
+    }
+}
+
+// Function to edit address
+async function editAddress(addressId) {
+    try {
+        const response = await fetch(`/get-address/${addressId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const address = data.address;
+            
+            // Populate form fields with address data
+            document.getElementById('edit_delivery_name').value = address.name || '';
+            document.getElementById('edit_delivery_phone').value = address.phone || '';
+            document.getElementById('editAltPhone').value = address.altPhone || '';
+            document.getElementById('editLandMark').value = address.landMark || '';
+            document.getElementById('editCity').value = address.city || '';
+            document.getElementById('editState').value = address.state || '';
+            document.getElementById('editPincode').value = address.pincode || '';
+            document.getElementById('editAddressType').value = address.addressType || '';
+            
+            // Store address ID for update
+            document.getElementById('editAddressId').value = addressId;
+            
+            // Show modal
+            const editModal = document.getElementById('editAddressModal');
+            const bsModal = new bootstrap.Modal(editModal);
+            bsModal.show();
+            
+        }
+    } catch (error) {
+        console.error('Error fetching address:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to load address details',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    }
+}
+
+// Function to update existing address
+async function updateExistingAddress() {
+    const addressId = document.getElementById('editAddressId').value;
+    const errorDiv = document.getElementById('editAddressError');
+    errorDiv.style.display = 'none';
+
+    // Validate all fields
+    let isValid = true;
+    const fields = {
+        editAddressType: { 
+            validate: value => value !== '', 
+            message: 'Please select an address type.' 
+        },
+        edit_delivery_name: { 
+            validate: value => /^[A-Za-z ]{3,50}$/.test(value), 
+            message: 'Name should be 3-50 characters long and contain only letters.' 
+        },
+        edit_delivery_phone: { 
+            validate: value => /^[0-9]{10}$/.test(value), 
+            message: 'Please enter a valid 10-digit phone number.' 
+        },
+        editAltPhone: { 
+            validate: value => value === '' || /^[0-9]{10}$/.test(value), 
+            message: 'Please enter a valid 10-digit phone number.' 
+        },
+        editLandMark: { 
+            validate: value => value.length >= 3 && value.length <= 100, 
+            message: 'Landmark should be 3-100 characters long.' 
+        },
+        editCity: { 
+            validate: value => /^[A-Za-z ]{3,50}$/.test(value), 
+            message: 'City should contain only letters.' 
+        },
+        editState: { 
+            validate: value => /^[A-Za-z ]{2,50}$/.test(value), 
+            message: 'Please enter a valid state name.' 
+        },
+        editPincode: { 
+            validate: value => /^[0-9]{6}$/.test(value), 
+            message: 'Please enter a valid 6-digit pincode.' 
+        }
+    };
+
+    // Remove all existing validation classes
+    const form = document.getElementById('editAddressForm');
+    form.querySelectorAll('.is-invalid').forEach(element => {
+        element.classList.remove('is-invalid');
+    });
+
+    // Validate each field
+    for (const [fieldId, validator] of Object.entries(fields)) {
+        const field = document.getElementById(fieldId);
+        if (!field) continue; // Skip if field not found
+        const value = field.value.trim();
+        
+        if (!validator.validate(value)) {
+            field.classList.add('is-invalid');
+            const feedbackDiv = field.nextElementSibling;
+            if (feedbackDiv && feedbackDiv.classList.contains('invalid-feedback')) {
+                feedbackDiv.textContent = validator.message;
+            }
+            isValid = false;
+        }
+    }
+
+    if (!isValid) {
+        errorDiv.textContent = 'Please correct the errors in the form.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    const addressData = {
+        addressType: document.getElementById('editAddressType').value,
+        name: document.getElementById('edit_delivery_name').value.trim(),
+        phone: document.getElementById('edit_delivery_phone').value.trim(),
+        altPhone: document.getElementById('editAltPhone').value.trim(),
+        landMark: document.getElementById('editLandMark').value.trim(),
+        city: document.getElementById('editCity').value.trim(),
+        state: document.getElementById('editState').value.trim(),
+        pincode: document.getElementById('editPincode').value.trim()
+    };
+
+    try {
+        const response = await fetch(`/update-address/${addressId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(addressData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Show success message first
+            await Swal.fire({
+                title: 'Success!',
+                text: 'Address updated successfully',
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                customClass: {
+                    popup: 'colored-toast'
+                }
+            });
+
+            // Then handle modal and page reload
+            const modal = document.getElementById('editAddressModal');
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+            window.location.reload();
+        } else {
+            errorDiv.textContent = data.message || 'Failed to update address';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error updating address:', error);
+        errorDiv.textContent = 'An error occurred while updating the address.';
+        errorDiv.style.display = 'block';
+    }
+}
+
+// Function to close edit modal
+function closeEditModal() {
+    const modal = document.getElementById('editAddressModal');
+    const bsModal = bootstrap.Modal.getInstance(modal);
+    if (bsModal) {
+        bsModal.hide();
+    }
+}
+</script>
+
+</body>
+</html>

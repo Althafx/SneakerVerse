@@ -3,23 +3,34 @@ const Category = require("../../models/categorySchema");
 const Brand = require("../../models/brandSchema");
 const fs = require('fs').promises;
 const path = require('path');
-const sharp = require("sharp");
 
-const getProductAddPage = async (req, res) => {
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//loads add products page
+const getProductAddPage = async (req, res, next) => {
     try {
         const category = await Category.find({ isListed: true });
         const brand = await Brand.find({ isBlocked: false });
         res.render("product-add", {
             cat: category,
-            brand: brand
+            brand: brand,
+            path: '/admin/addProducts'
         });
     } catch (error) {
-        console.error("Error in getProductAddPage:", error);
-        res.redirect("/pageerror");
+        next(error);
     }
+
 };
 
-const addProducts = async (req, res) => {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//saving addded products
+const addProducts = async (req, res, next) => {
     try {
         console.log("Request body:", req.body);
         const products = req.body;
@@ -115,12 +126,17 @@ const addProducts = async (req, res) => {
         await newProduct.save();
         res.status(200).json({ message: "Product added successfully" });
     } catch (error) {
-        console.error("Error in addProducts:", error);
-        res.status(500).json({ message: "Error adding product", error: error.message });
+        next(error);
     }
+
 };
 
-const getAllProducts = async (req, res) => {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//showing products in db
+const getAllProducts = async (req, res, next) => {
     try {
         const search = req.query.search || "";
         const page = parseInt(req.query.page) || 1;
@@ -173,14 +189,20 @@ const getAllProducts = async (req, res) => {
             currentPage: page,
             totalPages: Math.ceil(count / limit),
             search,
+            path: '/admin/products'
         });
     } catch (error) {
-        console.error("Error in getAllProducts:", error);
-        res.redirect("/pageerror");
+        next(error);
     }
+
 };
 
-const getEditProduct = async (req, res) => {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//opens edit control of products
+const getEditProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
         const product = await Product.findById(productId).populate('category');
@@ -222,16 +244,22 @@ const getEditProduct = async (req, res) => {
             product: transformedProduct,
             cat: category,
             brand: brand,
-            message: req.session.message
+            message: req.session.message,
+            path: '/admin/edit-product'
         });
         delete req.session.message;
     } catch (error) {
-        console.error('Error getting edit product page:', error);
-        res.redirect('/admin/pageerror');
+        next(error);
     }
+
 };
 
-const updateProduct = async (req, res) => {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//updates db with new added products
+const updateProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
         const {
@@ -343,15 +371,17 @@ const updateProduct = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error updating product:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
+        next(error);
     }
+
 };
 
-const blockProduct = async (req, res) => {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//blocking a producct
+const blockProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
         await Product.findByIdAndUpdate(productId, { 
@@ -373,18 +403,17 @@ const blockProduct = async (req, res) => {
         };
         res.redirect('/admin/products');
     } catch (error) {
-        console.error('Error blocking product:', error);
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Error blocking product' 
-            });
-        }
-        res.redirect('/admin/pageerror');
+        next(error);
     }
+
 };
 
-const unblockProduct = async (req, res) => {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//unblocking a product
+const unblockProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
         await Product.findByIdAndUpdate(productId, { 
@@ -406,18 +435,17 @@ const unblockProduct = async (req, res) => {
         };
         res.redirect('/admin/products');
     } catch (error) {
-        console.error('Error unblocking product:', error);
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Error unblocking product' 
-            });
-        }
-        res.redirect('/admin/pageerror');
+        next(error);
     }
+
 };
 
-const deleteProduct = async (req, res) => {
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//deleting a product
+const deleteProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
         const product = await Product.findById(productId);
@@ -449,13 +477,14 @@ const deleteProduct = async (req, res) => {
             message: 'Product deleted successfully'
         });
     } catch (error) {
-        console.error('Error deleting product:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error deleting product'
-        });
+        next(error);
     }
+
 };
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 module.exports = {
     getProductAddPage,

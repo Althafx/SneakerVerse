@@ -1,6 +1,7 @@
 <%-include("../../views/partials/user/header")%>
 <%- include('../admin/adminPartials/cursor') %>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
 <style>
   .btn {
       display: inline-block;
@@ -199,81 +200,7 @@
       flex-wrap: wrap;
       margin: 0 -15px;  /* Compensate for column padding */
   }
-</style>
-<section class="hero">
-  <div class="hero__slider owl-carousel">
-      <div class="hero__items set-bg big" data-setbg="/img/sneakers/newBanner01.png">
-          <div class="container">
-              <div class="row">
-                  <div class="col-xl-5 col-lg-7 col-md-8">
-                      <div class="hero__text">
-                          <h6>Summer Collection</h6>
-                          <h2>Fall - Winter Sneaker Collections 2025</h2>
-                          <p>Exclusive sneakers for every season</p>
-                          <a href="#" class="primary-btn">Shop Sneakers now <span class="arrow_right"></span></a>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-      <div class="hero__items set-bg" data-setbg="/img/sneakers/newBanner02.png">
-          <div class="container bann">
-              <div class="row">
-                  <div class="col-xl-5 col-lg-7 col-md-8 ">
-                      <div class="hero__text">
-                          <h6>Summer Collection</h6>
-                          <h2>Fall - Winter Sneaker Collections 2030</h2>
-                          <p>Exclusive sneakers for every season</p>
-                          <a href="#" class="primary-btn">Shop Sneakers now <span class="arrow_right"></span></a>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-  </div> 
-</section><br><br><br>
 
- <section class="product spad">
-  <div class="container">
-      <div class="row">
-          <div class="col-lg-12">
-              <ul class="filter__controls">
-                  <li data-filter=".new-arrivals">New Arrivals</li><br>
-              </ul>
-          </div>
-      </div>
-      <div class="row product__filter">
-        <%for(let i = 0; i < products.length; i++){%>
-              <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                  <div class="product-cart-wrap mb-30">
-                      <div class="product-img-action-wrap">
-                          <div class="product-img product-img-zoom">
-                              <a href="/productDetails?id=<%=products[i]._id%>">
-                                  <img class="default-img" src="/uploads/product-images/<%=products[i].productImage[0]%>" alt="<%=products[i].productName%>">
-                              </a>
-                          </div>
-                          <div class="product-action-1">
-                          <a aria-label="Add To Wishlist" href="/addToWishlist?id=<%=products[i]._id%>" class="action-btn hover-up">
-                              <i class="fas fa-cart"></i>
-                          </a>
-                          </div>
-                      </div>
-
-
-                      <div class="product-content-wrap">
-                          <h6><%= products[i].productName %></h6>
-                          <h5> ₹<%= products[i].salesPrice %></h5>
-                          <h6><%= products[i].category.name %></h6>
-                          <a href="/addToCart?id=<%=products[i]._id%>" class="btn">Add To Cart</a>
-                      </div>
-                  </div>
-              </div>
-              <%}%>
-      </div>
-  </div>
-</section>
-
-<style>
   .brand-banner {
     background: #777777;
     padding: 40px 0;
@@ -338,7 +265,419 @@
         margin-bottom: 40px;
         color: #ffffff;
       }
+
+      a{
+            text-decoration: none !important;
+        }
+        
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+    gap: 10px;
+  }
+  .pagination a {
+    padding: 8px 16px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    color: #bbbbbb;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+  .pagination a:hover:not(.active) {
+    background-color: #f5f5f5;
+  }
+  .pagination .active {
+    background-color: #da9008;
+    color: white;
+    border-color: #da9008;
+  }
+  .pagination .disabled {
+    color: #fafafa;
+    pointer-events: none;
+    border-color: #eee;
+  }
+  .no-products {
+    text-align: center;
+    padding: 40px;
+    color: #cfcfcf;
+  }
+
+  .filter-sidebar {
+    background: rgba(54, 54, 54, 0.7);
+    padding: 20px;
+    border-radius: 0 8px 8px 0;
+    height: fit-content;
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    backdrop-filter: blur(10px);
+    margin-right: 20px;
+    z-index: 100;
+  }
+  .filter-content {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #da9008 rgba(54, 54, 54, 0.7);
+    padding-right: 5px;
+  }
+  .filter-content::-webkit-scrollbar {
+    width: 6px;
+  }
+  .filter-content::-webkit-scrollbar-track {
+    background: rgba(54, 54, 54, 0.7);
+  }
+  .filter-content::-webkit-scrollbar-thumb {
+    background-color: #da9008;
+    border-radius: 6px;
+  }
+  .search-box {
+    position: relative;
+    margin-bottom: 20px;
+    z-index: 101;
+  }
+  .sort-section {
+    position: relative;
+    z-index: 1001;
+  }
+  .sort-select {
+    width: 100%;
+    padding: 8px;
+    background: rgba(54, 54, 54, 0.95);
+    border: 1px solid #444;
+    border-radius: 5px;
+    color: #dd890c;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .sort-select option {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: #d11b1b;
+    color: #000000;
+    padding: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #444;
+  }
+  .sort-select:focus {
+    outline: none;
+    border-color: #da9008;
+  }
+  .sort-select option:checked {
+    background: #da9008;
+    color: #fff;
+  }
+  .sort-select option:hover {
+    background: rgba(218, 144, 8, 0.2);
+  }
+  /* Override default select styling in different browsers */
+  .sort-select::-ms-expand {
+    display: none;
+  }
+  .sort-select:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #fff;
+  }
+  /* Style for Firefox */
+  @-moz-document url-prefix() {
+    .sort-select {
+      color: #fff;
+      background-color: #363636;
+    }
+    .sort-select option {
+      background-color: #363636;
+      color: #e0e0e0;
+    }
+    .sort-select option:checked {
+      background-color: #da9008;
+      color: #fff;
+      box-shadow: 0 0 10px 100px #da9008 inset;
+    }
+  }
+  /* Style for Webkit browsers */
+  .sort-select::-webkit-select-placeholder {
+    color: #fff;
+  }
+  .sort-select option::-webkit-scrollbar {
+    width: 6px;
+    background-color: #363636;
+  }
+  .sort-select option::-webkit-scrollbar-thumb {
+    background-color: #da9008;
+    border-radius: 3px;
+  }
+  .filter-sidebar h4 {
+    color: #ffffff;
+    font-size: 18px;
+    margin-bottom: 15px;
+    font-weight: 600;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 10px 35px 10px 15px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .search-box input::placeholder {
+    color: #999;
+  }
+  .search-box i {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+  }
+  .filter-section {
+    margin-bottom: 25px;
+  }
+  .filter-section h5 {
+    color: #da9008;
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .filter-option:hover {
+    color: #da9008;
+  }
+  .filter-option input[type="radio"] {
+    accent-color: #da9008;
+  }
+  .sort-select option:hover {
+    background: rgba(218, 144, 8, 0.2);
+  }
+  .sidebar-wrapper {
+    position: relative;
+    padding-left: 0;
+  }
+  .product.spad {
+    padding: 0;
+    margin-top: -40px;
+  }
+  .product .container-fluid {
+    padding: 0 15px 0 0;
+    max-width: 100%;
+  }
+  @media (max-width: 768px) {
+    .filter-sidebar {
+      position: relative;
+      top: 0;
+      margin: 0 0 20px 0;
+      border-radius: 8px;
+      max-height: none;
+    }
+    .product .container-fluid {
+      padding: 0 15px;
+    }
+    .sidebar-wrapper {
+      padding-left: 15px;
+    }
+  }
 </style>
+
+
+<section class="hero">
+  <div class="hero__slider owl-carousel">
+      <div class="hero__items set-bg big" data-setbg="/img/sneakers/newBanner01.png">
+          <div class="container">
+              <div class="row">
+                  <div class="col-xl-5 col-lg-7 col-md-8">
+                      <div class="hero__text">
+                          <h6>Summer Collection</h6>
+                          <h2>Fall - Winter Sneaker Collections 2025</h2>
+                          <p>Exclusive sneakers for every season</p>
+                          <a href="#" class="primary-btn">Shop Sneakers now <span class="arrow_right"></span></a>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="hero__items set-bg" data-setbg="/img/sneakers/newBanner02.png">
+          <div class="container bann">
+              <div class="row">
+                  <div class="col-xl-5 col-lg-7 col-md-8 ">
+                      <div class="hero__text">
+                          <h6>Summer Collection</h6>
+                          <h2>Fall - Winter Sneaker Collections 2030</h2>
+                          <p>Exclusive sneakers for every season</p>
+                          <a href="#" class="primary-btn">Shop Sneakers now <span class="arrow_right"></span></a>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div> 
+</section><br><br><br>
+
+ <section class="product spad">
+  <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-3 sidebar-wrapper">
+          <div class="filter-sidebar">
+            <div class="search-box">
+              <input type="text" placeholder="Search products...">
+              <i class="fas fa-search"></i>
+            </div>
+
+            <div class="sort-section">
+              <h5 class="text-light">Sort By</h5>
+              <select class="sort-select">
+                <option value="featured">Featured</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="new">New Arrivals</option>
+                <option value="a-z">Name: A to Z</option>
+                <option value="z-a">Name: Z to A</option>
+              </select>
+            </div>
+
+            <div class="filter-content">
+                <div class="filter-section">
+                <h5>Categories</h5>
+                <div class="filter-options">
+                  <label class="filter-option">
+                  <input type="radio" name="category" value="all" checked>
+                  <span>All</span>
+                  </label>
+                  <label class="filter-option">
+                  <input type="radio" name="category" value="men">
+                  <span>Men</span>
+                  </label>
+                  <label class="filter-option">
+                  <input type="radio" name="category" value="women">
+                  <span>Women</span>
+                  </label>
+                  <label class="filter-option">
+                  <input type="radio" name="category" value="unisex">
+                  <span>Unisex</span>
+                  </label>
+                </div>
+                </div>
+
+                <div class="filter-section">
+                <h5>Brands</h5>
+                <div class="filter-options">
+                  <label class="filter-option">
+                  <input type="radio" name="brand" value="all" checked>
+                  <span>All Brands</span>
+                  </label>
+                  <label class="filter-option">
+                  <input type="radio" name="brand" value="nike">
+                  <span>Nike</span>
+                  </label>
+                  <label class="filter-option">
+                  <input type="radio" name="brand" value="adidas">
+                  <span>Adidas</span>
+                  </label>
+                  <label class="filter-option">
+                  <input type="radio" name="brand" value="puma">
+                  <span>Puma</span>
+                  </label>
+                  <label class="filter-option">
+                  <input type="radio" name="brand" value="newbalance">
+                  <span>New Balance</span>
+                  </label>
+                </div>
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-9">
+          <div class="row">
+            <div class="col-lg-12">
+              <ul class="filter__controls">
+                <li data-filter=".new-arrivals">New Arrivals</li><br>
+              </ul>
+            </div>
+          </div>
+          <div class="row product__filter">
+            <% if (products && products.length > 0) { %>
+              <%for(let i = 0; i < products.length; i++){%>
+                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                  <div class="product-cart-wrap mb-30">
+                    <div class="product-img-action-wrap">
+                      <div class="product-img product-img-zoom">
+                        <a href="/productDetails?id=<%=products[i]._id%>">
+                          <img class="default-img" src="/uploads/product-images/<%=products[i].productImage[0]%>" alt="<%=products[i].productName%>">
+                        </a>
+                      </div>
+                      <div class="product-action-1">
+                        <a aria-label="Add To Wishlist" href="/addToWishlist?id=<%=products[i]._id%>" class="action-btn hover-up">
+                          <i class="fas fa-cart"></i>
+                        </a>
+                      </div>
+                    </div>
+                    <div class="product-content-wrap">
+                      <h6><%= products[i].productName %></h6>
+                      <h5> ₹<%= products[i].salesPrice %></h5>
+                      <h6><%= products[i].category.name %></h6>
+                      <button onclick="addToCart('<%= products[i]._id %>')" class="btn">Add To Cart</button>
+                    </div>
+                  </div>
+                </div>
+              <%}%>
+            <% } else { %>
+              <div class="no-products">
+                <h3>No products found</h3>
+                <p>We couldn't find any products matching your criteria.</p>
+              </div>
+            <% } %>
+          </div>
+          
+          <% if (totalPages > 1) { %>
+            <div class="pagination">
+              <% if (hasPrevPage) { %>
+                <a href="?page=1">&laquo; First</a>
+                <a href="?page=<%= prevPage %>">&lsaquo; Prev</a>
+              <% } else { %>
+                <a class="disabled">&laquo; First</a>
+                <a class="disabled">&lsaquo; Prev</a>
+              <% } %>
+
+              <% 
+              let startPage = Math.max(1, currentPage - 2);
+              let endPage = Math.min(totalPages, startPage + 4);
+              if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+              }
+              %>
+
+              <% for(let i = startPage; i <= endPage; i++) { %>
+                <a href="?page=<%= i %>" class="<%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+              <% } %>
+
+              <% if (hasNextPage) { %>
+                <a href="?page=<%= nextPage %>">Next &rsaquo;</a>
+                <a href="?page=<%= lastPage %>">Last &raquo;</a>
+              <% } else { %>
+                <a class="disabled">Next &rsaquo;</a>
+                <a class="disabled">Last &raquo;</a>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+  </div>
+</section>
 
 <section class="brand-banner">
   <div class="container">
@@ -360,5 +699,271 @@
   </div>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+<script>
+async function addToCart(productId) {
+    try {
+        const response = await fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                productId,
+                size: 'M' // Default to medium size
+            })
+        });
+
+        // Check if redirected to login page
+        if (response.redirected || !response.ok) {
+            if (response.url.includes('login')) {
+                window.location.href = '/login';
+                return;
+            }
+        }
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (error) {
+            // If JSON parsing fails, redirect to login
+            if (response.url.includes('login') || response.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+            throw error;
+        }
+        
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Item added to cart (Size M)',
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        } else {
+            // If medium size is out of stock, try small
+            if (data.message.includes('out of stock') || data.message.includes('not available')) {
+                try {
+                    const response2 = await fetch('/cart/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            productId,
+                            size: 'S'
+                        })
+                    });
+
+                    if (response2.redirected || !response2.ok) {
+                        if (response2.url.includes('login')) {
+                            window.location.href = '/login';
+                            return;
+                        }
+                    }
+
+                    const data2 = await response2.json();
+                    
+                    if (data2.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Item added to cart (Size S)',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        return;
+                    }
+                    
+                    // Try large if small is also not available
+                    const response3 = await fetch('/cart/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            productId,
+                            size: 'L'
+                        })
+                    });
+
+                    if (response3.redirected || !response3.ok) {
+                        if (response3.url.includes('login')) {
+                            window.location.href = '/login';
+                            return;
+                        }
+                    }
+                    
+                    const data3 = await response3.json();
+                    
+                    if (data3.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Item added to cart (Size L)',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        return;
+                    }
+
+                    // If no size is available
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Product is out of stock in all sizes',
+                        icon: 'error',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                } catch (error) {
+                    if (error.message.includes('JSON')) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw error;
+                }
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message,
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        // Check if user needs to log in
+        if (error.message.includes('JSON')) {
+            window.location.href = '/login';
+            return;
+        }
+        
+        Swal.fire({
+            title: 'Error!',
+            text: 'An error occurred while adding to cart',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+    }
+}
+
+// Function to update product list
+function updateProductList(products) {
+    const productContainer = document.querySelector('.product__filter');
+    if (!productContainer) return;
+
+    let html = '';
+    products.forEach(product => {
+        html += `
+            <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+              <div class="product-cart-wrap mb-30">
+                <div class="product-img-action-wrap">
+                  <div class="product-img product-img-zoom">
+                    <a href="/productDetails?id=${product._id}">
+                      <img class="default-img" src="/uploads/product-images/${product.productImage[0]}" alt="${product.productName}">
+                    </a>
+                  </div>
+                  <div class="product-action-1">
+                    <a aria-label="Add To Wishlist" href="/addToWishlist?id=${product._id}" class="action-btn hover-up">
+                      <i class="fas fa-cart"></i>
+                    </a>
+                  </div>
+                </div>
+                <div class="product-content-wrap">
+                  <h6>${product.productName}</h6>
+                  <h5> ₹${product.salesPrice}</h5>
+                  <h6>${product.category.name}</h6>
+                  <button onclick="addToCart('${product._id}')" class="btn">Add To Cart</button>
+                </div>
+              </div>
+            </div>
+        `;
+    });
+    
+    productContainer.innerHTML = html;
+    
+    // Reinitialize background images
+    const setBackground = function (el) {
+        const bg = el.getAttribute('data-setbg');
+        el.style.backgroundImage = `url(${bg})`;
+    };
+    
+    document.querySelectorAll('.set-bg').forEach(element => {
+        setBackground(element);
+    });
+}
+
+// Function to fetch filtered products
+async function fetchFilteredProducts() {
+    const searchInput = document.querySelector('.search-box input').value;
+    const sortSelect = document.querySelector('.sort-select').value;
+    const categoryInput = document.querySelector('input[name="category"]:checked').value;
+    const brandInput = document.querySelector('input[name="brand"]:checked').value;
+    
+    try {
+        const response = await fetch(`/filter-products?search=${searchInput}&sort=${sortSelect}&category=${categoryInput}&brand=${brandInput}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateProductList(data.products);
+        } else {
+            console.error('Error:', data.message);
+        }
+    } catch (error) {
+        console.error('Error fetching filtered products:', error);
+    }
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Search input
+    const searchInput = document.querySelector('.search-box input');
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(fetchFilteredProducts, 500); // Debounce search
+    });
+    
+    // Sort select
+    document.querySelector('.sort-select').addEventListener('change', fetchFilteredProducts);
+    
+    // Category radio buttons
+    document.querySelectorAll('input[name="category"]').forEach(radio => {
+        radio.addEventListener('change', fetchFilteredProducts);
+    });
+    
+    // Brand radio buttons
+    document.querySelectorAll('input[name="brand"]').forEach(radio => {
+        radio.addEventListener('change', fetchFilteredProducts);
+    });
+    
+    // Initial load
+    fetchFilteredProducts();
+});
+
+</script>
+
 <%-include("../../views/partials/user/footer")%>
-hello
