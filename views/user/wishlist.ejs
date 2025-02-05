@@ -1,0 +1,189 @@
+<%- include('../partials/user/header') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    a{
+        text-decoration: none;
+    }
+    .wishlist-btn {
+        background: none;
+        border: none;
+        padding: 8px;
+        cursor: pointer;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+    .heart-icon {
+        color: #ff0000;
+        font-size: 1.5rem;
+        transition: color 0.3s ease;
+    }
+    .heart-icon:hover {
+        color: #cc0000;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="mb-4">My Wishlist</h2>
+    
+    <% if (wishlist && wishlist.length > 0) { %>
+        <div class="row">
+            <% wishlist.forEach(function(item) { %>
+                <% if (item.productId) { %>
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                        <div class="card h-100">
+                            <div class="position-relative">
+                                <img src="/uploads/product-images/<%= item.productId.productImage[0] %>" 
+                                     class="card-img-top" 
+                                     alt="<%= item.productId.productName %>"
+                                     style="height: 200px; object-fit: cover;">
+                                <button onclick="toggleWishlist('<%= item.productId._id %>')" 
+                                        class="wishlist-btn">
+                                    <i class="fa-solid fa-heart heart-icon" 
+                                       id="heart-<%= item.productId._id %>"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title"><%= item.productId.productName %></h5>
+                                <p class="card-text">₹<%= item.productId.salesPrice %></p>
+                                <p class="card-text"><small>Brand: <%= item.productId.brand %></small></p>
+                                <div class="d-flex justify-content-between">
+                                    <button onclick="addToCart('<%= item.productId._id %>')" class="btn">Add To Cart</button>
+                                    <a href="/productDetails?id=<%= item.productId._id %>" 
+                                       class="btn btn-outline-secondary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            <% }); %>
+        </div>
+    <% } else { %>
+        <div class="text-center py-5">
+            <i class="fas fa-heart-broken fa-4x mb-3 text-muted"></i>
+            <h3>Your wishlist is empty</h3>
+            <p class="text-muted">Browse our products and add items to your wishlist!</p>
+            <a href="/home" class="btn btn-primary mt-3">Continue Shopping</a>
+        </div>
+    <% } %>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+async function toggleWishlist(productId) {
+    try {
+        const response = await fetch(`/toggle-wishlist/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.action === 'removed') {
+                // Remove the product card from the wishlist page
+                const productCard = document.getElementById(`heart-${productId}`).closest('.col-lg-3');
+                productCard.remove();
+                
+                // Check if wishlist is empty after removal
+                const wishlistContainer = document.querySelector('.row');
+                if (!wishlistContainer.children.length) {
+                    location.reload(); // Reload to show empty wishlist message
+                }
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Removed from Wishlist',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.message || 'Something went wrong!'
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Something went wrong!'
+        });
+    }
+}
+
+async function addToCart(productId) {
+    try {
+        // Show size selection dialog
+        const { value: size } = await Swal.fire({
+            title: 'Select Size',
+            input: 'select',
+            inputOptions: {
+                'S': 'Small',
+                'M': 'Medium',
+                'L': 'Large'
+            },
+            inputPlaceholder: 'Select a size',
+            showCancelButton: true,
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Please select a size!'
+                }
+            }
+        });
+
+        if (!size) return; // User cancelled
+
+        const response = await fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                productId: productId,
+                size: size.toUpperCase(),
+                quantity: 1
+            }),
+            credentials: 'include' // Include cookies in the request
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to add to cart');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            Swal.fire({
+                toast: true,
+                icon: 'success',
+                text: data.message || 'Added to Cart',
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        } else {
+            throw new Error(data.message || 'Failed to add to cart');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            toast: true,
+            icon: 'error',
+            text: error.message || 'Please login to add items to cart',
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+}
+</script>
+
+<%- include('../partials/user/footer') %>

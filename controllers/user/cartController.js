@@ -1,6 +1,8 @@
 const Product = require("../../models/productSchema");
 const Cart = require("../../models/cartSchema");
 const User = require("../../models/userSchema");
+const Address = require("../../models/addressSchema");
+const Order = require("../../models/orderSchema");
 
 const loadCart = async(req, res, next) => {
     try {
@@ -41,6 +43,11 @@ const loadCart = async(req, res, next) => {
                 }
             });
         }
+
+        // Set locals for the view
+        res.locals.path = '/cart';
+        res.locals.error_msg = req.flash('error');
+        res.locals.success_msg = req.flash('success');
 
         res.render("user/cart", {
             cart: cart || { items: [] },
@@ -340,9 +347,239 @@ const removeFromCart = async (req, res, next) => {
     }
 };
 
+const checkout = async(req, res, next) => {
+    try {
+        // Get user ID from session
+        const userId = req.session.user;
+        console.log('User ID:', userId); // Debug log
+
+        if (!userId) {
+            req.flash('error', 'Please login to continue');
+            return res.redirect('/login');
+        }
+
+        // Get cart items with product details
+        const cart = await Cart.findOne({ userId: userId })
+            .populate({
+                path: 'items.product',
+                select: 'productName salesPrice productImage brand'
+            });
+
+        console.log('Cart:', cart); // Debug log
+
+        if (!cart || !cart.items || cart.items.length === 0) {
+            req.flash('error', 'Your cart is empty');
+            return res.redirect('/cart');
+        }
+
+        // Get user's addresses from Address model
+        const addressDoc = await Address.findOne({ userId: userId });
+        console.log('Address Document:', addressDoc); // Debug log
+
+        const addresses = addressDoc ? addressDoc.address : [];
+
+        // Get user data
+        const user = await User.findById(userId);
+        console.log('User Data:', {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            addressCount: addresses.length
+        }); // Debug log
+
+        if (!user) {
+            req.flash('error', 'User not found');
+            return res.redirect('/login');
+        }
+
+        // Calculate totals
+        const subtotal = cart.items.reduce((total, item) => {
+            if (item.product) {
+                return total + (item.product.salesPrice * item.quantity);
+            }
+            return total;
+        }, 0);
+
+        // Log data for debugging
+        console.log('Checkout Data:', {
+            userId,
+            cartId: cart._id,
+            itemCount: cart.items.length,
+            subtotal,
+            addressCount: addresses.length,
+            hasAddresses: addresses.length > 0
+        });
+
+        // Render checkout page with data
+        return res.render('user/checkout', {
+            cart,
+            subtotal,
+            user,
+            addresses: addresses,
+            error_msg: req.flash('error'),
+            success_msg: req.flash('success')
+        });
+
+    } catch (error) {
+        console.error('Checkout error:', error);
+        req.flash('error', 'Something went wrong. Please try again.');
+        return res.redirect('/cart');
+    }
+};
+
+const placeOrder = async(req, res, next) => {
+    try {
+        const userId = req.session.user;
+        const { addressId, paymentMethod } = req.body;
+        console.log("place order",userId,addressId,paymentMethod)
+
+        // Validate inputs
+        if (!addressId || !paymentMethod) {
+            req.flash('error', 'Missing required fields');
+            return res.redirect('/checkout');
+        }
+
+        // Get cart and validate it's not empty
+        const cart = await Cart.findOne({ userId })
+            .populate('items.product');
+
+        if (!cart || cart.items.length === 0) {
+            req.flash('error', 'Your cart is empty');
+            return res.redirect('/cart');
+        }
+
+        // Get delivery address from Address model
+        const addressDoc = await Address.findOne({ userId });
+        if (!addressDoc) {
+            req.flash('error', 'No addresses found');
+            return res.redirect('/checkout');
+        }
+
+        // Find the selected address
+        const selectedAddress = addressDoc.address.find(addr => addr._id.toString() === addressId);
+        if (!selectedAddress) {
+            req.flash('error', 'Selected address not found');
+            return res.redirect('/checkout');
+        }
+
+        // Check stock availability and update quantities
+        for (const item of cart.items) {
+            const product = await Product.findById(item.product._id);
+            if (!product) {
+                req.flash('error', 'One or more products not found');
+                return res.redirect('/checkout');
+            }
+
+            // Convert size to lowercase for quantities object
+            let sizeField;
+            switch (item.size) {
+                case 'S':
+                    sizeField = 'small';
+                    break;
+                case 'M':
+                    sizeField = 'medium';
+                    break;
+                case 'L':
+                    sizeField = 'large';
+                    break;
+                default:
+                    req.flash('error', 'Invalid size selected');
+                    return res.redirect('/checkout');
+            }
+
+            // Check if enough stock is available
+            if (product.quantities[sizeField] < item.quantity) {
+                req.flash('error', `Sorry, only ${product.quantities[sizeField]} items available for ${product.productName} in size ${item.size}`);
+                return res.redirect('/checkout');
+            }
+
+            // Reduce the stock quantity
+            product.quantities[sizeField] -= item.quantity;
+            
+            // Update total quantity
+            product.totalQuantity = product.quantities.small + product.quantities.medium + product.quantities.large;
+
+            // Save the updated product
+            await product.save();
+            console.log(`Updated stock for ${product.productName}, size ${item.size}: ${product.quantities[sizeField]} remaining`);
+        }
+
+        // Calculate order total
+        const orderTotal = cart.items.reduce((total, item) => {
+            return total + (item.product.salesPrice * item.quantity);
+        }, 0);
+
+        // Create order items array
+        const orderItems = cart.items.map(item => ({
+            product: item.product._id,
+            quantity: item.quantity,
+            price: item.product.salesPrice,
+            size: item.size,
+            status: 'Pending'
+        }));
+
+        // Create new order with correctly mapped address fields
+        const order = new Order({
+            user: userId,
+            items: orderItems,
+            totalAmount: orderTotal,
+            shippingAddress: {
+                name: selectedAddress.name,
+                street: selectedAddress.landMark, // Using landMark as street
+                landmark: selectedAddress.landMark,
+                city: selectedAddress.city,
+                state: selectedAddress.state,
+                pincode: selectedAddress.pincode,
+                mobile: selectedAddress.phone,
+                alternativePhone: selectedAddress.altPhone
+            },
+            paymentMethod: paymentMethod,
+            status: paymentMethod === 'cod' ? 'Pending' : 'Payment Pending'
+        });
+
+        await order.save();
+        console.log("Order saved successfully:", order._id);
+
+        // Clear the cart
+        await Cart.findOneAndDelete({ userId: userId });
+
+        // Handle wallet payment if selected
+        if (paymentMethod === 'wallet') {
+            const user = await User.findById(userId);
+            if (!user) {
+                req.flash('error', 'User not found');
+                return res.redirect('/checkout');
+            }
+            if (user.wallet < orderTotal) {
+                req.flash('error', 'Insufficient wallet balance');
+                return res.redirect('/checkout');
+            }
+            user.wallet -= orderTotal;
+            await user.save();
+        }
+
+        // Redirect based on payment method
+        if (paymentMethod === 'online') {
+            return res.redirect('/payment-gateway');
+        }
+
+        // Redirect to success page for COD and wallet payments
+        return res.redirect('/success');
+
+    } catch (error) {
+        console.error('Place order error:', error);
+        req.flash('error', 'Failed to place order. Please try again.');
+        return res.redirect('/checkout');
+    }
+};
+
+
+
 module.exports = {
     loadCart,
     addToCart,
     updateQuantity,
-    removeFromCart
+    removeFromCart,
+    checkout,
+    placeOrder
 }

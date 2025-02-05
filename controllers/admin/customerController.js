@@ -38,7 +38,7 @@ const customerInfo = async (req, res) => {
     const totalPage = Math.ceil(count / limit);
 
     // Render the view with the data
-    res.render("customers", {
+    res.render("admin/customers", {
       data: userData,
       search,
       totalPage,

@@ -1,0 +1,291 @@
+<%- include('../partials/user/header') %>
+<style>
+    .product-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+    
+    .product-info p {
+        margin-bottom: 0.5rem;
+    }
+    
+    .order-progress {
+        padding: 20px 0;
+    }
+    
+    .progress-line {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin: 0 40px;
+    }
+    
+    .progress-line::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: #e9ecef;
+        z-index: 1;
+    }
+    
+    .progress-line-bar {
+        position: absolute;
+        top: 15px;
+        left: 0;
+        height: 3px;
+        background-color: #28a745;
+        z-index: 1;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-step {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        min-width: 100px;
+    }
+    
+    .step-dot {
+        width: 30px;
+        height: 30px;
+        background-color: #fff;
+        border: 3px solid #e9ecef;
+        border-radius: 50%;
+        margin: 0 auto;
+        margin-bottom: 10px;
+    }
+    
+    .progress-step.completed .step-dot {
+        border-color: #28a745;
+        background-color: #28a745;
+    }
+    
+    .progress-step.current .step-dot {
+        border-color: #28a745;
+        background-color: #fff;
+    }
+    
+    .step-label {
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    
+    .progress-step.completed .step-label,
+    .progress-step.current .step-label {
+        color: #28a745;
+    }
+    
+    .step-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 3px;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Breadcrumb Styles */
+    .custom-breadcrumb {
+        background-color: #f8f9fa;
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .custom-breadcrumb .breadcrumb {
+        margin-bottom: 0;
+        background: transparent;
+    }
+    
+    .custom-breadcrumb .breadcrumb-item a {
+        color: #6c757d;
+        text-decoration: none;
+    }
+    
+    .custom-breadcrumb .breadcrumb-item.active {
+        color: #343a40;
+    }
+    
+    .custom-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+</style>
+    
+<div class="container-fluid">
+    <div class="row">
+        <%- include('../partials/user/usersidebar', { path: path }) %>
+        
+        <div class="col-md-9 ms-auto px-4">
+            <!-- Breadcrumb -->
+            <div class="custom-breadcrumb mt-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/orders">My Orders</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Order Details</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="order-details-container mt-4">
+                <!-- Back Button -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4>Order Details</h4>
+                        <p class="text-muted mb-0">Order ID: <%= order._id %></p>
+                        <p class="text-muted">Ordered on <%= new Date(order.orderDate).toLocaleDateString() %></p>
+                    </div>
+                    <a href="/orders" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                    </a>
+                </div>
+
+                <!-- Flash Messages -->
+                <% if (error_msg && error_msg.length > 0) { %>
+                    <div class="alert alert-danger" role="alert">
+                        <%= error_msg %>
+                    </div>
+                <% } %>
+                <% if (success_msg && success_msg.length > 0) { %>
+                    <div class="alert alert-success" role="alert">
+                        <%= success_msg %>
+                    </div>
+                <% } %>
+
+                <% 
+                const selectedItemDetails = order.items.find(item => item._id.toString() === selectedItem);
+                if (selectedItemDetails) { 
+                    const statusOrder = ['Order Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
+                    const currentStatus = selectedItemDetails.status;
+                    const currentIndex = statusOrder.indexOf(currentStatus);
+                    const progressWidth = currentIndex !== -1 ? ((currentIndex + 1) / statusOrder.length) * 100 : 0;
+                %>
+                    <!-- Product Details Card -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <img src="<%= selectedItemDetails.product.productImage ? '/uploads/product-images/' + selectedItemDetails.product.productImage[0] : '/images/no-image.jpg' %>" 
+                                         alt="Product Image" 
+                                         class="img-fluid rounded product-image">
+                                </div>
+                                <div class="col-md-8">
+                                    <h5 class="mb-3"><%= selectedItemDetails.product.productName %></h5>
+                                    <div class="product-info mb-3">
+                                        <p><strong>Size:</strong> <%= selectedItemDetails.size %></p>
+                                        <p><strong>Quantity:</strong> <%= selectedItemDetails.quantity %></p>
+                                        <p><strong>Price:</strong> ₹<%= selectedItemDetails.price %></p>
+                                        <p><strong>Total:</strong> ₹<%= selectedItemDetails.price * selectedItemDetails.quantity %></p>
+                                    </div>
+                                    <div class="status-badge mb-3">
+                                        <span class="badge <%= selectedItemDetails.status === 'Cancelled' ? 'bg-danger' : (selectedItemDetails.status === 'Delivered' ? 'bg-success' : 'bg-primary') %>">
+                                            <%= selectedItemDetails.status %>
+                                        </span>
+                                    </div>
+                                    <% if (selectedItemDetails.status !== 'Cancelled' && selectedItemDetails.status !== 'Delivered') { %>
+                                        <button class="btn btn-outline-danger" 
+                                                data-order-id="<%= order._id %>"
+                                                data-item-id="<%= selectedItemDetails._id %>"
+                                                onclick="cancelOrderItem(this)">
+                                            Cancel Item
+                                        </button>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Progress -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-4">Order Progress</h5>
+                            <div class="order-progress">
+                                <div class="progress-line">
+                                    <div class="progress-line-bar" style="width: calc(<%= progressWidth %>% - 20px)"></div>
+                                    <% statusOrder.forEach((status, index) => { %>
+                                        <div class="progress-step <%= index <= currentIndex ? 'completed' : '' %> <%= status === currentStatus ? 'current' : '' %>">
+                                            <div class="step-dot"></div>
+                                            <div class="step-label"><%= status %></div>
+                                            <% if (index <= currentIndex) { %>
+                                                <div class="step-date"><%= new Date().toLocaleDateString() %></div>
+                                            <% } %>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Details -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="mb-3">Shipping Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Name:</strong> <%= order.shippingAddress.name %></p>
+                                    <p><strong>City:</strong> <%= order.shippingAddress.city %></p>
+                                    <p><strong>State:</strong> <%= order.shippingAddress.state %></p>
+                                    <p><strong>Pincode:</strong> <%= order.shippingAddress.pincode %></p>
+                                    <!-- <p><strong>Phone:</strong> <%= order.shippingAddress.phone%></p>
+                                    <p><strong>Address:</strong> <%= order.shippingAddress.addressType %></p> -->
+                                <!-- </div>
+                                <div class="col-md-6">
+                                   
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="alert alert-warning">
+                        Item not found in order.
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+function cancelOrderItem(button) {
+    const orderId = button.getAttribute('data-order-id');
+    const itemId = button.getAttribute('data-item-id');
+    
+    if (confirm('Are you sure you want to cancel this item?')) {
+        fetch(`/cancel-order-item/${orderId}/${itemId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.message || 'Failed to cancel item');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while canceling the item');
+        });
+    }
+}
+</script>
+
+<%- include('../partials/user/footer') %>

@@ -11,6 +11,9 @@
         border-radius: 5px;
         margin-bottom: 20px;
     }
+    a{
+        text-decoration: none !important;
+    }
 
     body{
         background-color: rgb(190, 190, 190);
@@ -96,7 +99,7 @@
         }
     }
     .carousel {
-        box-shadow: 0 4px 20px rgba(43, 241, 255, 0.884);
+        box-shadow: 0 4px 20px rgba(255, 146, 20, 0.884);
         border-radius: 10px;
 
     }
@@ -153,7 +156,7 @@
     
     .product-cart-wrap:hover {
         transform: scale(1.03);
-        box-shadow: 0 15px 27px rgba(43, 241, 255, 0.87);
+        box-shadow: 0 15px 27px rgba(253, 168, 9, 0.87);
     }
 
     .product-img-action-wrap {
@@ -217,7 +220,7 @@
     }
 
     .btn:hover {
-        background-color: #4dcae9;
+        background-color: #e28316;
         transform: translateY(-2px);
         color: white;
     }
@@ -359,25 +362,32 @@
                 <div class="rating">
                     <span>&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.0 (25 reviews)
                 </div>
-
-                <h4 class="product-price"><del>₹<%=product.regularPrice%></del></h4>
-                <h4 class="product-priceR">₹<%=product.salesPrice%></h4>
+             
+              
+                    <div class="product__details__price text-danger"><del>₹<%= product.regularPrice %></del></div>
+                    <div class="product__details__price h3 text-success">₹<%= product.salesPrice %></div>
+               
+                <!-- <p><%= product.description %></p> -->
                 <p><strong>Category:</strong> <%=product.category.name%></p>
                 <p><strong>Brand:</strong> <%=product.brand%></p>
                 <div class="size-options mb-4">
                     <h6 class="mb-2">Select Size:</h6>
-                    <div class="size-buttons">
-                        <button class="size-btn" onclick="selectSize('S')" id="sizeS">S</button>
-                        <button class="size-btn" onclick="selectSize('M')" id="sizeM">M</button>
-                        <button class="size-btn" onclick="selectSize('L')" id="sizeL">L</button>
+                    <div class="size-buttons mb-3">
+                        <button id="sizeS" class="size-btn" onclick="selectSize('S')" 
+                                data-stock="<%= product.quantities.small %>">S</button>
+                        <button id="sizeM" class="size-btn" onclick="selectSize('M')" 
+                                data-stock="<%= product.quantities.medium %>">M</button>
+                        <button id="sizeL" class="size-btn" onclick="selectSize('L')" 
+                                data-stock="<%= product.quantities.large %>">L</button>
                     </div>
                 </div>
-                <div class="quantity-selector mb-4">
+                <div class="quantity-selector mb-3">
                     <h6 class="mb-2">Quantity:</h6>
                     <div class="quantity__control">
                         <button class="quantity-btn" onclick="updateQuantity('decrease')">-</button>
-                        <input type="number" id="quantity" value="1" min="1" max="10" onchange="validateQuantity(this)">
+                        <input type="number" id="quantity" value="1" min="1" onchange="validateQuantity(this)">
                         <button class="quantity-btn" onclick="updateQuantity('increase')">+</button>
+                        <span id="stockMessage" class="text-muted ms-2"></span>
                     </div>
                 </div>
                 <div class="stock-quantities mb-4">
@@ -407,7 +417,7 @@
 
                 <div class="buttons mb-4">
                     <button class="button" onclick="addToCart('<%= product._id %>')" id="addToCartBtn" disabled>Add to Cart</button>
-                    <button class="button1">Buy Now</button>
+                    <!-- <button class="button1">Buy Now</button> -->
                 </div>
             </div>
         </div>
@@ -438,7 +448,7 @@
                             <h6><%= relatedProducts[i].productName %></h6>
                             <h5> ₹<%= relatedProducts[i].salesPrice %></h5>
                             <h6><%= relatedProducts[i].category.name %></h6>
-                            <a href="/addToCart?id=<%=relatedProducts[i]._id%>" class="btn">Add To Cart</a>
+                            <button onclick="addToCart('<%= product._id %>')" class="btn">Add To Cart</button>
                         </div>
                     </div>
                 </div>
@@ -473,6 +483,7 @@
     }
 
     let selectedSize = null;
+    let currentStock = 0;
 
     function selectSize(size) {
         selectedSize = size;
@@ -481,18 +492,63 @@
         document.querySelectorAll('.size-btn').forEach(btn => {
             btn.classList.remove('selected');
         });
-        document.getElementById('size' + size).classList.add('selected');
+        const selectedButton = document.getElementById('size' + size);
+        selectedButton.classList.add('selected');
         
-        // Enable add to cart button
-        document.getElementById('addToCartBtn').disabled = false;
+        // Get stock for selected size
+        currentStock = parseInt(selectedButton.getAttribute('data-stock'));
+        
+        // Update stock message
+        const stockMessage = document.getElementById('stockMessage');
+        if (currentStock > 0) {
+            stockMessage.textContent = `${currentStock} in stock`;
+            stockMessage.style.color = '#28a745';
+        } else {
+            stockMessage.textContent = 'Out of stock';
+            stockMessage.style.color = '#dc3545';
+        }
+        
+        // Enable add to cart button if stock available
+        document.getElementById('addToCartBtn').disabled = currentStock === 0;
+        
+        // Adjust quantity if it's more than available stock
+        const quantityInput = document.getElementById('quantity');
+        if (parseInt(quantityInput.value) > currentStock) {
+            quantityInput.value = currentStock;
+        }
     }
 
     function updateQuantity(action) {
         const quantityInput = document.getElementById('quantity');
         let currentValue = parseInt(quantityInput.value);
         
-        if (action === 'increase' && currentValue < 10) {
-            quantityInput.value = currentValue + 1;
+        if (!selectedSize) {
+            Swal.fire({
+                title: 'Select Size',
+                text: 'Please select a size first',
+                icon: 'warning',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            return;
+        }
+        
+        if (action === 'increase') {
+            if (currentValue < currentStock) {
+                quantityInput.value = currentValue + 1;
+            } else {
+                Swal.fire({
+                    title: 'Stock Limit',
+                    text: `Only ${currentStock} items available in size ${selectedSize}`,
+                    icon: 'warning',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
         } else if (action === 'decrease' && currentValue > 1) {
             quantityInput.value = currentValue - 1;
         }
@@ -502,8 +558,17 @@
         let value = parseInt(input.value);
         if (isNaN(value) || value < 1) {
             input.value = 1;
-        } else if (value > 10) {
-            input.value = 10;
+        } else if (value > currentStock) {
+            input.value = currentStock;
+            Swal.fire({
+                title: 'Stock Limit',
+                text: `Only ${currentStock} items available in size ${selectedSize}`,
+                icon: 'warning',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
         }
     }
 

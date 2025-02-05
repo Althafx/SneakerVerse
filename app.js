@@ -1,7 +1,7 @@
-
 const express = require("express")
 const path = require("path")
 const session = require("express-session")
+const flash = require('connect-flash')
 const passport = require("./config/passport")
 const User = require("./models/userSchema")
 const errorHandler = require('./middlewares/errorHandler')
@@ -10,15 +10,31 @@ const adminRouter = require("./routes/adminRouter")
 
 require("dotenv").config()
 const connectDB = require('./config/db')
-connectDB()
 
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION! Shutting down...');
+    console.error('Error:', err.name, err.message);
+    console.error('Stack:', err.stack);
+    process.exit(1);
+});
+
+// Connect to MongoDB
+connectDB().then(() => {
+    // console.log('mongodb is connected');
+}).catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+});
 
 // 
 const app = express()
 
+app.use("/Public", express.static("Public"));
+
 // Session handling
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -28,10 +44,21 @@ app.use(session({
     }
 }));
 
+// Flash messages
+app.use(flash());
+
+// Make flash messages available to all views
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success');
+    res.locals.error_msg = req.flash('error');
+    next();
+});
+
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "Public")));
+app.use("/uploads", express.static(path.join(__dirname, "Public/uploads")));
 
 // View engine setup
 app.set("view engine", "ejs");
@@ -86,13 +113,43 @@ app.use((req, res) => {
     });
 });
 
-// Error handler must be last
+// Error handler 
 app.use(errorHandler);
 
+// Socket.IO setup
+const http = require('http');
+const socketIO = require('socket.io');
+const server = http.createServer(app);
+const io = socketIO(server);
+
+// Make io accessible to routes
+app.set('io', io);
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+    console.log('A user connected');
+    
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+});
+
 // Start server
-app.listen(process.env.PORT, () => {
-    console.log("Your SneakerVerse Server is running at PORT:", process.env.PORT);
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+    console.error('UNHANDLED REJECTION! Shutting down...');
+    console.error('Error:', err.name, err.message);
+    console.error('Stack:', err.stack);
+    server.close(() => {
+        process.exit(1);
+    });
 });
 
 module.exports = app;
 
+//arjunanil2114@gmail.com,faheemmbasheer@gmail.com

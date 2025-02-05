@@ -1,5 +1,5 @@
   <!-- Footer Section Begin -->
-  <footer class="footer">
+<footer class="footer">
     <div class="container">
         <div class="row">
             <div class="col-lg-3 col-md-6 col-sm-6">
@@ -8,7 +8,7 @@
                         <a href="#"><img src="/img/logoWhite.png" alt=""></a>
                     </div>
                     <p>The customer is at the heart of our unique business model, which includes design.</p>
-                    <a href="#"><img src="/Public/img/payment.png" alt=""></a>
+                    <a href="#"><img src="/img/payment.png" alt=""></a>
                 </div>
             </div>
             <div class="col-lg-2 offset-lg-1 col-md-3 col-sm-6">
@@ -49,15 +49,7 @@
         <div class="row">
             <div class="col-lg-12 text-center">
                 <div class="footer__copyright__text">
-                    <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                    <p>Copyright ©
-                        <script>
-                            document.write(new Date().getFullYear());
-                        </script>
-                        <i class="fa fa-heart-o"
-                        aria-hidden="true"></i> <a href="https://colorlib.com" target="_blank"></a>
-                    </p>
-                    <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                    <p>Copyright <%= new Date().getFullYear() %> All rights reserved</p>
                 </div>
             </div>
         </div>
@@ -75,21 +67,84 @@
     </div>
 </div>
 <!-- Search End -->
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
 <!-- Js Plugins -->
-<script src="js/jquery-3.3.1.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/jquery.nice-select.min.js"></script>
-<script src="js/jquery.nicescroll.min.js"></script>
-<script src="js/jquery.magnific-popup.min.js"></script>
-<script src="js/jquery.countdown.min.js"></script>
-<script src="js/jquery.slicknav.js"></script>
-<script src="js/mixitup.min.js"></script>
-<script src="js/owl.carousel.min.js"></script>
-<script src="js/main.js"></script>
-</body>
+<script src="/js/jquery-3.3.1.min.js"></script>
+<script src="/js/jquery.nice-select.min.js"></script>
+<script src="/js/jquery.nicescroll.min.js"></script>
+<script src="/js/jquery.magnific-popup.min.js"></script>
+<script src="/js/jquery.countdown.min.js"></script>
+<script src="/js/jquery.slicknav.js"></script>
+<script src="/js/mixitup.min.js"></script>
+<script src="/js/owl.carousel.min.js"></script>
+<script src="/js/main.js"></script>
 
-</html>
+<style>
+    .footer {
+        background-color: #111111;
+        padding: 70px 0;
+        margin-top: 50px;
+    }
+    .footer__about {
+        margin-bottom: 30px;
+    }
+    .footer__about p {
+        color: #b7b7b7;
+        margin-bottom: 20px;
+    }
+    .footer__logo {
+        margin-bottom: 20px;
+    }
+    .footer__widget {
+        margin-bottom: 30px;
+    }
+    .footer__widget h6 {
+        color: #ffffff;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+    .footer__widget ul li {
+        list-style: none;
+        margin-bottom: 10px;
+    }
+    .footer__widget ul li a {
+        color: #b7b7b7;
+        transition: all 0.3s;
+    }
+    .footer__widget ul li a:hover {
+        color: #ffffff;
+    }
+    .footer__newslatter {
+        color: #b7b7b7;
+    }
+    .footer__newslatter p {
+        margin-bottom: 20px;
+    }
+    .footer__newslatter form {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    .footer__newslatter form input {
+        width: 100%;
+        height: 40px;
+        border: none;
+        padding-left: 20px;
+        background: #303030;
+        color: #b7b7b7;
+    }
+    .footer__newslatter form button {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        padding: 0 15px;
+        border: none;
+        background: #a1ca40;
+        color: #ffffff;
+    }
+    .footer__copyright__text {
+        color: #b7b7b7;
+        margin-top: 25px;
+    }
+</style>

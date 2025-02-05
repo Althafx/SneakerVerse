@@ -160,7 +160,6 @@
 
 
 <body>
-  <%- include('../admin/adminPartials/cursor') %>
   <video autoplay loop muted style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;">
     <source src="videos/bgvid3.mp4" type="video/mp4">
     Your browser does not support the video tag.
@@ -179,7 +178,7 @@
         <div class="card">
           <i class="fas fa-user card-icon"></i>
           <div class="card-title">USER</div>
-          <button class="card-button" onclick="window.location.href='/home'">Login</button>
+          <button class="card-button" onclick="window.location.href='/login'">Login</button>
         </div>
       </div>
       <button class="arrow arrow-right" onclick="toggleRole()">&#10095</button>

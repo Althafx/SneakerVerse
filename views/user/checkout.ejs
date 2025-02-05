@@ -1,0 +1,296 @@
+<%- include('../partials/user/header') %>
+
+<style>
+    /* Breadcrumb Styles */
+    .custom-breadcrumb {
+        background-color: #f8f9fa;
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .custom-breadcrumb .breadcrumb {
+        margin-bottom: 0;
+        background: transparent;
+    }
+    
+    .custom-breadcrumb .breadcrumb-item a {
+        color: #6c757d;
+        text-decoration: none;
+    }
+    
+    .custom-breadcrumb .breadcrumb-item.active {
+        color: #343a40;
+    }
+    
+    .custom-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+
+    /* Success Animation */
+    .success-animation {
+        margin: 0 auto;
+        width: 100px;
+        height: 100px;
+    }
+    
+    .checkmark {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: block;
+        stroke-width: 2;
+        stroke: #4bb71b;
+        stroke-miterlimit: 10;
+        box-shadow: 0 0 20px #4bb71b33;
+        animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+    }
+    
+    .checkmark__circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 2;
+        stroke-miterlimit: 10;
+        stroke: #4bb71b;
+        fill: none;
+        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+    
+    .checkmark__check {
+        transform-origin: 50% 50%;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+    }
+    
+    @keyframes stroke {
+        100% { stroke-dashoffset: 0; }
+    }
+    
+    @keyframes scale {
+        0%, 100% { transform: none; }
+        50% { transform: scale3d(1.1, 1.1, 1); }
+    }
+    
+    @keyframes fill {
+        100% { box-shadow: inset 0 0 0 100px #4bb71b33; }
+    }
+    
+    /* Modal Styles */
+    .modal-content {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .btn {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+</style>
+
+
+<div class="container mt-5 mb-5">
+    <!-- Breadcrumb -->
+    <div class="custom-breadcrumb mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/home">Home</a></li>
+                <li class="breadcrumb-item"><a href="/cart">Cart</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+            </ol>
+        </nav>
+    </div>
+
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%= error_msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%= success_msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
+    <% if (!addresses || !Array.isArray(addresses) || addresses.length === 0) { %>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3>Add Delivery Address</h3>
+                        <p class="mb-4">Please add a delivery address to continue with checkout.</p>
+                        <a href="/profile#addresses" class="btn btn-primary">Add New Address</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } else { %>
+        <div class="row">
+            <!-- Left Column - Address Selection -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Select Delivery Address</h4>
+                        <a href="/profile#addresses" class="btn btn-outline-primary btn-sm">Add New Address</a>
+                    </div>
+                    <div class="card-body">
+                        <% addresses.forEach((address, index) => { %>
+                            <div class="address-card mb-3 p-3 border rounded">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="selectedAddress" 
+                                           id="address<%= index %>" value="<%= address._id %>" 
+                                           <%= index === 0 ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="address<%= index %>">
+                                        <strong><%= address.name %></strong><br>
+                                        <%= address.landMark %><br>
+                                        <%= address.city %>, <%= address.state %> <%= address.pincode %><br>
+                                        Phone: <%= address.phone %><br>
+                                        Alt Phone: <%= address.altPhone %><br>
+                                        Type: <%= address.addressType %>
+                                    </label>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+
+                <!-- Payment Method Selection -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Payment Method</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod" checked>
+                            <label class="form-check-label" for="cod">
+                                Cash on Delivery
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="wallet" value="wallet">
+                            <label class="form-check-label" for="wallet">
+                                Wallet
+                                <small class="text-muted">(Balance: ₹<%= user.wallet || 0 %>)</small>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="online">
+                            <label class="form-check-label" for="online">
+                                Online Payment
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Order Summary -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Order Summary</h4>
+                    </div>
+                    <div class="card-body">
+                        <% cart.items.forEach(item => { %>
+                            <div class="d-flex mb-4 align-items-center">
+                                <div class="flex-shrink-0" style="width: 100px;">
+                                    <% if (item.product.productImage && item.product.productImage.length > 0) { %>
+                                        <img src="/uploads/product-images/<%= item.product.productImage[0] %>" 
+                                            alt="<%= item.product.productName %>" 
+                                            class="img-fluid rounded">
+                                    <% } %>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="mb-1"><%= item.product.productName %></h5>
+                                    <p class="mb-1 text-muted">
+                                        Brand: <%= item.product.brand %><br>
+                                        Size: <%= item.size %><br>
+                                        Quantity: <%= item.quantity %>
+                                    </p>
+
+
+                                    <% if (item.product.offer) { %>
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Price: ₹<%= item.product.offer.discountedPrice %></span>
+                                        <span class="fw-bold">Total: ₹<%= item.product.offer.discountedPrice * item.quantity %></span>
+                                    </div>
+
+                                    <% } else { %>  
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Price: ₹<%= item.product.salesPrice %></span>
+                                        <span class="fw-bold">Total: ₹<%= item.product.salesPrice * item.quantity %></span>
+                                    </div>
+
+                                    <% } %>
+
+
+                                </div>
+                            </div>
+                            <% if (cart.items.indexOf(item) !== cart.items.length - 1) { %>
+                                <hr class="my-3">
+                            <% } %>
+                        <% }); %>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <strong>₹<%= subtotal %></strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <strong>Free</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-0">
+                            <span class="fw-bold">Total</span>
+                            <strong class="text-primary">₹<%= subtotal %></strong>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-top-0">
+                        <form action="/checkout/place-order" method="POST" id="orderForm">
+                            <input type="hidden" name="paymentMethod" value="cod">
+                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold" onclick="return validateOrder()">
+                                <i class="fas fa-shopping-bag me-2"></i>Place Order
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+
+function validateOrder() {
+    const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
+    if (!selectedAddress) {
+        alert('Please select a delivery address');
+        return false;
+    }
+
+    // Add the selected address to the form
+    const addressInput = document.createElement('input');
+    addressInput.type = 'hidden';
+    addressInput.name = 'addressId';
+    addressInput.value = selectedAddress.value;
+    document.getElementById('orderForm').appendChild(addressInput);
+
+    return true;
+}
+</script>
+
+<%- include('../partials/user/footer') %>

@@ -46,6 +46,36 @@ const userSchema = new Schema({
         type:Number,
         default:0
     },
+    addresses: [{
+        name: {
+            type: String,
+            required: true
+        },
+        street: {
+            type: String,
+            required: true
+        },
+        city: {
+            type: String,
+            required: true
+        },
+        state: {
+            type: String,
+            required: true
+        },
+        pincode: {
+            type: String,
+            required: true
+        },
+        mobile: {
+            type: String,
+            required: true
+        },
+        isDefault: {
+            type: Boolean,
+            default: false
+        }
+    }],
     orderHistory:[{
         type:Schema.Types.ObjectId,
         ref:"Order"

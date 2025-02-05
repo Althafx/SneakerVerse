@@ -1,13 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { adminAuth } = require("../middlewares/auth");
-
 const adminController = require("../controllers/admin/adminController");
+const { adminAuth } = require('../middlewares/auth');
 const customerController = require("../controllers/admin/customerController");
 const categoryController = require("../controllers/admin/categoryController");
 const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
-
 const multer = require("../helpers/multer");
 
 // Add path middleware to all admin routes
@@ -50,6 +48,18 @@ router.patch("/blockProduct/:id", adminAuth, productController.blockProduct);
 router.patch("/unblockProduct/:id", adminAuth, productController.unblockProduct);
 router.delete('/products/delete/:id', adminAuth, productController.deleteProduct);
 
+// Offer routes
+
+router.post('/addCategoryOffer', adminAuth, categoryController.addOffer);
+router.post('/removeCategoryOffer', adminAuth, categoryController.removeOffer);
+router.post("/addProductOffer", adminAuth, productController.addProductOffer);
+router.post("/removeProductOffer", adminAuth, productController.removeProductOffer);
+
+
+// Order Management Routes
+router.get('/orders', adminAuth, adminController.getOrders);
+router.get('/order/:orderId', adminAuth, adminController.getOrderDetails);
+router.post('/api/updateOrderStatus', adminAuth, adminController.updateOrderStatus);
+router.post('/api/updateProductStatus', adminAuth, adminController.updateProductStatus);
+
 module.exports = router;
-
-

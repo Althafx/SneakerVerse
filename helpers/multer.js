@@ -7,7 +7,7 @@ const fs = require('fs');
 
 
 // Create upload directory if it doesn't exist
-const uploadDir = path.join(__dirname, "../public/uploads/product-images");
+const uploadDir = path.join(__dirname, "../Public/uploads/product-images");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }

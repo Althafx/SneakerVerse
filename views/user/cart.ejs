@@ -8,7 +8,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <style>
         body {
-            background: #f5f5f5 !important;
+            background: #9e9e9e !important;
+        }
+        .breadcrumb-option{
+            background-color: #7c7c7c !important;
         }
         .shopping-cart {
             padding-top: 40px;
@@ -254,7 +257,7 @@
     </style>
 </head>
 <body>
-    <%- include('../../views/partials/user/header') %>
+    <%- include('../partials/user/header', { path: locals.path || '/cart' }) %>
     <%- include('../admin/adminPartials/cursor') %>
 
     <!-- Breadcrumb Section Begin -->
@@ -284,7 +287,7 @@
                         <% if (!cart || !cart.items || cart.items.length === 0) { %>
                             <div class="text-center py-5">
                                 <h4>Your cart is empty</h4>
-                                <a href="/shop" class="btn btn-primary mt-3">Continue Shopping</a>
+                                <a href="/home" class="btn btn-primary mt-3">Continue Shopping</a>
                             </div>
                         <% } else { %>
                             <table>
@@ -306,25 +309,13 @@
                                                         <% if (item.product.productImage && item.product.productImage.length > 0) { %>
                                                             <img src="/uploads/product-images/<%= item.product.productImage[0] %>" 
                                                                  alt="<%= item.product.productName %>" 
-                                                                 style="width: 90px; height: 90px; object-fit: cover; border-radius: 4px;">
-                                                        <% } else { %>
-                                                            <img src="/img/no-image.png" 
-                                                                 alt="No image" 
-                                                                 style="width: 90px; height: 90px; object-fit: cover; border-radius: 4px;">
+                                                                 style="max-width: 100px;">
                                                         <% } %>
                                                     </div>
                                                     <div class="product__cart__item__text">
-                                                        <h6><%= item.product.productName || 'Product Name Not Available' %></h6>
-                                                        <% if (item.size) { %>
-                                                            <p class="text-muted mb-0">Size: <%= item.size %></p>
-                                                            <% if (typeof item.availableQuantity === 'number') { %>
-                                                                <small class="text-muted">
-                                                                    (<%= item.availableQuantity %> available)
-                                                                </small>
-                                                            <% } %>
-                                                        <% } else { %>
-                                                            <p class="text-muted mb-0">Size: Not specified</p>
-                                                        <% } %>
+                                                        <h6><%= item.product.productName %></h6>
+                                                        <h5>₹<%= item.product.salesPrice %></h5>
+                                                        <p>Size: <%= item.size %></p>
                                                     </div>
                                                 </td>
                                                 <td class="cart__price">₹<%= item.product.salesPrice ? item.product.salesPrice.toLocaleString('en-IN') : '0' %></td>
@@ -379,10 +370,11 @@
                                 </div>
                                 <div class="col-lg-6">
                                     <div class="cart__total__procced">
-                                        <h6>Cart Summary</h6>
+                                        <h6>Cart total</h6>
                                         <ul>
-                                            <li>Total Items <span><%= cart.items.reduce((sum, item) => sum + item.quantity, 0) %></span></li>
-                                            <li>Total Amount <span>₹<%= cart.totalAmount.toLocaleString('en-IN') %></span></li>
+                                            <li>Subtotal <span>₹<%= cart.totalAmount.toLocaleString('en-IN') %></span></li>
+                                            <li>Shipping <span>Free</span></li>
+                                            <li>Total <span>₹<%= cart.totalAmount.toLocaleString('en-IN') %></span></li>
                                         </ul>
                                         <a href="/checkout" class="primary-btn">Proceed to checkout</a>
                                     </div>
@@ -545,6 +537,6 @@
     }
     </script>
 
-    <%- include('../../views/partials/user/footer') %>
+    <%- include('../partials/user/footer') %>
 </body>
 </html>

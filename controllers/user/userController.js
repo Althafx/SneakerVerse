@@ -1,11 +1,12 @@
-const User = require("../../models/userSchema")
-const Product = require('../../models/productSchema');
-const Category = require('../../models/categorySchema');
-const Address = require('../../models/addressSchema');
+const User = require("../../models/userSchema");
+const Product = require("../../models/productSchema");
+const Category = require("../../models/categorySchema");
+const Wishlist = require("../../models/wishlistSchema");
+const { isProductInWishlist } = require('./wishlistController');
 const nodemailer = require("nodemailer")
 const env = require("dotenv").config()
-const bcrypt = require("bcrypt")
-
+const bcrypt = require("bcrypt") // Fixed path to offerController
+const Address = require('../../models/addressSchema');
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -208,15 +209,19 @@ const login = async (req, res, next) => {
             return res.render("login", { message: "Incorrect password or email" });
         }
 
-        // Successful login: store the user ID in the session
-        req.session.user = findUser.id;
+        // Store the full user object in session
+        req.session.user = {
+            _id: findUser._id,
+            name: findUser.name,
+            email: findUser.email,
+            phone: findUser.phone
+        };
 
         // Redirect to user homepage
         return res.redirect("/home");
     } catch (error) {
         next(error);
     }
-
 };
 
 
@@ -247,73 +252,72 @@ const logout = async(req,res)=>{
 
 
 //homepage controls
-const loadHomepage = async (req, res, next) => {
+const loadHomepage = async (req, res) => {
     try {
-        const user = req.session.user;
         const page = parseInt(req.query.page) || 1;
-        const limit = 8; // Number of products per page
+        const limit = 8;
+        const skip = (page - 1) * limit;
+
+        let query = { isListed: true };
         
-        // Get all listed categories
-        const listedCategories = await Category.find({ isListed: true }).select('_id');
-        const listedCategoryIds = listedCategories.map(cat => cat._id);
-
-        // Count total products for pagination
-        const totalProducts = await Product.countDocuments({
-            isBlocked: false,
-            category: { $in: listedCategoryIds }
-        });
-
-        // Calculate total pages
-        const totalPages = Math.ceil(totalProducts / limit);
-
-        // Find paginated products
-        const products = await Product.find({
-            isBlocked: false,
-            category: { $in: listedCategoryIds }
-        })
-        .populate('category')
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .sort({ createdAt: -1 }); // Show newest products first
-
-        if (user) {
-            const userData = await User.findOne({ _id: user });
-            res.locals.user = userData;
-            res.render('home', { 
-                userData, 
-                products,
-                currentPage: page,
-                totalPages,
-                hasNextPage: page < totalPages,
-                hasPrevPage: page > 1,
-                nextPage: page + 1,
-                prevPage: page - 1,
-                lastPage: totalPages
-            });
-        } else {
-            res.render('home', { 
-                products,
-                currentPage: page,
-                totalPages,
-                hasNextPage: page < totalPages,
-                hasPrevPage: page > 1,
-                nextPage: page + 1,
-                prevPage: page - 1,
-                lastPage: totalPages
-            });
+        // Apply category filter if provided
+        if (req.query.category) {
+            query.category = req.query.category;
         }
+        console.log("query",query)
+
+        // Get products with pagination
+        const products = await Product.find({isBlocked: false})
+            .populate('category')
+            .skip(skip)
+            .limit(limit)
+            .lean();
+            console.log("products",products)
+
+        // Get total count for pagination
+        const totalProducts = await Product.countDocuments({isBlocked: false});
+        const totalPages = Math.ceil(totalProducts / limit);
+        console.log("totalPages",totalPages)
+
+        // Check wishlist status for each product if user is logged in
+        const userId = req.session.user?._id;
+        
+        // Calculate offers for each product
+
+            
+            
+        // Get all categories for the sidebar
+        const categories = await Category.find({ isListed: true }).lean();
+
+        // Calculate pagination variables
+        const hasPrevPage = page > 1;
+        const hasNextPage = page < totalPages;
+        const prevPage = hasPrevPage ? page - 1 : null;
+        const nextPage = hasNextPage ? page + 1 : null;
+
+        res.render('user/home', {
+            products,
+            categories,
+            currentPage: page,
+            totalPages,
+            hasPrevPage,
+            hasNextPage,
+            prevPage,
+            nextPage,
+            user: req.session.user,
+            title: 'Home',
+            path: req.path,
+            showBanner: true
+        });
+      
+
     } catch (error) {
-        next(error);
+        console.error('Error in loadHomepage:', error);
+        res.status(500).send('Internal Server Error');
     }
+};
 
-}
-
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-//product page controls
-const loadProductDetails = async (req, res, next) => {
+const loadProductDetails = async (req, res) => {
     try {
         const productId = req.query.id;
         const product = await Product.findById(productId).populate('category');
@@ -340,7 +344,37 @@ const loadProductDetails = async (req, res, next) => {
             relatedProducts
         });
     } catch (error) {
-        next(error);
+        console.error('Error in loadProductDetails:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+const getProductDetails = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const product = await Product.findById(productId)
+            .populate('category')
+            .lean();
+
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+
+        // Calculate offer if any
+        const offerDetails = await offerController.calculateDiscountedPrice(product);
+        if (offerDetails) {
+            product.offer = offerDetails;
+        }
+
+        res.render('user/product-details', {
+            product,
+            user: req.session.user,
+            title: product.productName,
+            path: req.path
+        });
+    } catch (error) {
+        console.error('Error in getProductDetails:', error);
+        res.status(500).send('Internal Server Error');
     }
 };
 
@@ -353,7 +387,8 @@ const pageNotFound = async(req,res)=>{
     try {
         res.render("user/pageNotFound", {
             title: '404 Not Found',
-            message: "The page you're looking for could not be found"
+            message: "The page you're looking for could not be found",
+            path: req.path
         });
     } catch(error) {
         console.log("error loading error page", error);
@@ -366,37 +401,38 @@ const pageNotFound = async(req,res)=>{
 
 
 const profile = async(req,res)=>{
-    try{
-        const userId = req.session.user;
-        const user = await User.findById(userId);
+    try {
+        // Session check is now handled by userAuth middleware
+        const user = await User.findById(req.session.user._id).lean();
         
         // Get user's addresses
-        const userAddress = await Address.findOne({ userId });
+        const userAddress = await Address.findOne({ userId: req.session.user._id });
         const addresses = userAddress ? userAddress.address : [];
 
-        if (!user) {
-            return res.redirect('/login');
-        }
+        // Combine user data with addresses
+        const userData = {
+            ...user,
+            addresses
+        };
 
         res.render('user/userprofile', { 
-            user: { 
-                ...user.toObject(), 
-                addresses 
-            } 
+            user: userData,
+            error_msg: req.flash('error'),
+            success_msg: req.flash('success'),
+            path: '/userprofile'
         });
-    }catch(error){
-        console.error('Error loading profile:', error);
-        res.render("user/pageNotFound", { 
-            title: 'Error', 
-            message: "Error loading profile" 
-        });
+
+    } catch(error) {
+        console.error('Error in profile route:', error);
+        req.flash('error', 'Something went wrong');
+        res.redirect('/home');
     }
 }
 
 const updateName = async (req, res) => {
     try {
         const { newName } = req.body;
-        const userId = req.session.user;
+        const userId = req.session.user._id;  // Get the user ID from the session
 
         // Validate name
         if (!newName || newName.trim().length < 2) {
@@ -420,12 +456,32 @@ const updateName = async (req, res) => {
             });
         }
 
-        // Update session
-        req.session.user = updatedUser._id;
+        // Update session with the complete user object
+        req.session.user = {
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            addresses: updatedUser.addresses,
+            isAdmin: updatedUser.isAdmin
+        };
+
+        // Save session
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
 
         return res.status(200).json({
             success: true,
-            message: 'Name updated successfully'
+            message: 'Name updated successfully',
+            user: {
+                name: updatedUser.name,
+                email: updatedUser.email,
+                phone: updatedUser.phone
+            }
         });
     } catch (error) {
         console.error('Error updating name:', error);
@@ -489,7 +545,7 @@ const updatePhone = async (req, res) => {
 const updatePassword = async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;
-        const userId = req.session.user;
+        const userId = req.session.user._id;  // Get the user ID from the session
 
         // Find the user
         const user = await User.findById(userId);
@@ -869,6 +925,290 @@ const resetPassword = async (req, res) => {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+const getCategory = async (req, res) => {
+    try {
+        const categoryName = req.params.category.charAt(0).toUpperCase() + req.params.category.slice(1).toLowerCase();
+        const page = parseInt(req.query.page) || 1;
+        const limit = 8; // Number of products per page
+        
+        // Find the category by name
+        const category = await Category.findOne({ 
+            name: categoryName,
+            isListed: true 
+        });
+
+        if (!category) {
+            console.log('Category not found:', categoryName);
+            return res.redirect('/home');
+        }
+
+        // Get all listed categories for the sidebar
+        const categories = await Category.find({ isListed: true });
+
+        // Count total products in this category
+        const totalProducts = await Product.countDocuments({
+            category: category._id,
+            isBlocked: false
+        });
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalProducts / limit);
+        
+        // Find products in this category with pagination
+        const products = await Product.find({ 
+            category: category._id,
+            isBlocked: false 
+        })
+        .populate('category')
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }); // Show newest products first
+
+        console.log(`Found ${products.length} products for category ${categoryName}`);
+
+        // Get user data if logged in
+        let userData = null;
+        if (req.session.user) {
+            userData = await User.findOne({ _id: req.session.user });
+        }
+
+        res.render('user/home', {
+            products,
+            categories,
+            userData,
+            user: req.session.user,
+            path: `/category/${req.params.category.toLowerCase()}`,
+            showBanner: false,
+            currentPage: page,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+            nextPage: page + 1,
+            prevPage: page - 1,
+            lastPage: totalPages
+        });
+    } catch (error) {
+        console.error('Error fetching category products:', error);
+        res.redirect('/home');
+    }
+};
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+const categorySearch = async (req, res) => {
+    try {
+        const { search, category, brand, sort } = req.query;
+        
+        // Find the category
+        const categoryObj = await Category.findOne({
+            name: category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(),
+            isListed: true
+        });
+
+        if (!categoryObj) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+
+        // Build search query
+        let searchQuery = {
+            category: categoryObj._id,
+            isBlocked: false
+        };
+
+        // Add search term if provided
+        if (search && search.trim()) {
+            searchQuery.productName = {
+                $regex: new RegExp(search.trim(), 'i')
+            };
+        }
+
+        // Add brand filter if provided
+        if (brand && brand !== 'all') {
+            searchQuery.brand = brand;
+        }
+
+        console.log('Search Query:', searchQuery);
+        console.log('Sort Options:', sort);
+
+        // Build sort options
+        let sortOptions = {};
+        switch (sort) {
+            case 'price-low':
+                sortOptions = { 'salesPrice': 1 };
+                break;
+            case 'price-high':
+                sortOptions = { 'salesPrice': -1 };
+                break;
+            case 'a-z':
+                sortOptions = { 'productName': 1 };
+                break;
+            case 'z-a':
+                sortOptions = { 'productName': -1 };
+                break;
+            default: // 'new' or undefined
+                sortOptions = { 'createdAt': -1 };
+        }
+
+        // Find products
+        const products = await Product.find(searchQuery)
+            .populate('category')
+            .sort(sortOptions)
+            .limit(12);
+
+        console.log(`Found ${products.length} products`);
+
+        res.json({
+            success: true,
+            products
+        });
+
+    } catch (error) {
+        console.error('Error in category search:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+const filterProducts = async (req, res) => {
+    try {
+        const { search, category, brand, sort } = req.query;
+
+        // Build search query
+        let searchQuery = { isBlocked: false };
+
+        // Add search term if provided
+        if (search && search.trim()) {
+            searchQuery.productName = {
+                $regex: new RegExp(search.trim(), 'i')
+            };
+        }
+
+        // Add category filter if provided
+        if (category && category !== 'all') {
+            searchQuery.category = category;
+        }
+
+        // Add brand filter if provided
+        if (brand && brand !== 'all') {
+            searchQuery.brand = brand;
+        }
+
+        console.log('Search Query:', searchQuery);
+        console.log('Sort Options:', sort);
+
+        // Build sort options
+        let sortOptions = {};
+        switch (sort) {
+            case 'price-low':
+                sortOptions = { 'salesPrice': 1 };
+                break;
+            case 'price-high':
+                sortOptions = { 'salesPrice': -1 };
+                break;
+            case 'a-z':
+                sortOptions = { 'productName': 1 };
+                break;
+            case 'z-a':
+                sortOptions = { 'productName': -1 };
+                break;
+            default: // 'new' or undefined
+                sortOptions = { 'createdAt': -1 };
+        }
+
+        // Find products with explicit collation for string sorting
+        const products = await Product.find(searchQuery)
+            .populate('category')
+            .collation({ locale: 'en' }) // Add collation for proper string sorting
+            .sort(sortOptions)
+            .limit(12);
+
+        console.log(`Found ${products.length} products`);
+
+        res.json({
+            success: true,
+            products
+        });
+
+    } catch (error) {
+        console.error('Error in filter products:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+const categorySort = async (req, res) => {
+    try {
+        const { category, sort } = req.query;
+        
+        // Find the category
+        const categoryObj = await Category.findOne({
+            name: category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(),
+            isListed: true
+        });
+
+        if (!categoryObj) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found'
+            });
+        }
+
+        // Build sort options
+        let sortOptions = {};
+        switch (sort) {
+            case 'price-low':
+                sortOptions = { 'salesPrice': 1 };
+                break;
+            case 'price-high':
+                sortOptions = { 'salesPrice': -1 };
+                break;
+            case 'a-z':
+                sortOptions = { 'productName': 1 };
+                break;
+            case 'z-a':
+                sortOptions = { 'productName': -1 };
+                break;
+            default: // 'new' or undefined
+                sortOptions = { 'createdAt': -1 };
+        }
+
+        // Find products
+        const products = await Product.find({
+            category: categoryObj._id,
+            isBlocked: false
+        })
+        .populate('category')
+        .sort(sortOptions)
+        .limit(12);
+
+        res.json({
+            success: true,
+            products
+        });
+
+    } catch (error) {
+        console.error('Error in category sort:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 module.exports = {
     loadSignup,
     signup,
@@ -890,5 +1230,10 @@ module.exports = {
     updateAddress,
     forgotPassword,
     verifyForgotPasswordOtp,
-    resetPassword
+    resetPassword,
+    getCategory,
+    categorySearch,
+    categorySort,
+    filterProducts,
+    getProductDetails
 }
