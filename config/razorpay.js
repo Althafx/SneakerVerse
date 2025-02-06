@@ -1,8 +1,29 @@
 const Razorpay = require('razorpay');
+require('dotenv').config();
+
+// Log the environment variables being used
+const key_id = process.env.RAZORPAY_KEY_ID;
+const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+console.log('Environment variables loaded:', {
+    key_id_starts_with: key_id ? key_id.substring(0, 8) : 'undefined',
+    key_id_length: key_id ? key_id.length : 0,
+    key_secret_length: key_secret ? key_secret.length : 0
+});
+
+if (!key_id || !key_secret) {
+    console.error('Razorpay keys not found in environment variables!');
+    throw new Error('Razorpay configuration missing');
+}
+
+if (!key_id.startsWith('rzp_')) {
+    console.error('Invalid Razorpay key format! Key should start with rzp_');
+    throw new Error('Invalid Razorpay key format');
+}
 
 const instance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
+    key_id: key_id,
+    key_secret: key_secret
 });
 
 module.exports = instance;

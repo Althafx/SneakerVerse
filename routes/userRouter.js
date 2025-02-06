@@ -91,6 +91,8 @@ router.delete("/cart/remove/:productId/:size", userAuth, isBlockedUser, cartCont
 //checkout routes
 router.get("/checkout", userAuth, isBlockedUser, cartController.checkout)
 router.post("/checkout/place-order", userAuth, isBlockedUser, cartController.placeOrder)
+router.post("/verify-payment", userAuth, isBlockedUser, cartController.verifyPayment)
+router.post("/retry-payment", userAuth, isBlockedUser, cartController.retryPayment)
 router.get("/success", userAuth, isBlockedUser, (req, res) => {
     res.render('user/ordersuccess', {
         user: req.session.user,

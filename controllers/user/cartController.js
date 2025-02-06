@@ -1,9 +1,11 @@
-const Product = require("../../models/productSchema");
-const Cart = require("../../models/cartSchema");
-const User = require("../../models/userSchema");
-const Address = require("../../models/addressSchema");
-const Order = require("../../models/orderSchema");
-const Category = require("../../models/categorySchema");
+const Cart = require('../../models/cartSchema');
+const Product = require('../../models/productSchema');
+const Address = require('../../models/addressSchema');
+const Order = require('../../models/orderSchema');
+const User = require('../../models/userSchema');
+const Category = require('../../models/categorySchema');
+const razorpay = require('../../config/razorpay');
+const crypto = require('crypto');
 
 const loadCart = async (req, res, next) => {
     try {
@@ -447,85 +449,68 @@ const checkout = async(req, res, next) => {
 
 const placeOrder = async(req, res, next) => {
     try {
-        const userId = req.session.user;
+        console.log('Request body:', req.body);
+        console.log('Session user:', req.session.user);
+
+        const userId = req.session.user._id; // Get the _id from the user object
         const { addressId, paymentMethod } = req.body;
-        console.log("place order",userId,addressId,paymentMethod)
+        
+        console.log("Place order details:", {
+            userId,
+            addressId,
+            paymentMethod
+        });
 
         // Validate inputs
         if (!addressId || !paymentMethod) {
-            req.flash('error', 'Missing required fields');
-            return res.redirect('/checkout');
+            console.log('Missing required fields:', { addressId, paymentMethod });
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields'
+            });
         }
 
         // Get cart and validate it's not empty
         const cart = await Cart.findOne({ userId })
             .populate('items.product');
 
+        console.log('Cart found:', cart ? 'Yes' : 'No', 'Items:', cart?.items?.length);
+
         if (!cart || cart.items.length === 0) {
-            req.flash('error', 'Your cart is empty');
-            return res.redirect('/cart');
+            return res.status(400).json({
+                success: false,
+                message: 'Your cart is empty'
+            });
         }
 
-        // Get delivery address from Address model
+        // Get delivery address
         const addressDoc = await Address.findOne({ userId });
+        console.log('Address document found:', addressDoc ? 'Yes' : 'No');
+
         if (!addressDoc) {
-            req.flash('error', 'No addresses found');
-            return res.redirect('/checkout');
+            return res.status(400).json({
+                success: false,
+                message: 'No addresses found'
+            });
         }
 
         // Find the selected address
         const selectedAddress = addressDoc.address.find(addr => addr._id.toString() === addressId);
+        console.log('Selected address found:', selectedAddress ? 'Yes' : 'No');
+
         if (!selectedAddress) {
-            req.flash('error', 'Selected address not found');
-            return res.redirect('/checkout');
-        }
-
-        // Check stock availability and update quantities
-        for (const item of cart.items) {
-            const product = await Product.findById(item.product._id);
-            if (!product) {
-                req.flash('error', 'One or more products not found');
-                return res.redirect('/checkout');
-            }
-
-            // Convert size to lowercase for quantities object
-            let sizeField;
-            switch (item.size) {
-                case 'S':
-                    sizeField = 'small';
-                    break;
-                case 'M':
-                    sizeField = 'medium';
-                    break;
-                case 'L':
-                    sizeField = 'large';
-                    break;
-                default:
-                    req.flash('error', 'Invalid size selected');
-                    return res.redirect('/checkout');
-            }
-
-            // Check if enough stock is available
-            if (product.quantities[sizeField] < item.quantity) {
-                req.flash('error', `Sorry, only ${product.quantities[sizeField]} items available for ${product.productName} in size ${item.size}`);
-                return res.redirect('/checkout');
-            }
-
-            // Reduce the stock quantity
-            product.quantities[sizeField] -= item.quantity;
-            
-            // Update total quantity
-            product.totalQuantity = product.quantities.small + product.quantities.medium + product.quantities.large;
-
-            // Save the updated product
-            await product.save();
-            console.log(`Updated stock for ${product.productName}, size ${item.size}: ${product.quantities[sizeField]} remaining`);
+            return res.status(400).json({
+                success: false,
+                message: 'Selected address not found'
+            });
         }
 
         // Calculate order total
         const orderTotal = cart.items.reduce((total, item) => {
             return total + (item.product.salesPrice * item.quantity);
         }, 0);
+
+        console.log('Order total:', orderTotal);
 
         // Create order items array
         const orderItems = cart.items.map(item => ({
@@ -536,14 +521,14 @@ const placeOrder = async(req, res, next) => {
             status: 'Pending'
         }));
 
-        // Create new order with correctly mapped address fields
+        // Create new order
         const order = new Order({
             user: userId,
             items: orderItems,
             totalAmount: orderTotal,
             shippingAddress: {
                 name: selectedAddress.name,
-                street: selectedAddress.landMark, // Using landMark as street
+                street: selectedAddress.landMark,
                 landmark: selectedAddress.landMark,
                 city: selectedAddress.city,
                 state: selectedAddress.state,
@@ -552,22 +537,74 @@ const placeOrder = async(req, res, next) => {
                 alternativePhone: selectedAddress.altPhone
             },
             paymentMethod: paymentMethod,
-            status: paymentMethod === 'cod' ? 'Pending' : 'Payment Pending'
+            status: paymentMethod === 'cod' ? 'Pending' : 'Payment Failed',
+            paymentStatus: paymentMethod === 'cod' ? 'Pending' : 'Failed'
         });
 
         await order.save();
-        console.log("Order saved successfully:", order._id);
+        console.log('Order saved:', order._id);
 
-        // Clear the cart
-        await Cart.findOneAndDelete({ userId: userId });
+        // Handle different payment methods
+        if (paymentMethod === 'online') {
+            try {
+                console.log('Creating Razorpay order for amount:', orderTotal * 100);
+                console.log('Razorpay instance:', razorpay);
+                console.log('Razorpay key:', process.env.RAZORPAY_KEY_ID);
+                
+                if (!razorpay || !razorpay.orders) {
+                    throw new Error('Razorpay not properly initialized');
+                }
 
-        // Handle wallet payment if selected
-        if (paymentMethod === 'wallet') {
-            const user = await User.findById(userId);
-            if (!user) {
-                req.flash('error', 'User not found');
-                return res.redirect('/checkout');
+                // Create Razorpay order
+                const razorpayOrder = await razorpay.orders.create({
+                    amount: Math.round(orderTotal * 100), // Convert to paise and ensure it's an integer
+                    currency: 'INR',
+                    receipt: order._id.toString(),
+                    notes: {
+                        orderId: order._id.toString()
+                    }
+                });
+
+                console.log('Razorpay order created:', razorpayOrder);
+
+                // Save Razorpay order details
+                order.razorpayOrderId = razorpayOrder.id;
+                await order.save();
+
+                // Get user details for prefill
+                const user = await User.findById(userId);
+
+                // Return payment details for frontend
+                return res.json({
+                    success: true,
+                    order: razorpayOrder,
+                    key: process.env.RAZORPAY_KEY_ID,
+                    orderDetails: {
+                        name: user.name,
+                        email: user.email,
+                        amount: Math.round(orderTotal * 100),
+                        orderId: order._id,
+                        razorpayOrderId: razorpayOrder.id
+                    }
+                });
+            } catch (error) {
+                console.error('Razorpay order creation error:', error);
+                console.error('Error stack:', error.stack);
+                console.error('Error details:', {
+                    message: error.message,
+                    code: error.code,
+                    statusCode: error.statusCode,
+                    error: error.error
+                });
+                
+                return res.status(500).json({
+                    success: false,
+                    message: 'Payment initialization failed: ' + error.message,
+                    error: error.toString()
+                });
             }
+        } else if (paymentMethod === 'wallet') {
+            const user = await User.findById(userId);
             if (user.wallet < orderTotal) {
                 req.flash('error', 'Insufficient wallet balance');
                 return res.redirect('/checkout');
@@ -576,13 +613,26 @@ const placeOrder = async(req, res, next) => {
             await user.save();
         }
 
-        // Redirect based on payment method
-        if (paymentMethod === 'online') {
-            return res.redirect('/payment-gateway');
+        // Clear cart for successful orders
+        if (paymentMethod === 'cod' || paymentMethod === 'wallet') {
+            await Cart.findOneAndDelete({ userId: userId });
+            
+            // Update product quantities for non-online payments
+            for (const item of cart.items) {
+                const product = await Product.findById(item.product._id);
+                const sizeField = item.size === 'S' ? 'small' : item.size === 'M' ? 'medium' : 'large';
+                product.quantities[sizeField] -= item.quantity;
+                product.totalQuantity = product.quantities.small + product.quantities.medium + product.quantities.large;
+                await product.save();
+            }
         }
 
-        // Redirect to success page for COD and wallet payments
-        return res.redirect('/success');
+        // Redirect based on payment method
+        if (paymentMethod === 'online') {
+            return; // Response already sent with Razorpay details
+        } else {
+            return res.redirect('/success');
+        }
 
     } catch (error) {
         console.error('Place order error:', error);
@@ -591,7 +641,151 @@ const placeOrder = async(req, res, next) => {
     }
 };
 
+const verifyPayment = async (req, res) => {
+    try {
+        console.log('Verifying payment:', req.body);
+        const {
+            orderId,
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
+        } = req.body;
 
+        // Find the order
+        const order = await Order.findById(orderId);
+        if (!order) {
+            console.log('Order not found:', orderId);
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        // Verify signature
+        const signatureVerified = verifyRazorpaySignature(
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
+        );
+
+        if (signatureVerified) {
+            console.log('Payment verified successfully');
+            
+            // Update order status
+            order.status = 'Processing';
+            order.paymentStatus = 'Paid';
+            order.razorpayPaymentId = razorpay_payment_id;
+            await order.save();
+
+            // Clear cart
+            await Cart.findOneAndDelete({ userId: order.user });
+
+            return res.json({
+                success: true,
+                message: 'Payment verified successfully'
+            });
+        } else {
+            console.log('Payment verification failed');
+            order.status = 'Payment Failed';
+            order.paymentStatus = 'Failed';
+            await order.save();
+
+            return res.status(400).json({
+                success: false,
+                message: 'Payment verification failed'
+            });
+        }
+    } catch (error) {
+        console.error('Payment verification error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Payment verification failed: ' + error.message
+        });
+    }
+};
+
+const verifyRazorpaySignature = (razorpay_order_id, razorpay_payment_id, razorpay_signature) => {
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    const generated_signature = crypto
+        .createHmac('sha256', secret)
+        .update(razorpay_order_id + '|' + razorpay_payment_id)
+        .digest('hex');
+    
+    return generated_signature === razorpay_signature;
+};
+
+const retryPayment = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        console.log('Retrying payment for order:', orderId);
+
+        // Find the order
+        const order = await Order.findById(orderId).populate('user');
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        // Verify order belongs to user
+        if (order.user._id.toString() !== req.session.user._id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Unauthorized'
+            });
+        }
+
+        // Verify order status
+        if (order.paymentStatus !== 'Failed' && order.paymentStatus !== 'Pending') {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid order status for payment retry'
+            });
+        }
+
+        console.log('Creating new Razorpay order for amount:', order.totalAmount * 100);
+
+        // Create new Razorpay order
+        const razorpayOrder = await razorpay.orders.create({
+            amount: Math.round(order.totalAmount * 100),
+            currency: 'INR',
+            receipt: order._id.toString(),
+            notes: {
+                orderId: order._id.toString()
+            }
+        });
+
+        console.log('New Razorpay order created:', razorpayOrder);
+
+        // Update order with new Razorpay order ID and set status to Pending
+        order.razorpayOrderId = razorpayOrder.id;
+        order.status = 'Pending';  
+        order.paymentStatus = 'Pending';
+        await order.save();
+
+        // Return payment details for frontend
+        return res.json({
+            success: true,
+            order: razorpayOrder,
+            key: process.env.RAZORPAY_KEY_ID,
+            orderDetails: {
+                name: order.user.name,
+                email: order.user.email,
+                amount: Math.round(order.totalAmount * 100),
+                orderId: order._id,
+                razorpayOrderId: razorpayOrder.id
+            }
+        });
+
+    } catch (error) {
+        console.error('Retry payment error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to initialize payment: ' + error.message
+        });
+    }
+};
 
 module.exports = {
     loadCart,
@@ -599,5 +793,7 @@ module.exports = {
     updateQuantity,
     removeFromCart,
     checkout,
-    placeOrder
+    placeOrder,
+    verifyPayment,
+    retryPayment
 }

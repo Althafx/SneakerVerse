@@ -259,9 +259,8 @@
                         </div>
                     </div>
                     <div class="card-footer bg-white border-top-0">
-                        <form action="/checkout/place-order" method="POST" id="orderForm">
-                            <input type="hidden" name="paymentMethod" value="cod">
-                            <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold" onclick="return validateOrder()">
+                        <form id="orderForm">
+                            <button type="button" class="btn btn-primary w-100 py-3 rounded-3 fw-bold" onclick="handleOrder()">
                                 <i class="fas fa-shopping-bag me-2"></i>Place Order
                             </button>
                         </form>
@@ -272,27 +271,149 @@
     <% } %>
 </div>
 
-
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+    async function handleOrder() {
+        const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
 
-function validateOrder() {
-    const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
-    if (!selectedAddress) {
-        alert('Please select a delivery address');
-        return false;
+        if (!selectedAddress) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Please select a delivery address'
+            });
+            return;
+        }
+
+        if (!paymentMethod) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Please select a payment method'
+            });
+            return;
+        }
+
+        if (paymentMethod.value === 'online') {
+            await handleRazorpayPayment(selectedAddress.value);
+        } else {
+            // Handle COD or wallet payment
+            const formData = new FormData();
+            formData.append('addressId', selectedAddress.value);
+            formData.append('paymentMethod', paymentMethod.value);
+
+            try {
+                const response = await fetch('/checkout/place-order', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to place order');
+                }
+
+                window.location.href = '/success';
+            } catch (error) {
+                console.error('Order error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to place order. Please try again.'
+                });
+            }
+        }
     }
 
-    // Add the selected address to the form
-    const addressInput = document.createElement('input');
-    addressInput.type = 'hidden';
-    addressInput.name = 'addressId';
-    addressInput.value = selectedAddress.value;
-    document.getElementById('orderForm').appendChild(addressInput);
+    async function handleRazorpayPayment(addressId) {
+        try {
+            const response = await fetch('/checkout/place-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    addressId: addressId,
+                    paymentMethod: 'online'
+                })
+            });
 
-    return true;
-}
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to create order');
+            }
+
+            const options = {
+                key: data.key,
+                amount: data.orderDetails.amount,
+                currency: "INR",
+                name: "SneakerVerse",
+                description: "Payment for your order",
+                order_id: data.order.id,
+                handler: async function (response) {
+                    try {
+                        const verifyResponse = await fetch('/verify-payment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                orderId: data.orderDetails.orderId,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        const verifyData = await verifyResponse.json();
+                        if (verifyData.success) {
+                            window.location.href = '/success';
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Payment Failed',
+                                text: 'Payment verification failed. Please try again.'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Payment verification error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Payment Failed',
+                            text: 'Payment verification failed. Please try again.'
+                        });
+                    }
+                },
+                prefill: {
+                    name: "<%= user.name %>",
+                    email: "<%= user.email %>"
+                },
+                theme: {
+                    color: "#3399cc"
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+
+            rzp.on('payment.failed', function (response) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: 'Payment failed. Please try again.'
+                });
+            });
+
+        } catch (error) {
+            console.error('Payment error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to initialize payment. Please try again.'
+            });
+        }
+    }
 </script>
 
 <%- include('../partials/user/footer') %>
