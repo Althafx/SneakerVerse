@@ -363,9 +363,15 @@
                     <span>&#9733;&#9733;&#9733;&#9733;&#9734;</span> 4.0 (25 reviews)
                 </div>
              
-              
-                    <div class="product__details__price text-danger"><del>₹<%= product.regularPrice %></del></div>
+                <% if (product.offer && product.offer.discountedPrice) { %>
+                    <h3 class="text-discount">₹<%= product.salesPrice %></h3>
+                    <small class="text-muted text-decoration-line-through">₹<%= product.mainPrice %></small>
+                    <span class="label" style="background-color: #ff4444;"> <%= product.offer.discountPercentage %>% OFF </span>
+                <% } else { %>
+                
                     <div class="product__details__price h3 text-success">₹<%= product.salesPrice %></div>
+                <% } %>
+                    
                
                 <!-- <p><%= product.description %></p> -->
                 <p><strong>Category:</strong> <%=product.category.name%></p>

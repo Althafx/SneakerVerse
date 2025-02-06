@@ -251,7 +251,6 @@ const logout = async(req,res)=>{
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-//homepage controls
 const loadHomepage = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -259,33 +258,49 @@ const loadHomepage = async (req, res) => {
         const skip = (page - 1) * limit;
 
         let query = { isListed: true };
-        
+
         // Apply category filter if provided
         if (req.query.category) {
             query.category = req.query.category;
         }
-        console.log("query",query)
+
+        console.log("query", query);
+
+        // Fetch categories with active offers
+        const categoriesWithOffers = await Category.find({ categoryOffer: { $gt: 0 } }).lean();
 
         // Get products with pagination
-        const products = await Product.find({isBlocked: false})
+        let products = await Product.find({ isBlocked: false })
             .populate('category')
             .skip(skip)
             .limit(limit)
             .lean();
-            console.log("products",products)
+
+        console.log("Original products", products);
+
+        // Apply category offers to products
+        products = products.map(product => {
+            const categoryOffer = categoriesWithOffers.find(cat => cat._id.equals(product.category._id));
+
+            if (categoryOffer) {
+                const discountPercentage = categoryOffer.categoryOffer;
+                const discountedPrice = Math.floor(product.salesPrice * (1 - discountPercentage / 100));
+
+                product.offer = {
+                    discountPercentage, // Example: 20% OFF
+                    discountedPrice     // Example: ₹800 instead of ₹1000
+                };
+            }
+
+            return product;
+        });
+
+        console.log("Updated products with offers", products);
 
         // Get total count for pagination
-        const totalProducts = await Product.countDocuments({isBlocked: false});
+        const totalProducts = await Product.countDocuments({ isBlocked: false });
         const totalPages = Math.ceil(totalProducts / limit);
-        console.log("totalPages",totalPages)
 
-        // Check wishlist status for each product if user is logged in
-        const userId = req.session.user?._id;
-        
-        // Calculate offers for each product
-
-            
-            
         // Get all categories for the sidebar
         const categories = await Category.find({ isListed: true }).lean();
 
@@ -309,13 +324,13 @@ const loadHomepage = async (req, res) => {
             path: req.path,
             showBanner: true
         });
-      
 
     } catch (error) {
         console.error('Error in loadHomepage:', error);
         res.status(500).send('Internal Server Error');
     }
 };
+
 
 const loadProductDetails = async (req, res) => {
     try {

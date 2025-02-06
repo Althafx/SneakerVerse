@@ -10,8 +10,10 @@ const productDetails = async (req, res) => {
         const userId = req.session.user;
         const userData = await User.findById(userId);
         const productId = req.query.id;
-        console.log("productId",productId)
+        console.log("productId", productId);
+
         const product = await Product.findById(productId).populate('category');
+        const category = await Category.findById(product.category);
 
         if (!product || !product.category.isListed) {
             return res.render("user/pageNotFound", { 
@@ -20,10 +22,19 @@ const productDetails = async (req, res) => {
             });
         }
 
-       
+        // Check if the category has an offer
+        if (category && category.categoryOffer) {
+            const discountPercentage = category.categoryOffer;
+            const discountedPrice = Math.floor(product.salesPrice * (1 - discountPercentage / 100));
 
+            // Attach the offer information to the product
+            product.offer = {
+                discountPercentage,
+                discountedPrice
+            };
+        }
 
-
+        // Get related products based on the category
         const relatedProducts = await Product.find({
             category: product.category._id,
             _id: { $ne: productId },
@@ -36,12 +47,14 @@ const productDetails = async (req, res) => {
         .limit(4);
 
         const filteredRelatedProducts = relatedProducts.filter(prod => prod.category);
-console.log("product",product)
+        
+        console.log("product", product);
+
+        // Render the product details page with the updated product
         res.render("user/product-details", { 
             user: userData, 
             product: product,
             relatedProducts: filteredRelatedProducts,
-          
         });
     } catch (error) {
         console.error('Error in product details:', error);
@@ -51,6 +64,7 @@ console.log("product",product)
         });
     }
 };
+
 
 const filterProducts = async (req, res) => {
     try {

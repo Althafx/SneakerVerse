@@ -301,6 +301,7 @@ const deleteCategory = async (req, res, next) => {
 
 };
 
+
 const addOffer = async (req, res) => {
     try {
         const percentage = Number(req.body.percentage);
@@ -316,35 +317,39 @@ const addOffer = async (req, res) => {
         }
 
         const products = await Product.find({ category: category._id });
-
         if (products.length === 0) {
             return res.json({ status: false, message: "No products found in this category" });
         }
 
+        // Check if any product has a better offer
         const hasProductOffer = products.some(product => product.productOffer > percentage);
-
         if (hasProductOffer) {
-            return res.json({ status: false, message: "Product within this category already have product offers" });
+            return res.json({ status: false, message: "Some products in this category already have better offers" });
         }
-console.log(hasProductOffer)
-       let r= await Category.updateOne({ _id: categoryId }, { $set: { categoryOffer: percentage } });
-console.log("checked:",r)
+
+        // Update category offer
+        category.categoryOffer = percentage;
+        await category.save();
+
+        // Update each product's offer
         for (const product of products) {
-            if (product.mainPrice) {
-                console.log("Processing product:", product.productName);
-                console.log("Before Update - Sale Price:", product.salesPrice);
+            // Only apply category offer if there's no product offer
+            if (!product.productOffer || product.productOffer <= 0) {
+                // Store current salesPrice before applying offer
+                product.mainPrice = product.salesPrice;
 
-                product.productOffer = 0;
-                product.salesPrice = Math.floor(product.mainPrice * (1 - percentage / 100));
-
-                console.log("After Update - Sale Price:", product.salesPrice);
-
+                // Calculate discount from salesPrice
+                const discountAmount = Math.floor(product.salesPrice * (percentage / 100));
+                product.salesPrice = product.salesPrice - discountAmount;
+                product.offer = {
+                    discountedPrice: product.salesPrice,
+                    discountPercentage: percentage
+                };
                 await product.save();
-                console.log("Product saved successfully:", product.productName);
             }
         }
 
-        res.json({ status: true });
+        res.json({ status: true, message: "Offer added successfully" });
     } catch (error) {
         console.error("Error in addOffer:", error);
         res.status(500).json({ status: false, message: "Internal Server Error" });
@@ -354,21 +359,37 @@ console.log("checked:",r)
 
 const removeOffer = async (req, res) => {
     try {
-        const categoryId = req.body.categoryId;
-        const category = await Category.findById(categoryId);
-
-        if (!category) {
-            return res.status(404).json({ status: false, message: "Category not found" });
+        const { categoryId } = req.body;
+        
+        if (!categoryId) {
+            return res.status(400).json({ 
+                status: false, 
+                message: "Category ID is required" 
+            });
         }
 
-        const percentage = category.categoryOffer;
-        const products = await Product.find({ category: category._id });
+        // Find the category
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({ 
+                status: false, 
+                message: "Category not found" 
+            });
+        }
 
-        if (products.length > 0) {
-            for (const product of products) {
-                // Reset salePrice to mainPrice when removing the offer
+        // Find all products in this category
+        const products = await Product.find({ category: categoryId });
+
+        // Update each product
+        for (const product of products) {
+            // Only update if the product doesn't have its own offer
+            if (!product.productOffer || product.productOffer <= 0) {
+                // Restore original salesPrice
                 product.salesPrice = product.mainPrice;
-                product.productOffer = 0;
+                product.offer = {
+                    discountedPrice: null,
+                    discountPercentage: 0
+                };
                 await product.save();
             }
         }
@@ -377,12 +398,25 @@ const removeOffer = async (req, res) => {
         category.categoryOffer = 0;
         await category.save();
 
-        res.json({ status: true });
+        res.json({ 
+            status: true, 
+            message: "Category offer removed successfully" 
+        });
+
     } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ status: false, message: "Internal Server Error" });
+        console.error("Error in removeOffer:", error);
+        res.status(500).json({ 
+            status: false, 
+            message: "Internal server error" 
+        });
     }
 };
+
+
+
+
+
+
 
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -398,4 +432,4 @@ module.exports = {
     deleteCategory,
     addOffer,
     removeOffer
-}
+};

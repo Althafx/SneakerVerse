@@ -148,7 +148,34 @@
                                                     <h6 class="mb-1"><%= item.product.productName %></h6>
                                                     <p class="mb-1">Size: <%= item.size %></p>
                                                     <p class="mb-1">Quantity: <%= item.quantity %></p>
-                                                    <p class="mb-0">Price: ₹<%= item.price %></p>
+                                                    <% 
+                                                        let displayPrice = item.product.salesPrice;
+                                                        let discountPercentage = 0;
+                                                        
+                                                        // Check for product offer first
+                                                        if (item.product.offer && item.product.offer.discountedPrice) {
+                                                            displayPrice = item.product.offer.discountedPrice;
+                                                            discountPercentage = item.product.offer.discountPercentage;
+                                                        }
+                                                        // Then check for category offer if no product offer exists
+                                                        else if (item.product.category && item.product.category.categoryOffer > 0) {
+                                                            displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
+                                                            discountPercentage = item.product.category.categoryOffer;
+                                                        }
+                                                    %>
+                                                    
+                                                    <% if (discountPercentage > 0) { %>
+                                                        <p class="mb-1">
+                                                            Price: ₹<%= displayPrice.toLocaleString('en-IN') %>
+                                                            <small class="text-muted text-decoration-line-through">
+                                                                ₹<%= item.product.salesPrice.toLocaleString('en-IN') %>
+                                                            </small>
+                                                            <span class="badge bg-danger"><%= discountPercentage %>% OFF</span>
+                                                        </p>
+                                                    <% } else { %>
+                                                        <p class="mb-1">Price: ₹<%= displayPrice.toLocaleString('en-IN') %></p>
+                                                    <% } %>
+                                                    <p class="mb-0">Total: ₹<%= (displayPrice * item.quantity).toLocaleString('en-IN') %></p>
                                                 </div>
                                                 <div class="col-md-3 text-end">
                                                     <p class="mb-2">
@@ -216,7 +243,34 @@
                                                     <h6 class="mb-1"><%= item.product.productName %></h6>
                                                     <p class="mb-1">Size: <%= item.size %></p>
                                                     <p class="mb-1">Quantity: <%= item.quantity %></p>
-                                                    <p class="mb-0">Price: ₹<%= item.price %></p>
+                                                    <% 
+                                                        let displayPrice = item.product.salesPrice;
+                                                        let discountPercentage = 0;
+                                                        
+                                                        // Check for product offer first
+                                                        if (item.product.offer && item.product.offer.discountedPrice) {
+                                                            displayPrice = item.product.offer.discountedPrice;
+                                                            discountPercentage = item.product.offer.discountPercentage;
+                                                        }
+                                                        // Then check for category offer if no product offer exists
+                                                        else if (item.product.category && item.product.category.categoryOffer > 0) {
+                                                            displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
+                                                            discountPercentage = item.product.category.categoryOffer;
+                                                        }
+                                                    %>
+                                                    
+                                                    <% if (discountPercentage > 0) { %>
+                                                        <p class="mb-1">
+                                                            Price: ₹<%= displayPrice.toLocaleString('en-IN') %>
+                                                            <small class="text-muted text-decoration-line-through">
+                                                                ₹<%= item.product.salesPrice.toLocaleString('en-IN') %>
+                                                            </small>
+                                                            <span class="badge bg-danger"><%= discountPercentage %>% OFF</span>
+                                                        </p>
+                                                    <% } else { %>
+                                                        <p class="mb-1">Price: ₹<%= displayPrice.toLocaleString('en-IN') %></p>
+                                                    <% } %>
+                                                    <p class="mb-0">Total: ₹<%= (displayPrice * item.quantity).toLocaleString('en-IN') %></p>
                                                 </div>
                                                 <div class="col-md-3 text-end">
                                                     <p class="mb-2">
@@ -284,7 +338,34 @@
                                                     <h6 class="mb-1"><%= item.product.productName %></h6>
                                                     <p class="mb-1">Size: <%= item.size %></p>
                                                     <p class="mb-1">Quantity: <%= item.quantity %></p>
-                                                    <p class="mb-0">Price: ₹<%= item.price %></p>
+                                                    <% 
+                                                        let displayPrice = item.product.salesPrice;
+                                                        let discountPercentage = 0;
+                                                        
+                                                        // Check for product offer first
+                                                        if (item.product.offer && item.product.offer.discountedPrice) {
+                                                            displayPrice = item.product.offer.discountedPrice;
+                                                            discountPercentage = item.product.offer.discountPercentage;
+                                                        }
+                                                        // Then check for category offer if no product offer exists
+                                                        else if (item.product.category && item.product.category.categoryOffer > 0) {
+                                                            displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
+                                                            discountPercentage = item.product.category.categoryOffer;
+                                                        }
+                                                    %>
+                                                    
+                                                    <% if (discountPercentage > 0) { %>
+                                                        <p class="mb-1">
+                                                            Price: ₹<%= displayPrice.toLocaleString('en-IN') %>
+                                                            <small class="text-muted text-decoration-line-through">
+                                                                ₹<%= item.product.salesPrice.toLocaleString('en-IN') %>
+                                                            </small>
+                                                            <span class="badge bg-danger"><%= discountPercentage %>% OFF</span>
+                                                        </p>
+                                                    <% } else { %>
+                                                        <p class="mb-1">Price: ₹<%= displayPrice.toLocaleString('en-IN') %></p>
+                                                    <% } %>
+                                                    <p class="mb-0">Total: ₹<%= (displayPrice * item.quantity).toLocaleString('en-IN') %></p>
                                                 </div>
                                                 <div class="col-md-3 text-end">
                                                     <p class="mb-2">

@@ -164,11 +164,27 @@
   h6{   
     color:"white"
   }
-  
 
 
-
-
+  .label {
+    background-color: #ff4444;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 220px !important;  
+}
+.text-discount {
+    font-size: 18px;
+    font-weight: bold;
+    color: #6fff0f;
+}
+.text-decoration-line-through {
+    text-decoration: line-through;
+}
 
 
   .filter__controls {
@@ -498,6 +514,50 @@
       padding-left: 15px;
     }
   }
+
+
+  /* .discount-badge {
+    background-color: red;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+} */
+
+  .product-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    color: #43e702;
+  }
+  .current-price {
+    color: #64fa00;
+    font-weight: 600;
+    font-size: 1.1em;
+    margin: 0;
+  }
+  .original-price {
+    color: #b91616;
+    text-decoration: line-through;
+    font-size: 0.9em;
+  }
+  .offer-label {
+    background-color: #ff4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    position: absolute;
+    top: 10px;
+    right: 210px;
+    font-size: 0.85em;
+    font-weight: 500;
+    z-index: 1;
+  }
 </style>
 
 <% if (typeof showBanner === 'undefined' || showBanner) { %>
@@ -625,50 +685,64 @@
             <% if (products && products.length > 0) { %>
               <% products.forEach(function(product) { %>
                 <div class="col-lg-3 col-md-4 col-12 col-sm-6">
-                    <div class="product-cart-wrap mb-30">
-                        <div class="product-img-action-wrap">
-                            <div class="product-img product-img-zoom">
-                                <a href="/productDetails?id=<%= product._id %>">
-                                    <img class="default-img" src="/uploads/product-images/<%= product.productImage[0] %>" alt="<%= product.productName %>">
-                                </a>
-                            </div>
-                            <div class="product-action-1">
-                                <button onclick="toggleWishlist('<%= product._id %>')" class="wishlist-btn <%= product.isInWishlist ? 'active' : '' %>">
-                                    <i class="fas fa-heart" id="heart-<%= product._id %>" style="color: <%= product.isInWishlist ? '#ff0000' : '#aaa' %>"></i>
-                                </button>
-                            </div>
-                            <% if (product.offer) { %>
-                                <span class="label" style="background-color: #ff4444;">
-                                    <%= product.offer.discountPercentage %>% OFF
-                                </span>
-                            <% } %>
-                        </div>
-                        <div class="product-content-wrap">
-                            <h6><%= product.productName %></h6>
-                            <% if (product.offer) { %>
-                                <h5 class="mb-0">
-                                    <span class="text-discount">₹<%= product.offer.discountedPrice %></span>
-                                    <small class="text-muted text-decoration-line-through">₹<%= product.salesPrice %></small>
-                                </h5>
-                            <% } else { %>
-                                <h5>₹<%= product.salesPrice %></h5>
-                            <% } %>
-                            <h6><%= product.category ? product.category.name : '' %></h6>
-                            <p>Brand: <%= product.brand %></p>
-                            <button onclick="addToCart('<%= product._id %>')" class="btn">Add To Cart</button>
-                        </div>
+                  <div class="product-cart-wrap mb-30">
+                    <div class="product-img-action-wrap">
+                      <div class="product-img product-img-zoom">
+                        <a href="/productDetails?id=<%= product._id %>">
+                          <img class="default-img" src="/uploads/product-images/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                        </a>
+                      </div>
+                      <div class="product-action-1">
+                        <button onclick="toggleWishlist('<%= product._id %>')" class="wishlist-btn <%= product.isInWishlist ? 'active' : '' %>">
+                          <i class="fas fa-heart" id="heart-<%= product._id %>" style="color: <%= product.isInWishlist ? '#ff0000' : '#aaa' %>"></i>
+                        </button>
+                      </div>
+                      <% 
+                        let displayPrice = product.salesPrice;
+                        let discountPercentage = 0;
+                        
+                        // Check for product offer first
+                        if (product.offer && product.offer.discountedPrice) {
+                          displayPrice = product.offer.discountedPrice;
+                          discountPercentage = product.offer.discountPercentage;
+                        }
+                        // Then check for category offer if no product offer exists
+                        else if (product.category && product.category.categoryOffer > 0) {
+                          displayPrice = Math.floor(product.salesPrice - (product.salesPrice * product.category.categoryOffer / 100));
+                          discountPercentage = product.category.categoryOffer;
+                        }
+                      %>
+                      <% if (discountPercentage > 0) { %>
+                        <span class="offer-label"><%= discountPercentage %>% OFF</span>
+                      <% } %>
                     </div>
+                    <div class="product-content-wrap">
+                      <h6><%= product.productName %></h6>
+                      <div class="product-price">
+                        <% if (discountPercentage > 0) { %>
+                          <span class="current-price">₹<%= product.salesPrice.toLocaleString('en-IN') %></span>
+                          <span class="original-price">₹<%= product.mainPrice.toLocaleString('en-IN') %></span>
+                        <% } else { %>₹<%= displayPrice.toLocaleString('en-IN') %>
+                          <span class="current-price"></span>
+                        <% } %>
+                      </div>
+                      <h6><%= product.category ? product.category.name : '' %></h6>
+                      <p>Brand: <%= product.brand %></p>
+                      <button onclick="addToCart('<%= product._id %>')" class="btn">Add To Cart</button>
+                    </div>
+                  </div>
                 </div>
               <% }); %>
             <% } else { %>
               <div class="col-12 text-center">
-                  <div class="no-products">
-                      <h3>No products found</h3>
-                      <p>We couldn't find any products matching your criteria.</p>
-                  </div>
+                <div class="no-products">
+                  <h3>No products found</h3>
+                  <p>We couldn't find any products matching your criteria.</p>
+                </div>
               </div>
             <% } %>
           </div>
+          
           
           <% if (totalPages > 1) { %>
           <div class="pagination">
@@ -800,17 +874,19 @@ function updateProductDisplay(products) {
 
     productContainer.innerHTML = products.map(product => {
         const offerHtml = product.offer ? `
-            <span class="label" style="background-color: #ff4444;">
+            <span class="offer-label" style="background-color: #ff4444;">
                 ${product.offer.discountPercentage}% OFF
             </span>
         ` : '';
 
         const priceHtml = product.offer ? `
-            <h5 class="mb-0">
-                <span class="text-success">₹${product.offer.discountedPrice}</span>
-                <small class="text-muted text-decoration-line-through">₹${product.salesPrice}</small>
-            </h5>
-        ` : `<h5>₹${product.salesPrice}</h5>`;
+            <div class="product-price">
+              <span class="current-price">₹${product.offer.discountedPrice}</span>
+              <span class="original-price">₹${product.salesPrice}</span>
+            </div>
+        ` : `<div class="product-price">
+              <span class="current-price">₹${product.salesPrice}</span>
+            </div>`;
 
         return `
             <div class="col-lg-3 col-md-4 col-12 col-sm-6">

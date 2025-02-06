@@ -3,10 +3,11 @@ const Cart = require("../../models/cartSchema");
 const User = require("../../models/userSchema");
 const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");
+const Category = require("../../models/categorySchema");
 
-const loadCart = async(req, res, next) => {
+const loadCart = async (req, res, next) => {
     try {
-        if(!req.session.user) {
+        if (!req.session.user) {
             return res.redirect("/login");
         }
 
@@ -15,36 +16,54 @@ const loadCart = async(req, res, next) => {
             .populate({
                 path: 'items.product',
                 model: 'Product',
-                select: 'productName productImage salesPrice quantities'
+                select: 'productName productImage salesPrice quantities productOffer category mainPrice offer',
+                populate: {
+                    path: 'category',
+                    select: 'categoryOffer name'
+                }
             });
 
-        // Filter out any invalid items
         if (cart && cart.items) {
             cart.items = cart.items.filter(item => 
                 item && 
                 item.product && 
-                item.size && 
+                item.size &&
                 typeof item.size === 'string'
             );
-            await cart.save();
-        }
 
-        // Map size keys for display
-        if (cart && cart.items) {
+            // Calculate final prices and quantities
             cart.items.forEach(item => {
-                if (item.product && item.product.quantities) {
+                if (item && item.product) {
+                    // Get size mapping
                     const sizeKey = {
                         'S': 'small',
                         'M': 'medium',
                         'L': 'large'
                     }[item.size] || item.size.toLowerCase();
                     
+                    // Set available quantity
                     item.availableQuantity = item.product.quantities[sizeKey] || 0;
+
+                    // Calculate price based on offers
+                    if (item.product.offer && item.product.offer.discountedPrice) {
+                        // Use the pre-calculated discounted price from the product schema
+                        item.price = item.product.offer.discountedPrice * item.quantity;
+                    } else if (item.product.category && item.product.category.categoryOffer > 0) {
+                        // Calculate category offer price if no product offer exists
+                        const discountedPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
+                        item.price = discountedPrice * item.quantity;
+                    } else {
+                        // Use regular sales price if no offers exist
+                        item.price = item.product.salesPrice * item.quantity;
+                    }
                 }
             });
+
+            // Update total amount
+            cart.totalAmount = cart.items.reduce((total, item) => total + item.price, 0);
+            await cart.save();
         }
 
-        // Set locals for the view
         res.locals.path = '/cart';
         res.locals.error_msg = req.flash('error');
         res.locals.success_msg = req.flash('success');
@@ -55,7 +74,6 @@ const loadCart = async(req, res, next) => {
         });
     } catch (error) {
         next(error);
-
     }
 };
 

@@ -312,13 +312,37 @@
                                                                  style="max-width: 100px;">
                                                         <% } %>
                                                     </div>
-                                                    <div class="product__cart__item__text">
-                                                        <h6><%= item.product.productName %></h6>
-                                                        <h5>₹<%= item.product.salesPrice %></h5>
-                                                        <p>Size: <%= item.size %></p>
-                                                    </div>
+    <div class="product__cart__item__text">
+        <h6><%= item.product.productName %></h6>
+        <% 
+            let displayPrice = item.product.salesPrice;
+            let discountPercentage = 0;
+            
+            // Check for product offer first
+            if (item.product.offer && item.product.offer.discountedPrice) {
+                displayPrice = item.product.offer.discountedPrice;
+                discountPercentage = item.product.offer.discountPercentage;
+            }
+            // Then check for category offer if no product offer exists
+            else if (item.product.category && item.product.category.categoryOffer > 0) {
+                displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
+                discountPercentage = item.product.category.categoryOffer;
+            }
+        %>
+        
+        <% if (discountPercentage > 0) { %>
+            <h6>  ₹<%= item.product.mainPrice.toLocaleString('en-IN') %></h6>
+            <small class="text-muted text-decoration-line-through">
+                ₹<%= item.product.mainPrice.toLocaleString('en-IN') %>
+            </small>
+            <span class="label" style="background-color: #ff4444;"> <%= discountPercentage %>% OFF </span>
+        <% } else { %>
+            <h5>₹<%= displayPrice.toLocaleString('en-IN') %></h5>
+        <% } %>
+        <p>Size: <%= item.size %></p>
+    </div>
                                                 </td>
-                                                <td class="cart__price">₹<%= item.product.salesPrice ? item.product.salesPrice.toLocaleString('en-IN') : '0' %></td>
+                                                <td class="cart__price">₹<%= item.product.salesPrice.toLocaleString('en-IN') %></td>
                                                 <td class="cart__quantity">
                                                     <div class="quantity__control">
                                                         <div class="d-flex align-items-center">
@@ -350,7 +374,7 @@
                                                         <% } %>
                                                     </div>
                                                 </td>
-                                                <td class="cart__total">₹<%= (item.price || 0).toLocaleString('en-IN') %></td>
+                                                <td class="cart__total">₹<%= (item.product.salesPrice * item.quantity).toLocaleString('en-IN') %></td>
                                                 <td class="cart__close">
                                                     <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('<%= item.product._id %>','<%= item.size %>')">
                                                         <i class="fa fa-close"></i>
@@ -372,9 +396,27 @@
                                     <div class="cart__total__procced">
                                         <h6>Cart total</h6>
                                         <ul>
-                                            <li>Subtotal <span>₹<%= cart.totalAmount.toLocaleString('en-IN') %></span></li>
+                                            <% 
+                                                let subtotal = 0;
+                                                cart.items.forEach(item => {
+                                                    if (item && item.product) {
+                                                        let itemPrice = item.product.salesPrice;
+                                                        
+                                                        if (item.product.offer && item.product.offer.discountedPrice) {
+                                                            itemPrice = item.product.salesPrice
+                                                        }
+                                                        else if (item.product.category && item.product.category.categoryOffer > 0) {
+                                                            displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
+                                                        }
+                                                        
+                                                        subtotal += itemPrice * item.quantity;
+                                                    }
+                                                   
+                                                });
+                                            %>
+                                            <li>Subtotal <span>₹<%= subtotal.toLocaleString('en-IN') %></span></li>
                                             <li>Shipping <span>Free</span></li>
-                                            <li>Total <span>₹<%= cart.totalAmount.toLocaleString('en-IN') %></span></li>
+                                            <li>Total <span>₹<%= subtotal.toLocaleString('en-IN') %></span></li>
                                         </ul>
                                         <a href="/checkout" class="primary-btn">Proceed to checkout</a>
                                     </div>

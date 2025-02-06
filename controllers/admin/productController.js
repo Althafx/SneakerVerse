@@ -141,45 +141,27 @@ const getAllProducts = async (req, res, next) => {
         const search = req.query.search || "";
         const page = parseInt(req.query.page) || 1;
         const limit = 4;
+        const skip = (page - 1) * limit;
 
-        const productData = await Product.find({
+        const searchQuery = {
             $or: [
                 { productName: { $regex: new RegExp(".*" + search + ".*", "i") } },
                 { brand: { $regex: new RegExp(".*" + search + ".*", "i") } },
             ],
-        })
-        .limit(limit * 1)
-        .skip((page - 1) * limit)
-        .populate("category")
-        .exec();
+        };
 
-        // Log product data for debugging
-        console.log('Product data sample:', productData.map(p => ({
-            name: p.productName,
-            quantities: p.quantities,
-            totalQuantity: p.totalQuantity
-        })));
+        const productData = await Product.find(searchQuery)
+            .populate("category")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .exec();
 
-        const count = await Product.find({
-            $or: [
-                { productName: { $regex: new RegExp(".*" + search + ".*", "i") } },
-                { brand: { $regex: new RegExp(".*" + search + ".*", "i") } },
-            ],
-        }).countDocuments();
+        const totalProducts = await Product.countDocuments(searchQuery);
+        const totalPages = Math.ceil(totalProducts / limit);
 
         const category = await Category.find({ isListed: true });
         const brand = await Brand.find({ isBlocked: false });
-
-        console.log('Rendering products page with data:', {
-            productCount: productData.length,
-            categoryCount: category.length,
-            brandCount: brand.length,
-            sampleProduct: productData[0] ? {
-                name: productData[0].productName,
-                quantities: productData[0].quantities,
-                totalQuantity: productData[0].totalQuantity
-            } : null
-        });
 
         res.render("products", {
             title: "Admin Panel",
@@ -187,16 +169,15 @@ const getAllProducts = async (req, res, next) => {
             category,
             brand,
             currentPage: page,
-            totalPages: Math.ceil(count / limit),
+            totalPages,
+            totalProducts,
             search,
             path: '/admin/products'
         });
     } catch (error) {
         next(error);
     }
-
 };
-
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -485,51 +466,117 @@ const deleteProduct = async (req, res, next) => {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
 const addProductOffer = async (req, res) => {
     try {
-        const { productId, percentge } = req.body;
-        const findProduct = await Product.findOne({_id:productId});
-        const findCategory = await Category.findOne({_id:findProduct.category});
-        if(findCategory.categoryOffer>percentage){
-            return res.json({status:false,message:"This products category already have a category offer"})
+        const { productId, percentage } = req.body;
+        
+        if (!productId || !percentage) {
+            return res.status(400).json({ 
+                status: false, 
+                message: "Product ID and percentage are required" 
+            });
         }
 
-        findProduct.salesPrice = findProduct.salesPrice.Math.floor(findProduct.regularPrice * (percentage/100))
+        const findProduct = await Product.findById(productId).populate('category');
+        if (!findProduct) {
+            return res.status(404).json({ 
+                status: false, 
+                message: "Product not found" 
+            });
+        }
+
+        // Check if category has a better offer
+        if (findProduct.category && findProduct.category.categoryOffer > percentage) {
+            return res.json({
+                status: false,
+                message: "This product's category already has a better offer"
+            });
+        }
+
+        // Store current salesPrice before applying offer
+        findProduct.mainPrice = findProduct.salesPrice;
+
+        // Calculate discount from salesPrice
+        const discountAmount = Math.floor(findProduct.salesPrice * (percentage / 100));
+        findProduct.salesPrice = findProduct.salesPrice - discountAmount;
         findProduct.productOffer = parseInt(percentage);
+        findProduct.offer = {
+            discountedPrice: findProduct.salesPrice,
+            discountPercentage: percentage
+        };
+
         await findProduct.save();
-        findCategory.categoryOffer =0
-        await findCategory.save();
-        res.json({status:true})
-           
+        
+        res.json({
+            status: true,
+            message: "Product offer added successfully"
+        });
 
     } catch (error) {
-        res.redirect('/admin/products')
-        res.status(500).json({status:false})
-        next(error);
+        console.error("Error in addProductOffer:", error);
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        });
     }
-}
-
+};
 
 const removeProductOffer = async (req, res) => {
     try {
         const { productId } = req.body;
-        const findProduct = await Product.findOne({_id:productId});
-        const percentage = findProduct.productOffer;
+        
+        if (!productId) {
+            return res.status(400).json({ 
+                status: false, 
+                message: "Product ID is required" 
+            });
+        }
 
+        const findProduct = await Product.findById(productId).populate('category');
+        if (!findProduct) {
+            return res.status(404).json({ 
+                status: false, 
+                message: "Product not found" 
+            });
+        }
 
-        findProduct.salesPrice = findProduct.salesPrice+Math.floor(findProduct.regularPrice * (percentage/100))
-        findProduct.productOffer = 0
+        // Reset product offer
+        findProduct.productOffer = 0;
+        
+        // If category has an offer, apply category offer
+        if (findProduct.category && findProduct.category.categoryOffer > 0) {
+            // Calculate from the original price (mainPrice)
+            const discountAmount = Math.floor(findProduct.mainPrice * (findProduct.category.categoryOffer / 100));
+            findProduct.salesPrice = findProduct.mainPrice - discountAmount;
+            findProduct.offer = {
+                discountedPrice: findProduct.salesPrice,
+                discountPercentage: findProduct.category.categoryOffer
+            };
+        } else {
+            // Restore the original salesPrice
+            findProduct.salesPrice = findProduct.mainPrice;
+            findProduct.offer = {
+                discountedPrice: null,
+                discountPercentage: 0
+            };
+        }
+
         await findProduct.save();
         
-        res.json({status:true})
-           
+        res.json({
+            status: true,
+            message: "Product offer removed successfully"
+        });
 
     } catch (error) {
-        res.redirect('/admin/products')
-        res.status(500).json({status:false})
-        next(error);
+        console.error("Error in removeProductOffer:", error);
+        res.status(500).json({
+            status: false,
+            message: "Internal server error"
+        });
     }
-}
+};
 
 
 

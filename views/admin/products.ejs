@@ -56,12 +56,6 @@
             border-radius: 8px;
         }
 
-        .offer-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
         .offer-btn {
             margin-top: 5px;
             padding: 5px 10px;
@@ -146,6 +140,37 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- Pagination -->
+            <% if (totalPages > 1) { %>
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <% if (currentPage > 1) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="/admin/products?page=<%= currentPage - 1 %><%= search ? `&search=${search}` : '' %>" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    <% } %>
+                    
+                    <% for(let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                            <a class="page-link" href="/admin/products?page=<%= i %><%= search ? `&search=${search}` : '' %>">
+                                <%= i %>
+                            </a>
+                        </li>
+                    <% } %>
+                    
+                    <% if (currentPage < totalPages) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="/admin/products?page=<%= currentPage + 1 %><%= search ? `&search=${search}` : '' %>" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
+            <% } %>
         </div>
     </div>
 
@@ -237,80 +262,110 @@
             });
         }
 
-
-
-
-        async function addProduct(productId) {
-            const {value:amount} = await Swal.fire({
-                title: 'offer in percentage',
-                input: 'number',
-                inputLabel: 'percentage',
-                inputPlaceholder: '%'
-            })
-            $.ajax({
-                url: `/admin/addProductOffer/${productId}`,
-                method: 'post',
-                data: {
-                    percantage: amount,
-                    product: productId
-                },
-                success: (response) => {
-                    if(response.status===true){
-                        location.reload()
-                        swal.fire('Offer added','the offer has been removed','success')
-                    }
-                    else{
-                        if(response.error){
-                            swal.fire('Error',response.error,'error')
+        async function addOffer(productId) {
+            try {
+                const { value: percentage } = await Swal.fire({
+                    title: 'Add Product Offer',
+                    input: 'number',
+                    inputLabel: 'Offer Percentage',
+                    inputPlaceholder: 'Enter percentage (1-99)',
+                    showCancelButton: true,
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Please enter a percentage!';
                         }
-                    } 
-                    
-                }
-            })
-        }
-
-function removeOffer(productId) {
-    try {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!',
-            timer: 5000,
-            timerProgressBar: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: `/admin/removeProductOffer`,
-                    method: 'post',
-                    data: {
-                        product: productId
-                    },
-                    success: (response) => {
-                        if (response.status === true) {
-                            swal.fire('Offer removed', 'the offer has been removed', 'success');
-                            location.reload();
-                        } else if (response.status === false) {
-                            swal.fire('Error', response.error, 'error');
-                        } else {
-                            alert("failed");
+                        if (value <= 0 || value >= 100) {
+                            return 'Percentage must be between 1 and 99!';
                         }
                     }
                 });
+
+                if (percentage) {
+                    const response = await fetch('/admin/addProductOffer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            productId: productId,
+                            percentage: percentage
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (response.ok && data.status) {
+                        await Swal.fire(
+                            'Success!',
+                            'Product offer has been added.',
+                            'success'
+                        );
+                        location.reload();
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            data.message || 'Failed to add offer',
+                            'error'
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error adding offer:', error);
+                Swal.fire(
+                    'Error!',
+                    'Failed to add offer',
+                    'error'
+                );
             }
-        });
-    } catch (err) {
-        console.error(err);
-    }
-}
-                    
+        }
 
+        async function removeOffer(productId) {
+            try {
+                const result = await Swal.fire({
+                    title: 'Remove Offer',
+                    text: 'Are you sure you want to remove this offer?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, remove it!'
+                });
 
+                if (result.isConfirmed) {
+                    const response = await fetch('/admin/removeProductOffer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            productId: productId
+                        })
+                    });
 
-
+                    const data = await response.json();
+                    if (response.ok && data.status) {
+                        await Swal.fire(
+                            'Removed!',
+                            'Product offer has been removed.',
+                            'success'
+                        );
+                        location.reload();
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            data.message || 'Failed to remove offer',
+                            'error'
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error removing offer:', error);
+                Swal.fire(
+                    'Error!',
+                    'Failed to remove offer',
+                    'error'
+                );
+            }
+        }
     </script>
 </body>
 </html>

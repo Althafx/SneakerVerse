@@ -7,6 +7,7 @@ const categoryController = require("../controllers/admin/categoryController");
 const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const multer = require("../helpers/multer");
+const dashboardController = require('../controllers/admin/dashboardController');
 
 // Add path middleware to all admin routes
 router.use(adminController.addPathMiddleware);
@@ -14,7 +15,8 @@ router.use(adminController.addPathMiddleware);
 // Admin Login
 router.get("/login", adminController.loadLogin);
 router.post("/login", adminController.login);
-router.get("/dashboard", adminAuth, adminController.loadDashboard);
+router.get("/dashboard", adminAuth, dashboardController.getDashboardData);
+router.post("/generate-report", adminAuth, dashboardController.generateSalesReport);
 router.get("/logout", adminAuth, adminController.logout);
 
 // Customer Management
@@ -49,12 +51,10 @@ router.patch("/unblockProduct/:id", adminAuth, productController.unblockProduct)
 router.delete('/products/delete/:id', adminAuth, productController.deleteProduct);
 
 // Offer routes
-
 router.post('/addCategoryOffer', adminAuth, categoryController.addOffer);
 router.post('/removeCategoryOffer', adminAuth, categoryController.removeOffer);
-router.post("/addProductOffer", adminAuth, productController.addProductOffer);
-router.post("/removeProductOffer", adminAuth, productController.removeProductOffer);
-
+router.post('/addProductOffer', adminAuth, productController.addProductOffer);
+router.post('/removeProductOffer', adminAuth, productController.removeProductOffer);
 
 // Order Management Routes
 router.get('/orders', adminAuth, adminController.getOrders);
