@@ -4,6 +4,7 @@ const Address = require('../../models/addressSchema');
 const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const Category = require('../../models/categorySchema');
+const Wallet = require('../../models/walletSchema');
 const razorpay = require('../../config/razorpay');
 const crypto = require('crypto');
 
@@ -412,6 +413,9 @@ const checkout = async(req, res, next) => {
             return res.redirect('/login');
         }
 
+        // Get wallet data
+        const wallet = await Wallet.findOne({ userId });
+
         // Calculate totals
         const subtotal = cart.items.reduce((total, item) => {
             if (item.product) {
@@ -436,6 +440,7 @@ const checkout = async(req, res, next) => {
             subtotal,
             user,
             addresses: addresses,
+            wallet: wallet || { balance: 0 },
             error_msg: req.flash('error'),
             success_msg: req.flash('success')
         });
@@ -452,7 +457,7 @@ const placeOrder = async(req, res, next) => {
         console.log('Request body:', req.body);
         console.log('Session user:', req.session.user);
 
-        const userId = req.session.user._id; // Get the _id from the user object
+        const userId = req.session.user;
         const { addressId, paymentMethod } = req.body;
         
         console.log("Place order details:", {
@@ -512,6 +517,34 @@ const placeOrder = async(req, res, next) => {
 
         console.log('Order total:', orderTotal);
 
+        // If payment method is wallet, check balance
+        if (paymentMethod === 'wallet') {
+            const wallet = await Wallet.findOne({ userId });
+            
+            if (!wallet || wallet.balance < orderTotal) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Insufficient wallet balance'
+                });
+            }
+
+            // Deduct from wallet
+            await Wallet.findOneAndUpdate(
+                { userId },
+                {
+                    $inc: { balance: -orderTotal },
+                    $push: {
+                        transactions: {
+                            type: 'debit',
+                            amount: orderTotal,
+                            description: 'Order payment',
+                            status: 'completed'
+                        }
+                    }
+                }
+            );
+        }
+
         // Create order items array
         const orderItems = cart.items.map(item => ({
             product: item.product._id,
@@ -537,8 +570,8 @@ const placeOrder = async(req, res, next) => {
                 alternativePhone: selectedAddress.altPhone
             },
             paymentMethod: paymentMethod,
-            status: paymentMethod === 'cod' ? 'Pending' : 'Payment Failed',
-            paymentStatus: paymentMethod === 'cod' ? 'Pending' : 'Failed'
+            status: paymentMethod === 'wallet' ? 'Processing' : (paymentMethod === 'cod' ? 'Pending' : 'Payment Failed'),
+            paymentStatus: paymentMethod === 'wallet' ? 'Paid' : (paymentMethod === 'cod' ? 'Pending' : 'Failed')
         });
 
         await order.save();
@@ -548,8 +581,6 @@ const placeOrder = async(req, res, next) => {
         if (paymentMethod === 'online') {
             try {
                 console.log('Creating Razorpay order for amount:', orderTotal * 100);
-                console.log('Razorpay instance:', razorpay);
-                console.log('Razorpay key:', process.env.RAZORPAY_KEY_ID);
                 
                 if (!razorpay || !razorpay.orders) {
                     throw new Error('Razorpay not properly initialized');
@@ -557,7 +588,7 @@ const placeOrder = async(req, res, next) => {
 
                 // Create Razorpay order
                 const razorpayOrder = await razorpay.orders.create({
-                    amount: Math.round(orderTotal * 100), // Convert to paise and ensure it's an integer
+                    amount: Math.round(orderTotal * 100),
                     currency: 'INR',
                     receipt: order._id.toString(),
                     notes: {
@@ -589,55 +620,28 @@ const placeOrder = async(req, res, next) => {
                 });
             } catch (error) {
                 console.error('Razorpay order creation error:', error);
-                console.error('Error stack:', error.stack);
-                console.error('Error details:', {
-                    message: error.message,
-                    code: error.code,
-                    statusCode: error.statusCode,
-                    error: error.error
-                });
-                
                 return res.status(500).json({
                     success: false,
-                    message: 'Payment initialization failed: ' + error.message,
-                    error: error.toString()
+                    message: 'Failed to create payment order'
                 });
             }
-        } else if (paymentMethod === 'wallet') {
-            const user = await User.findById(userId);
-            if (user.wallet < orderTotal) {
-                req.flash('error', 'Insufficient wallet balance');
-                return res.redirect('/checkout');
-            }
-            user.wallet -= orderTotal;
-            await user.save();
-        }
-
-        // Clear cart for successful orders
-        if (paymentMethod === 'cod' || paymentMethod === 'wallet') {
-            await Cart.findOneAndDelete({ userId: userId });
-            
-            // Update product quantities for non-online payments
-            for (const item of cart.items) {
-                const product = await Product.findById(item.product._id);
-                const sizeField = item.size === 'S' ? 'small' : item.size === 'M' ? 'medium' : 'large';
-                product.quantities[sizeField] -= item.quantity;
-                product.totalQuantity = product.quantities.small + product.quantities.medium + product.quantities.large;
-                await product.save();
-            }
-        }
-
-        // Redirect based on payment method
-        if (paymentMethod === 'online') {
-            return; // Response already sent with Razorpay details
         } else {
-            return res.redirect('/success');
+            // For COD and wallet payments, clear cart and return success
+            await Cart.findOneAndDelete({ userId });
+            
+            return res.json({
+                success: true,
+                message: 'Order placed successfully',
+                orderId: order._id
+            });
         }
 
     } catch (error) {
         console.error('Place order error:', error);
-        req.flash('error', 'Failed to place order. Please try again.');
-        return res.redirect('/checkout');
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to place order'
+        });
     }
 };
 

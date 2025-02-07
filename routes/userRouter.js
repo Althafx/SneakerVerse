@@ -6,6 +6,7 @@ const productController = require("../controllers/user/productController")
 const cartController = require("../controllers/user/cartController")
 const orderController = require("../controllers/user/orderController")
 const wishlistController = require("../controllers/user/wishlistController")
+const walletController = require("../controllers/user/walletController")
 const { userAuth, isBlockedUser } = require('../middlewares/auth');
 
 
@@ -145,5 +146,11 @@ router.get('/category/:category', userAuth, userController.getCategory);
 router.get('/api/products/filter', userController.filterProducts);
 router.get('/api/products/categorySearch', userController.categorySearch);
 router.get('/api/products/categorySort', userController.categorySort);
+
+// Wallet routes
+router.get("/wallet", userAuth, isBlockedUser, walletController.getWalletPage)
+router.post("/wallet/create-order", userAuth, isBlockedUser, walletController.createOrder)
+router.post("/wallet/verify-payment", userAuth, isBlockedUser, walletController.verifyPayment)
+router.get("/wallet/transactions", userAuth, isBlockedUser, walletController.getTransactions)
 
 module.exports = router

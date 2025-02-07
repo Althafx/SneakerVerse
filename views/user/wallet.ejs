@@ -1,0 +1,224 @@
+<%- include('../partials/user/header.ejs') %>
+
+<style>
+    .wallet-container {
+        background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        padding: 2rem;
+        margin: 1rem;
+        color: #ffffff;
+    }
+    .card {
+        background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .card-body {
+        color: #ffffff;
+    }
+    .btn-primary {
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(90deg, #45a049, #4CAF50);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    .table {
+        color: #ffffff;
+    }
+    .table thead th {
+        border-bottom: 2px solid #4CAF50;
+        color: #4CAF50;
+    }
+    .table td {
+        border-color: #333333;
+    }
+    .badge {
+        padding: 8px 12px;
+        border-radius: 8px;
+    }
+    .bg-success {
+        background: #4CAF50 !important;
+    }
+    .bg-warning {
+        background: #FFC107 !important;
+    }
+    .bg-danger {
+        background: #f44336 !important;
+    }
+    .text-success {
+        color: #4CAF50 !important;
+    }
+    .text-danger {
+        color: #f44336 !important;
+    }
+    .modal-content {
+        background: #2d2d2d;
+        color: #ffffff;
+    }
+    .modal-header {
+        border-bottom: 1px solid #333333;
+    }
+    .modal-footer {
+        border-top: 1px solid #333333;
+    }
+    .form-control {
+        background: #1a1a1a;
+        border: 1px solid #333333;
+        color: #ffffff;
+        border-radius: 12px;
+    }
+    .form-control:focus {
+        background: #1a1a1a;
+        border-color: #4CAF50;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <%- include('../partials/user/usersidebar') %>
+        
+        <div class="col-md-9">
+            <div class="wallet-container">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Wallet Balance</h5>
+                                <h2 class="text-success">₹<%= wallet.balance.toFixed(2) %></h2>
+                                <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addMoneyModal">
+                                    Add Money
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Transaction History</h5>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Description</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% wallet.transactions.reverse().forEach(transaction => { %>
+                                            <tr>
+                                                <td><%= new Date(transaction.timestamp).toLocaleDateString() %></td>
+                                                <td><%= transaction.description %></td>
+                                                <td class="<%= transaction.type === 'credit' ? 'text-success' : 'text-danger' %>">
+                                                    <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toFixed(2) %>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-<%= transaction.status === 'completed' ? 'success' : (transaction.status === 'pending' ? 'warning' : 'danger') %>">
+                                                        <%= transaction.status %>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Money Modal -->
+<div class="modal fade" id="addMoneyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Money to Wallet</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addMoneyForm">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount (₹)</label>
+                        <input type="number" class="form-control" id="amount" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Proceed to Pay</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+const razorpayKeyId = '<%= razorpayKeyId %>';
+
+document.getElementById('addMoneyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const amount = document.getElementById('amount').value;
+
+    try {
+        // Create order
+        const orderResponse = await fetch('/wallet/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount })
+        });
+        const order = await orderResponse.json();
+
+        // Initialize Razorpay
+        const options = {
+            key: razorpayKeyId,
+            amount: order.amount,
+            currency: order.currency,
+            order_id: order.id,
+            name: 'SneakerVerse',
+            description: 'Add Money to Wallet',
+            theme: {
+                color: '#4CAF50'
+            },
+            handler: async function(response) {
+                try {
+                    // Verify payment
+                    const verifyResponse = await fetch('/wallet/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(response)
+                    });
+                    const result = await verifyResponse.json();
+                    
+                    if (result.success) {
+                        alert('Payment successful! Money added to wallet.');
+                        location.reload();
+                    } else {
+                        alert('Payment verification failed. Please contact support.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            }
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+</script>
+
+<%- include('../partials/user/footer.ejs') %>

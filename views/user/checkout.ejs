@@ -1,12 +1,18 @@
 <%- include('../partials/user/header') %>
 
 <style>
+    body {
+        background: #1a1a1a;
+        color: #ffffff;
+    }
+    
     /* Breadcrumb Styles */
     .custom-breadcrumb {
-        background-color: #f8f9fa;
+        background-color: #2d2d2d;
         padding: 0.75rem 1rem;
-        border-radius: 0.25rem;
+        border-radius: 12px;
         margin-bottom: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     
     .custom-breadcrumb .breadcrumb {
@@ -15,85 +21,151 @@
     }
     
     .custom-breadcrumb .breadcrumb-item a {
-        color: #6c757d;
+        color: #4CAF50;
         text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .custom-breadcrumb .breadcrumb-item a:hover {
+        color: #45a049;
     }
     
     .custom-breadcrumb .breadcrumb-item.active {
-        color: #343a40;
+        color: #ffffff;
     }
     
     .custom-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
         content: "›";
-        color: #6c757d;
+        color: #666666;
     }
 
-    /* Success Animation */
-    .success-animation {
-        margin: 0 auto;
-        width: 100px;
-        height: 100px;
+    /* Card Styles */
+    .card {
+        background: #2d2d2d;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        margin-bottom: 1.5rem;
     }
-    
-    .checkmark {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        display: block;
-        stroke-width: 2;
-        stroke: #4bb71b;
-        stroke-miterlimit: 10;
-        box-shadow: 0 0 20px #4bb71b33;
-        animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+
+    .card-header {
+        background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+        border-bottom: 1px solid #333333;
+        padding: 1rem 1.5rem;
+        border-radius: 12px 12px 0 0;
     }
-    
-    .checkmark__circle {
-        stroke-dasharray: 166;
-        stroke-dashoffset: 166;
-        stroke-width: 2;
-        stroke-miterlimit: 10;
-        stroke: #4bb71b;
-        fill: none;
-        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+
+    .card-body {
+        padding: 1.5rem;
     }
-    
-    .checkmark__check {
-        transform-origin: 50% 50%;
-        stroke-dasharray: 48;
-        stroke-dashoffset: 48;
-        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-    }
-    
-    @keyframes stroke {
-        100% { stroke-dashoffset: 0; }
-    }
-    
-    @keyframes scale {
-        0%, 100% { transform: none; }
-        50% { transform: scale3d(1.1, 1.1, 1); }
-    }
-    
-    @keyframes fill {
-        100% { box-shadow: inset 0 0 0 100px #4bb71b33; }
-    }
-    
-    /* Modal Styles */
-    .modal-content {
-        border-radius: 20px;
-        overflow: hidden;
-    }
-    
-    .btn {
-        transition: all 0.3s ease;
+
+    /* Address Card Styles */
+    .address-card {
+        background: #333333;
+        border: 1px solid #444444 !important;
         border-radius: 10px;
+        transition: all 0.3s ease;
     }
-    
-    .btn:hover {
+
+    .address-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Form Styles */
+    .form-check-input {
+        background-color: #333333;
+        border-color: #4CAF50;
+    }
+
+    .form-check-input:checked {
+        background-color: #4CAF50;
+        border-color: #4CAF50;
+    }
+
+    .form-check-label {
+        color: #ffffff;
+    }
+
+    /* Button Styles */
+    .btn {
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(90deg, #4CAF50, #45a049);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(90deg, #45a049, #4CAF50);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #4CAF50;
+        color: #4CAF50;
+    }
+
+    .btn-outline-primary:hover {
+        background: #4CAF50;
+        border-color: #4CAF50;
+        transform: translateY(-2px);
+    }
+
+    /* Order Summary Styles */
+    .order-summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #333333;
+    }
+
+    .order-total {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+
+    /* Wallet Balance Badge */
+    .wallet-balance {
+        display: inline-block;
+        background: #333333;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+        color: #4CAF50;
+    }
+
+    .wallet-insufficient {
+        color: #f44336;
+    }
+
+    /* Alert Styles */
+    .alert {
+        border-radius: 10px;
+        border: none;
+    }
+
+    .alert-danger {
+        background: #f443361a;
+        color: #f44336;
+    }
+
+    .alert-success {
+        background: #4caf501a;
+        color: #4CAF50;
+    }
+
+    span,h4{
+        color: #ffffff;
     }
 </style>
-
 
 <div class="container mt-5 mb-5">
     <!-- Breadcrumb -->
@@ -144,7 +216,7 @@
                     </div>
                     <div class="card-body">
                         <% addresses.forEach((address, index) => { %>
-                            <div class="address-card mb-3 p-3 border rounded">
+                            <div class="address-card mb-3 p-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="selectedAddress" 
                                            id="address<%= index %>" value="<%= address._id %>" 
@@ -166,7 +238,7 @@
                 <!-- Payment Method Selection -->
                 <div class="card">
                     <div class="card-header">
-                        <h4>Payment Method</h4>
+                        <h4 class="mb-0">Payment Method</h4>
                     </div>
                     <div class="card-body">
                         <div class="form-check mb-3">
@@ -179,13 +251,15 @@
                             <input class="form-check-input" type="radio" name="paymentMethod" id="wallet" value="wallet">
                             <label class="form-check-label" for="wallet">
                                 Wallet
-                                <small class="text-muted">(Balance: ₹<%= user.wallet || 0 %>)</small>
+                                <span class="wallet-balance <%= subtotal > (wallet?.balance || 0) ? 'wallet-insufficient' : '' %>">
+                                    Balance: ₹<%= (wallet?.balance || 0).toFixed(2) %>
+                                </span>
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="online">
                             <label class="form-check-label" for="online">
-                              Razorpay
+                                Razorpay
                             </label>
                         </div>
                     </div>
@@ -196,74 +270,28 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Order Summary</h4>
+                        <h4 class="mb-0">Order Summary</h4>
                     </div>
                     <div class="card-body">
-                        <% let subtotal = 0; %>
-                        <% cart.items.forEach(item => { %>
-                            <% if (item && item.product) { %>
-                                <% 
-                                    let displayPrice = item.product.salesPrice;
-                                    
-                                    // Check for product offer first
-                                    if (item.product.offer && item.product.offer.discountedPrice) {
-                                        displayPrice = item.product.offer.discountedPrice;
-                                    }
-                                    // Then check for category offer if no product offer exists
-                                    else if (item.product.category && item.product.category.categoryOffer > 0) {
-                                        displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
-                                    }
-                                    
-                                    subtotal += displayPrice * item.quantity;
-                                %>
-                                <div class="d-flex mb-4 align-items-center">
-                                    <div class="flex-shrink-0" style="width: 100px;">
-                                        <% if (item.product.productImage && item.product.productImage.length > 0) { %>
-                                            <img src="/uploads/product-images/<%= item.product.productImage[0] %>" 
-                                                alt="<%= item.product.productName %>" 
-                                                class="img-fluid rounded">
-                                        <% } %>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h5 class="mb-1"><%= item.product.productName %></h5>
-                                        <p class="mb-1 text-muted">
-                                            Brand: <%= item.product.brand %><br>
-                                            Size: <%= item.size %><br>
-                                            Quantity: <%= item.quantity %>
-                                        </p>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span>Price: ₹<%= displayPrice.toLocaleString('en-IN') %></span>
-                                            <span class="fw-bold">Total: ₹<%= (displayPrice * item.quantity).toLocaleString('en-IN') %></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <% if (cart.items.indexOf(item) !== cart.items.length - 1) { %>
-                                    <hr class="my-3">
-                                <% } %>
-                            <% } %>
-                        <% }); %>
-
-                        <hr class="my-4">
-
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="order-summary-item">
                             <span>Subtotal</span>
-                            <strong>₹<%= subtotal.toLocaleString('en-IN') %></strong>
+                            <span>₹<%= subtotal.toFixed(2) %></span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="order-summary-item">
                             <span>Shipping</span>
-                            <strong>Free</strong>
+                            <span>Free</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-0">
-                            <span class="fw-bold">Total</span>
-                            <strong class="text-primary">₹<%= subtotal.toLocaleString('en-IN') %></strong>
+                        <div class="order-summary-item">
+                            <span>Tax</span>
+                            <span>₹0.00</span>
                         </div>
-                    </div>
-                    <div class="card-footer bg-white border-top-0">
-                        <form id="orderForm">
-                            <button type="button" class="btn btn-primary w-100 py-3 rounded-3 fw-bold" onclick="handleOrder()">
-                                <i class="fas fa-shopping-bag me-2"></i>Place Order
-                            </button>
-                        </form>
+                        <div class="order-summary-item order-total">
+                            <span>Total</span>
+                            <span>₹<%= subtotal.toFixed(2) %></span>
+                        </div>
+                        <button onclick="handleOrder()" class="btn btn-primary w-100 mt-3">
+                            Place Order
+                        </button>
                     </div>
                 </div>
             </div>
@@ -287,42 +315,65 @@
             return;
         }
 
-        if (!paymentMethod) {
+        // Check if wallet has sufficient balance
+        if (paymentMethod.value === 'wallet') {
+            const walletBalance = <%= wallet?.balance || 0 %>;
+            const orderTotal = <%= subtotal %>;
+            
+            if (walletBalance < orderTotal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Insufficient Balance',
+                    text: 'Your wallet balance is insufficient for this purchase. Please add money to your wallet or choose a different payment method.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Add Money to Wallet',
+                    cancelButtonText: 'Choose Different Method'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/wallet';
+                    }
+                });
+                return;
+            }
+        }
+
+        try {
+            if (paymentMethod.value === 'online') {
+                await handleRazorpayPayment(selectedAddress.value);
+            } else {
+                const response = await fetch('/checkout/place-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        addressId: selectedAddress.value,
+                        paymentMethod: paymentMethod.value
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Order Placed Successfully!',
+                        text: 'Thank you for your purchase.',
+                        confirmButtonText: 'View Orders'
+                    }).then(() => {
+                        window.location.href = '/orders';
+                    });
+                } else {
+                    throw new Error(result.message || 'Failed to place order');
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Please select a payment method'
+                text: error.message || 'Something went wrong. Please try again.'
             });
-            return;
-        }
-
-        if (paymentMethod.value === 'online') {
-            await handleRazorpayPayment(selectedAddress.value);
-        } else {
-            // Handle COD or wallet payment
-            const formData = new FormData();
-            formData.append('addressId', selectedAddress.value);
-            formData.append('paymentMethod', paymentMethod.value);
-
-            try {
-                const response = await fetch('/checkout/place-order', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to place order');
-                }
-
-                window.location.href = '/success';
-            } catch (error) {
-                console.error('Order error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to place order. Please try again.'
-                });
-            }
         }
     }
 
@@ -339,78 +390,69 @@
                 })
             });
 
-            const data = await response.json();
-            if (!data.success) {
-                throw new Error(data.message || 'Failed to create order');
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to create order');
             }
 
             const options = {
-                key: data.key,
-                amount: data.orderDetails.amount,
-                currency: "INR",
-                name: "SneakerVerse",
-                description: "Payment for your order",
-                order_id: data.order.id,
-                handler: async function (response) {
+                key: result.key,
+                amount: result.order.amount,
+                currency: result.order.currency,
+                name: 'SneakerVerse',
+                description: 'Purchase Payment',
+                order_id: result.order.id,
+                prefill: {
+                    name: result.orderDetails.name,
+                    email: result.orderDetails.email
+                },
+                theme: {
+                    color: '#4CAF50'
+                },
+                handler: async function(response) {
                     try {
-                        const verifyResponse = await fetch('/verify-payment', {
+                        const verifyResponse = await fetch('/checkout/verify-payment', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                orderId: data.orderDetails.orderId,
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature
+                                ...response,
+                                orderId: result.orderDetails.orderId
                             })
                         });
 
-                        const verifyData = await verifyResponse.json();
-                        if (verifyData.success) {
-                            window.location.href = '/success';
-                        } else {
+                        const verifyResult = await verifyResponse.json();
+
+                        if (verifyResult.success) {
                             Swal.fire({
-                                icon: 'error',
-                                title: 'Payment Failed',
-                                text: 'Payment verification failed. Please try again.'
+                                icon: 'success',
+                                title: 'Payment Successful!',
+                                text: 'Your order has been placed.',
+                                confirmButtonText: 'View Orders'
+                            }).then(() => {
+                                window.location.href = '/orders';
                             });
+                        } else {
+                            throw new Error('Payment verification failed');
                         }
                     } catch (error) {
-                        console.error('Payment verification error:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Payment Failed',
-                            text: 'Payment verification failed. Please try again.'
-                        });
+                        console.error('Verification Error:', error);
+                        throw new Error('Payment verification failed');
                     }
-                },
-                prefill: {
-                    name: "<%= user.name %>",
-                    email: "<%= user.email %>"
-                },
-                theme: {
-                    color: "#3399cc"
                 }
             };
 
             const rzp = new Razorpay(options);
             rzp.open();
 
-            rzp.on('payment.failed', function (response) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Payment Failed',
-                    text: 'Payment failed. Please try again.'
-                });
-            });
-
         } catch (error) {
-            console.error('Payment error:', error);
+            console.error('Razorpay Error:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: 'Failed to initialize payment. Please try again.'
+                title: 'Payment Failed',
+                text: error.message || 'Failed to process payment. Please try again.'
             });
         }
     }
