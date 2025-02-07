@@ -29,6 +29,10 @@ const orderSchema = new mongoose.Schema({
             type: String,
             enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
             default: 'Pending'
+        },
+        returnRequest: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ReturnRequest'
         }
     }],
     totalAmount: {
@@ -57,19 +61,18 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Payment Failed'],
+        enum: ['Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Payment Failed'],
         default: 'Pending'
     },
     orderDate: {
         type: Date,
         default: Date.now
     },
-    razorpayOrderId: {
-        type: String
+    deliveryDate: {
+        type: Date
     },
-    razorpayPaymentId: {
-        type: String
-    }
+    razorpayOrderId: String,
+    razorpayPaymentId: String
 }, {
     timestamps: true
 });

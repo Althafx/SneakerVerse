@@ -22,6 +22,7 @@ const loadOrders = async (req, res) => {
                 model: 'Product',
                 select: 'productName productImage salesPrice quantities'
             })
+            .populate('items.returnRequest')
             .sort({ orderDate: -1 });
 
         console.log('Found orders:', orders.length);

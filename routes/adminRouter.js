@@ -8,6 +8,7 @@ const brandController = require("../controllers/admin/brandController");
 const productController = require("../controllers/admin/productController");
 const multer = require("../helpers/multer");
 const dashboardController = require('../controllers/admin/dashboardController');
+const adminReturnRequestController = require('../controllers/admin/returnRequestController');
 
 // Add path middleware to all admin routes
 router.use(adminController.addPathMiddleware);
@@ -55,6 +56,10 @@ router.post('/addCategoryOffer', adminAuth, categoryController.addOffer);
 router.post('/removeCategoryOffer', adminAuth, categoryController.removeOffer);
 router.post('/addProductOffer', adminAuth, productController.addProductOffer);
 router.post('/removeProductOffer', adminAuth, productController.removeProductOffer);
+
+// Return request management routes
+router.get('/return-requests', adminAuth, adminReturnRequestController.getAllReturnRequests);
+router.post('/update-return-status', adminAuth, adminReturnRequestController.updateReturnStatus);
 
 // Order Management Routes
 router.get('/orders', adminAuth, adminController.getOrders);

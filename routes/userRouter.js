@@ -7,6 +7,7 @@ const cartController = require("../controllers/user/cartController")
 const orderController = require("../controllers/user/orderController")
 const wishlistController = require("../controllers/user/wishlistController")
 const walletController = require("../controllers/user/walletController")
+const returnRequestController = require('../controllers/user/returnRequestController');
 const { userAuth, isBlockedUser } = require('../middlewares/auth');
 
 
@@ -152,5 +153,8 @@ router.get("/wallet", userAuth, isBlockedUser, walletController.getWalletPage)
 router.post("/wallet/create-order", userAuth, isBlockedUser, walletController.createOrder)
 router.post("/wallet/verify-payment", userAuth, isBlockedUser, walletController.verifyPayment)
 router.get("/wallet/transactions", userAuth, isBlockedUser, walletController.getTransactions)
+
+// Return request routes
+router.post('/submit-return-request', userAuth, isBlockedUser, returnRequestController.submitReturnRequest);
 
 module.exports = router
