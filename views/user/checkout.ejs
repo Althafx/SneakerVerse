@@ -2,7 +2,7 @@
 
 <style>
     body {
-        background: #1a1a1a;
+        background: #353535;
         color: #ffffff;
     }
     
@@ -200,7 +200,7 @@
                     <div class="card-body text-center">
                         <h3>Add Delivery Address</h3>
                         <p class="mb-4">Please add a delivery address to continue with checkout.</p>
-                        <a href="/profile#addresses" class="btn btn-primary">Add New Address</a>
+                        <button class="btn btn-primary add-address-btn" data-bs-toggle="modal" data-bs-target="#addAddressModal">Add New Address</button>
                     </div>
                 </div>
             </div>
@@ -212,7 +212,7 @@
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Select Delivery Address</h4>
-                        <a href="/profile#addresses" class="btn btn-outline-primary btn-sm">Add New Address</a>
+                        <button class="btn btn-outline-primary btn-sm add-address-btn" data-bs-toggle="modal" data-bs-target="#addAddressModal">Add New Address</button>
                     </div>
                     <div class="card-body">
                         <% addresses.forEach((address, index) => { %>
@@ -298,6 +298,119 @@
         </div>
     <% } %>
 </div>
+
+<!-- Add Address Modal -->
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="addressError" class="alert alert-danger" style="display: none;"></div>
+                <form id="addressForm" novalidate>
+                    <div class="mb-3">
+                        <label for="addressType" class="form-label">Address Type</label>
+                        <select class="form-select bg-dark text-white" id="addressType" required>
+                            <option value="">Select Type</option>
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback">Please select an address type.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="delivery_name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control bg-dark text-white" id="delivery_name" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid name (3-50 characters, letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="delivery_phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control bg-dark text-white" id="delivery_phone" required pattern="[0-9]{10}">
+                        <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="altPhone" class="form-label">Alternative Phone Number</label>
+                        <input type="tel" class="form-control bg-dark text-white" id="altPhone" pattern="[0-9]{10}">
+                        <div class="invalid-feedback">Please enter a valid 10-digit phone number.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="landMark" class="form-label">Landmark</label>
+                        <input type="text" class="form-control bg-dark text-white" id="landMark" required minlength="3" maxlength="100">
+                        <div class="invalid-feedback">Please enter a valid landmark (3-100 characters).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="city" class="form-label">City</label>
+                        <input type="text" class="form-control bg-dark text-white" id="city" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid city name (letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="state" class="form-label">State</label>
+                        <input type="text" class="form-control bg-dark text-white" id="state" required minlength="3" maxlength="50" pattern="[A-Za-z ]+">
+                        <div class="invalid-feedback">Please enter a valid state name (letters only).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pincode" class="form-label">Pincode</label>
+                        <input type="text" class="form-control bg-dark text-white" id="pincode" required pattern="[0-9]{6}">
+                        <div class="invalid-feedback">Please enter a valid 6-digit pincode.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveAddress()">Save Address</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveAddress() {
+    const form = document.getElementById('addressForm');
+    const errorDiv = document.getElementById('addressError');
+    errorDiv.style.display = 'none';
+
+    if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+    }
+
+    const formData = {
+        addressType: document.getElementById('addressType').value,
+        name: document.getElementById('delivery_name').value,
+        phone: document.getElementById('delivery_phone').value,
+        altPhone: document.getElementById('altPhone').value,
+        landMark: document.getElementById('landMark').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        pincode: document.getElementById('pincode').value
+    };
+
+    fetch('/add-address', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#addAddressModal').modal('hide');
+            location.reload();
+        } else {
+            errorDiv.textContent = data.message || 'Failed to add address';
+            errorDiv.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        errorDiv.textContent = 'Failed to add address. Please try again.';
+        errorDiv.style.display = 'block';
+    });
+}
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -456,6 +569,16 @@
             });
         }
     }
+
+    // Add this to your existing script section
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update the Add Address button to open modal
+        const addAddressBtn = document.querySelector('.add-address-btn');
+        if (addAddressBtn) {
+            addAddressBtn.setAttribute('data-bs-toggle', 'modal');
+            addAddressBtn.setAttribute('data-bs-target', '#addAddressModal');
+        }
+    });
 </script>
 
 <%- include('../partials/user/footer') %>
