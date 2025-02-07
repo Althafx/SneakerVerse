@@ -215,7 +215,6 @@ const cancelOrderItem = async (req, res) => {
 const getOrderDetails = async (req, res) => {
     try {
         const orderId = req.params.orderId;
-        const itemId = req.query.itemId; // Get itemId from query parameters
         
         const order = await Order.findById(orderId)
             .populate({
@@ -236,19 +235,12 @@ const getOrderDetails = async (req, res) => {
             return res.redirect('/orders');
         }
 
-        // Validate if the requested item exists in the order
-        if (itemId && !order.items.some(item => item._id.toString() === itemId)) {
-            req.flash('error', 'Item not found in order');
-            return res.redirect('/orders');
-        }
-
         res.render('user/orderDetails', {
             order: order,
             user: req.session.user,
             error_msg: req.flash('error'),
             success_msg: req.flash('success'),
-            path: '/order-details',
-            selectedItem: itemId // Pass the selected item ID
+            path: '/order-details'
         });
     } catch (error) {
         console.error('Error getting order details:', error);

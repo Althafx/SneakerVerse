@@ -1,17 +1,24 @@
 <%- include('../partials/user/header') %>
 <style>
+    body {
+        background: #f8f9fa;
+    }
+    
     .product-image {
         max-width: 100%;
         height: auto;
-        border-radius: 8px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease;
     }
     
     .product-info p {
         margin-bottom: 0.5rem;
+        color: #6c757d;
     }
     
     .order-progress {
-        padding: 20px 0;
+        padding: 30px 0;
     }
     
     .progress-line {
@@ -27,8 +34,9 @@
         top: 15px;
         left: 0;
         right: 0;
-        height: 3px;
+        height: 4px;
         background-color: #e9ecef;
+        border-radius: 2px;
         z-index: 1;
     }
     
@@ -36,10 +44,11 @@
         position: absolute;
         top: 15px;
         left: 0;
-        height: 3px;
-        background-color: #28a745;
+        height: 4px;
+        background: linear-gradient(45deg, #bef17b, #f0a500);
+        border-radius: 2px;
         z-index: 1;
-        transition: width 0.3s ease;
+        transition: width 0.5s ease;
     }
     
     .progress-step {
@@ -50,221 +59,235 @@
     }
     
     .step-dot {
-        width: 30px;
-        height: 30px;
+        width: 34px;
+        height: 34px;
         background-color: #fff;
-        border: 3px solid #e9ecef;
+        border: 4px solid #e9ecef;
         border-radius: 50%;
         margin: 0 auto;
         margin-bottom: 10px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .step-dot::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        width: 14px;
+        height: 14px;
+        background-color: #bef17b;
+        border-radius: 50%;
+        transition: transform 0.3s ease;
     }
     
     .progress-step.completed .step-dot {
-        border-color: #28a745;
-        background-color: #28a745;
+        border-color: #bef17b;
+    }
+    
+    .progress-step.completed .step-dot::after {
+        transform: translate(-50%, -50%) scale(1);
     }
     
     .progress-step.current .step-dot {
-        border-color: #28a745;
-        background-color: #fff;
+        border-color: #bef17b;
+        box-shadow: 0 0 0 4px rgba(190, 241, 123, 0.2);
     }
     
     .step-label {
-        font-weight: 500;
+        font-weight: 600;
         font-size: 0.9rem;
-        color: #6c757d;
-        margin-top: 5px;
     }
-    
-    .progress-step.completed .step-label,
-    .progress-step.current .step-label {
-        color: #28a745;
-    }
-    
-    .step-date {
-        font-size: 0.8rem;
-        color: #6c757d;
-        margin-top: 3px;
-    }
-    
+
     .card {
+        background: linear-gradient(145deg, #ffffff, #f5f5f5);
         border: none;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
     }
-    
+
     .card-body {
-        padding: 1.5rem;
+        padding: 2rem;
     }
-    
-    /* Breadcrumb Styles */
-    .custom-breadcrumb {
-        background-color: #f8f9fa;
-        padding: 0.75rem 1rem;
-        border-radius: 0.25rem;
-        margin-bottom: 1rem;
+
+    .card h5 {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
     }
-    
-    .custom-breadcrumb .breadcrumb {
-        margin-bottom: 0;
-        background: transparent;
+
+    .card h5::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #bef17b, #f0a500);
+        border-radius: 2px;
     }
-    
-    .custom-breadcrumb .breadcrumb-item a {
-        color: #6c757d;
-        text-decoration: none;
+
+    .btn-custom {
+        background: linear-gradient(90deg, #f0a500, #f5d100);
+        border: none;
+        border-radius: 12px;
+        padding: 0.6rem 1.2rem;
+        color: #fff;
+        font-weight: 500;
+        transition: all 0.3s ease;
     }
-    
-    .custom-breadcrumb .breadcrumb-item.active {
-        color: #343a40;
-    }
-    
-    .custom-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
-        content: "›";
-        color: #6c757d;
+
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(240, 165, 0, 0.2);
     }
 </style>
-    
+
 <div class="container-fluid">
     <div class="row">
-        <%- include('../partials/user/usersidebar', { path: path }) %>
+        <%-include("../../views/partials/user/usersidebar")%>
         
-        <div class="col-md-9 ms-auto px-4">
-            <!-- Breadcrumb -->
-            <div class="custom-breadcrumb mt-3">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item"><a href="/orders">My Orders</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Order Details</li>
-                    </ol>
-                </nav>
-            </div>
+        <div class="col-md-9">
+            <div class="container mt-4 mb-5">
+                <div class="row">
+                    <div class="col-12">
+                        <% if (order) { %>
+                            <!-- Order Status Progress -->
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5>Order Status</h5>
+                                    <div class="order-progress">
+                                        <div class="progress-line">
+                                            <div class="progress-line-bar" style="width: <%= 
+                                                order.status === 'Pending' ? '0%' :
+                                                order.status === 'Processing' ? '20%' :
+                                                order.status === 'Shipped' ? '40%' :
+                                                order.status === 'Out for Delivery' ? '60%' :
+                                                order.status === 'Delivered' ? '100%' :
+                                                '0%'
+                                            %>"></div>
+                                            
+                                            <div class="progress-step <%= order.status !== 'Pending' ? 'completed' : 'current' %>">
+                                                <div class="step-dot"></div>
+                                                <div class="step-label">Order Placed</div>
+                                                <div class="step-date"><%= new Date(order.orderDate).toLocaleDateString() %></div>
+                                            </div>
+                                            
+                                            <div class="progress-step <%= 
+                                                order.status === 'Processing' ? 'current' :
+                                                order.status === 'Shipped' || order.status === 'Out for Delivery' || order.status === 'Delivered' ? 'completed' : ''
+                                            %>">
+                                                <div class="step-dot"></div>
+                                                <div class="step-label">Processing</div>
+                                            </div>
+                                            
+                                            <div class="progress-step <%= 
+                                                order.status === 'Shipped' ? 'current' :
+                                                order.status === 'Out for Delivery' || order.status === 'Delivered' ? 'completed' : ''
+                                            %>">
+                                                <div class="step-dot"></div>
+                                                <div class="step-label">Shipped</div>
+                                            </div>
 
-            <div class="order-details-container mt-4">
-                <!-- Back Button -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h4>Order Details</h4>
-                        <p class="text-muted mb-0">Order ID: <%= order._id %></p>
-                        <p class="text-muted">Ordered on <%= new Date(order.orderDate).toLocaleDateString() %></p>
-                    </div>
-                    <a href="/orders" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Orders
-                    </a>
-                </div>
-
-                <!-- Flash Messages -->
-                <% if (error_msg && error_msg.length > 0) { %>
-                    <div class="alert alert-danger" role="alert">
-                        <%= error_msg %>
-                    </div>
-                <% } %>
-                <% if (success_msg && success_msg.length > 0) { %>
-                    <div class="alert alert-success" role="alert">
-                        <%= success_msg %>
-                    </div>
-                <% } %>
-
-                <% 
-                const selectedItemDetails = order.items.find(item => item._id.toString() === selectedItem);
-                if (selectedItemDetails) { 
-                    const statusOrder = ['Order Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
-                    const currentStatus = selectedItemDetails.status;
-                    const currentIndex = statusOrder.indexOf(currentStatus);
-                    const progressWidth = currentIndex !== -1 ? ((currentIndex + 1) / statusOrder.length) * 100 : 0;
-                %>
-                    <!-- Product Details Card -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <img src="<%= selectedItemDetails.product.productImage ? '/uploads/product-images/' + selectedItemDetails.product.productImage[0] : '/images/no-image.jpg' %>" 
-                                         alt="Product Image" 
-                                         class="img-fluid rounded product-image">
-                                </div>
-                                <div class="col-md-8">
-                                    <h5 class="mb-3"><%= selectedItemDetails.product.productName %></h5>
-                                    <div class="product-info mb-3">
-                                        <p><strong>Size:</strong> <%= selectedItemDetails.size %></p>
-                                        <p><strong>Quantity:</strong> <%= selectedItemDetails.quantity %></p>
-                                        <p><strong>Price:</strong> ₹<%= selectedItemDetails.price %></p>
-                                        <p><strong>Total:</strong> ₹<%= selectedItemDetails.price * selectedItemDetails.quantity %></p>
+                                            <div class="progress-step <%= 
+                                                order.status === 'Out for Delivery' ? 'current' :
+                                                order.status === 'Delivered' ? 'completed' : ''
+                                            %>">
+                                                <div class="step-dot"></div>
+                                                <div class="step-label">Out for Delivery</div>
+                                            </div>
+                                            
+                                            <div class="progress-step <%= order.status === 'Delivered' ? 'completed' : '' %>">
+                                                <div class="step-dot"></div>
+                                                <div class="step-label">Delivered</div>
+                                                <% if (order.status === 'Delivered') { %>
+                                                    <div class="step-date"><%= new Date(order.deliveryDate).toLocaleDateString() %></div>
+                                                <% } %>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="status-badge mb-3">
-                                        <span class="badge <%= selectedItemDetails.status === 'Cancelled' ? 'bg-danger' : (selectedItemDetails.status === 'Delivered' ? 'bg-success' : 'bg-primary') %>">
-                                            <%= selectedItemDetails.status %>
-                                        </span>
-                                    </div>
-                                    <% if (selectedItemDetails.status !== 'Cancelled' && selectedItemDetails.status !== 'Delivered') { %>
-                                        <button class="btn btn-outline-danger" 
-                                                data-order-id="<%= order._id %>"
-                                                data-item-id="<%= selectedItemDetails._id %>"
-                                                onclick="cancelOrderItem(this)">
-                                            Cancel Item
-                                        </button>
-                                    <% } %>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Order Progress -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h5 class="mb-4">Order Progress</h5>
-                            <div class="order-progress">
-                                <div class="progress-line">
-                                    <div class="progress-line-bar" style="width: calc(<%= progressWidth %>% - 20px)"></div>
-                                    <% statusOrder.forEach((status, index) => { %>
-                                        <div class="progress-step <%= index <= currentIndex ? 'completed' : '' %> <%= status === currentStatus ? 'current' : '' %>">
-                                            <div class="step-dot"></div>
-                                            <div class="step-label"><%= status %></div>
-                                            <% if (index <= currentIndex) { %>
-                                                <div class="step-date"><%= new Date().toLocaleDateString() %></div>
+                            <!-- Product Details Card -->
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <h5>Order Items</h5>
+                                    <% order.items.forEach(function(item) { %>
+                                        <div class="product-row">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-2">
+                                                    <img src="<%= item.product.productImage ? '/uploads/product-images/' + item.product.productImage[0] : '/images/no-image.jpg' %>" 
+                                                         alt="<%= item.product.productName %>"
+                                                         class="product-image">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="mb-2"><%= item.product.productName %></h6>
+                                                    <p class="mb-1"><strong>Size:</strong> <%= item.size %></p>
+                                                    <p class="mb-1"><strong>Quantity:</strong> <%= item.quantity %></p>
+                                                    <p class="mb-0"><strong>Price:</strong> ₹<%= item.price.toFixed(2) %></p>
+                                                </div>
+                                                <div class="col-md-4 text-end">
+                                                    <% if (item.status === 'Pending' || item.status === 'Processing') { %>
+                                                        <button class="btn-custom" onclick="cancelOrderItem('<%= order._id %>', '<%= item._id %>')">
+                                                            <i class="fas fa-times me-2"></i>Cancel Item
+                                                        </button>
+                                                    <% } else { %>
+                                                        <span class="badge <%= 
+                                                            item.status === 'Delivered' ? 'bg-success' : 
+                                                            item.status === 'Cancelled' ? 'bg-danger' : 
+                                                            'bg-primary' 
+                                                        %>">
+                                                            <%= item.status %>
+                                                        </span>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+
+                            <!-- Shipping Information Card -->
+                            <div class="card">
+                                <div class="card-body shipping-info">
+                                    <h5>Shipping Information</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Name:</strong> <%= order.shippingAddress.name %></p>
+                                            <p><strong>Phone:</strong> <%= order.shippingAddress.mobile %></p>
+                                            <% if (order.shippingAddress.alternativePhone) { %>
+                                                <p><strong>Alternative Phone:</strong> <%= order.shippingAddress.alternativePhone %></p>
                                             <% } %>
                                         </div>
-                                    <% }) %>
+                                        <div class="col-md-6">
+                                            <p><strong>Address:</strong> <%= order.shippingAddress.street %></p>
+                                            <p><strong>Landmark:</strong> <%= order.shippingAddress.landmark %></p>
+                                            <p><strong>City:</strong> <%= order.shippingAddress.city %></p>
+                                            <p><strong>State:</strong> <%= order.shippingAddress.state %></p>
+                                            <p><strong>Pincode:</strong> <%= order.shippingAddress.pincode %></p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Shipping Details -->
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="mb-3">Shipping Information</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Name:</strong> <%= order.shippingAddress.name %></p>
-                                    <p><strong>City:</strong> <%= order.shippingAddress.city %></p>
-                                    <p><strong>State:</strong> <%= order.shippingAddress.state %></p>
-                                    <p><strong>Pincode:</strong> <%= order.shippingAddress.pincode %></p>
-                                    <!-- <p><strong>Phone:</strong> <%= order.shippingAddress.phone%></p>
-                                    <p><strong>Address:</strong> <%= order.shippingAddress.addressType %></p> -->
-                                <!-- </div>
-                                <div class="col-md-6">
-                                   
-                                </div> -->
+                        <% } else { %>
+                            <div class="alert alert-warning">
+                                Order not found.
                             </div>
-                        </div>
+                        <% } %>
                     </div>
-                <% } else { %>
-                    <div class="alert alert-warning">
-                        Item not found in order.
-                    </div>
-                <% } %>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-
 <script>
-function cancelOrderItem(button) {
-    const orderId = button.getAttribute('data-order-id');
-    const itemId = button.getAttribute('data-item-id');
-    
+function cancelOrderItem(orderId, itemId) {
     if (confirm('Are you sure you want to cancel this item?')) {
         fetch(`/cancel-order-item/${orderId}/${itemId}`, {
             method: 'POST',
@@ -275,14 +298,14 @@ function cancelOrderItem(button) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                window.location.reload();
+                location.reload();
             } else {
                 alert(data.message || 'Failed to cancel item');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while canceling the item');
+            alert('Failed to cancel item. Please try again.');
         });
     }
 }
