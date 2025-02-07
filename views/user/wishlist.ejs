@@ -1,79 +1,193 @@
 <%- include('../partials/user/header') %>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <style>
-    a{
-        text-decoration: none;
+    .wishlist-container {
+        padding: 2rem;
+        background: linear-gradient(145deg, rgb(171, 223, 76), #f5f5f5);
+        min-height: 100vh;
+        border-radius: 20px;
+        margin: 1rem;
     }
-    .wishlist-btn {
+    .wishlist-header {
+        margin-bottom: 2rem;
+        position: relative;
+        padding-bottom: 1rem;
+    }
+    .wishlist-header::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #b3b3b3, #e2ff62);
+        border-radius: 2px;
+    }
+    .product-card {
+        background: #b3b3b3;
+        border-radius: 15px;
+        padding: 1rem;
+        position: relative;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        height: 100%;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    .btn-remove {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
         background: none;
         border: none;
-        padding: 8px;
-        cursor: pointer;
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 10;
+        color: #dc3545;
+        font-size: 1rem;
+        opacity: 0.7;
+        transition: all 0.3s ease;
+        z-index: 1;
     }
-    .heart-icon {
-        color: #ff0000;
-        font-size: 1.5rem;
-        transition: color 0.3s ease;
+    .btn-remove:hover {
+        opacity: 1;
+        transform: scale(1.1);
     }
-    .heart-icon:hover {
-        color: #cc0000;
+    .product-image {
+        width: 100%;
+        height: 150px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .product-info {
+        text-align: center;
+    }
+    .product-brand {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 0.2rem;
+    }
+    .product-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 2.4em;
+    }
+    .product-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #f8d35b;
+        margin-bottom: 0.8rem;
+    }
+    .btn-cart {
+        background: rgb(199, 100, 54);
+        color: #2c3e50;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        width: 100%;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-cart:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(248, 211, 91, 0.2);
+    }
+    .empty-wishlist {
+        text-align: center;
+        padding: 3rem 0;
+    }
+    .empty-wishlist i {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    .empty-wishlist h3 {
+        font-size: 1.2rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    .empty-wishlist p {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+    .btn-shop {
+        background: linear-gradient(90deg, #f8d35b, #e2ff62);
+        color: #2c3e50;
+        text-decoration: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-shop:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(248, 211, 91, 0.2);
     }
 </style>
 
-<div class="container mt-5">
-    <h2 class="mb-4">My Wishlist</h2>
-    
-    <% if (wishlist && wishlist.length > 0) { %>
-        <div class="row">
-            <% wishlist.forEach(function(item) { %>
-                <% if (item.productId) { %>
-                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                        <div class="card h-100">
-                            <div class="position-relative">
-                                <img src="/uploads/product-images/<%= item.productId.productImage[0] %>" 
-                                     class="card-img-top" 
-                                     alt="<%= item.productId.productName %>"
-                                     style="height: 200px; object-fit: cover;">
-                                <button onclick="toggleWishlist('<%= item.productId._id %>')" 
-                                        class="wishlist-btn">
-                                    <i class="fa-solid fa-heart heart-icon" 
-                                       id="heart-<%= item.productId._id %>"></i>
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title"><%= item.productId.productName %></h5>
-                                <p class="card-text">₹<%= item.productId.salesPrice %></p>
-                                <p class="card-text"><small>Brand: <%= item.productId.brand %></small></p>
-                                <div class="d-flex justify-content-between">
-                                    <button onclick="addToCart('<%= item.productId._id %>')" class="btn">Add To Cart</button>
-                                    <a href="/productDetails?id=<%= item.productId._id %>" 
-                                       class="btn btn-outline-secondary">View Details</a>
+<div class="container-fluid">
+    <div class="row">
+        <%- include('../partials/user/usersidebar') %>
+        
+        <div class="col-md-9">
+            <div class="wishlist-container">
+                <h2 class="wishlist-header">My Wishlist</h2>
+                
+                <% if (wishlist && wishlist.length > 0) { %>
+                    <div class="row g-4">
+                        <% wishlist.forEach(function(item) { %>
+                            <div class="col-6 col-sm-4 col-lg-3">
+                                <div class="product-card">
+                                    <button class="btn-remove" onclick="removeFromWishlist('<%= item._id %>')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <div class="product-image">
+                                        <img src="/uploads/product-images/<%= item.productId.productImage[0] %>" 
+                                             alt="<%= item.productId.productName %>">
+                                    </div>
+                                    <div class="product-info">
+                                        <div class="product-brand"><%= item.productId.brand %></div>
+                                        <h3 class="product-name"><%= item.productId.productName %></h3>
+                                        <div class="product-price">₹<%= item.productId.salesPrice %></div>
+                                        <button class="btn-cart" onclick="addToCart('<%= item.productId._id %>')">
+                                            Add to Cart
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <div class="empty-wishlist">
+                        <i class="fas fa-heart-broken"></i>
+                        <h3>Your wishlist is empty</h3>
+                        <p>Add items that you like to your wishlist</p>
+                        <a href="/home" class="btn-shop">Continue Shopping</a>
                     </div>
                 <% } %>
-            <% }); %>
+            </div>
         </div>
-    <% } else { %>
-        <div class="text-center py-5">
-            <i class="fas fa-heart-broken fa-4x mb-3 text-muted"></i>
-            <h3>Your wishlist is empty</h3>
-            <p class="text-muted">Browse our products and add items to your wishlist!</p>
-            <a href="/home" class="btn btn-primary mt-3">Continue Shopping</a>
-        </div>
-    <% } %>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-async function toggleWishlist(productId) {
+async function removeFromWishlist(productId) {
     try {
-        const response = await fetch(`/toggle-wishlist/${productId}`, {
+        const response = await fetch(`/remove-from-wishlist/${productId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -83,23 +197,21 @@ async function toggleWishlist(productId) {
         const data = await response.json();
         
         if (data.success) {
-            if (data.action === 'removed') {
-                // Remove the product card from the wishlist page
-                const productCard = document.getElementById(`heart-${productId}`).closest('.col-lg-3');
-                productCard.remove();
-                
-                // Check if wishlist is empty after removal
-                const wishlistContainer = document.querySelector('.row');
-                if (!wishlistContainer.children.length) {
-                    location.reload(); // Reload to show empty wishlist message
-                }
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Removed from Wishlist',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
+            Swal.fire({
+                icon: 'success',
+                title: 'Removed from Wishlist',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            
+            // Remove the product card from the wishlist page
+            const productCard = document.getElementById(`product-${productId}`);
+            productCard.remove();
+            
+            // Check if wishlist is empty after removal
+            const wishlistContainer = document.querySelector('.row');
+            if (!wishlistContainer.children.length) {
+                location.reload(); // Reload to show empty wishlist message
             }
         } else {
             Swal.fire({

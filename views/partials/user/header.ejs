@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Css Styles -->
-    <link rel="stylesheet" href="/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/elegant-icons.css" type="text/css">
     <link rel="stylesheet" href="/css/magnific-popup.css" type="text/css">
     <link rel="stylesheet" href="/css/nice-select.css" type="text/css">
@@ -25,9 +25,7 @@
     <link rel="stylesheet" href="/css/style.css" type="text/css">
     
     <style>
-        body {
-            background-color: #4e4e4e;
-        }
+       
         .dropdown {
             position: relative;
             display: inline-block;
@@ -35,16 +33,18 @@
         .dropdown-content {
             display: none;
             position: absolute;
-            background-color: #fff;
+            background-color: transparent;
             min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            box-shadow: none;
+            border: 1px solid rgba(145, 25, 25, 0.1);
+            backdrop-filter: blur(10px);
             z-index: 1000;
             text-align: left;
             left: 0;
             border-radius: 4px;
         }
         .dropdown-content a {
-            color: #333;
+            color: rgba(255, 255, 255, 0.8);
             padding: 12px 16px;
             text-decoration: none;
             display: block;
@@ -52,8 +52,8 @@
             text-align: left;
         }
         .dropdown-content a:hover {
-            background-color: #f8f9fa;
-            color: rgb(240, 123, 14);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
         }
         .dropdown:hover .dropdown-content {
             display: block;
@@ -61,12 +61,16 @@
         .header {
             position: relative;
             z-index: 500;
-            background-color: #525252;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: transparent;
+            box-shadow: none;
+            padding: 12px 0;
+            backdrop-filter: blur(8px);
         }
         .header__menu ul li a {
-            color: #fff !important;
+            color: #fff;
             position: relative;
+            font-size: 14px;
+            letter-spacing: 0.5px;
         }
         .header__menu ul li.active a::after {
             content: '';
@@ -87,12 +91,66 @@
             height: 2px;
             background-color: rgb(240, 123, 14);
         }
+        .header__nav__option {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
         .header__nav__option a {
             color: #fff;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        .header__nav__option i {
+            font-size: 18px;
+            color: #fff;
+        }
+        .header__nav__option .count {
+            font-size: 12px;
+            margin-left: 4px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .search-box input {
+            padding: 6px 30px 6px 12px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            width: 180px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+        .search-box input:focus {
+            border-color: rgba(255, 255, 255, 0.3);
+            width: 200px;
+        }
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .search-results {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+        }
+        .logo:hover {
+            color: #f0a500;
+        }
+        .main-head{
+            background-color: rgb(71, 71, 71);
         }
     </style>
 </head>
-
+<div class="main-head">
 <body>
     <!-- Page Preloder -->
     <div id="preloder">
@@ -134,7 +192,7 @@
             <div class="row">
                 <div class="col-lg-3 col-md-3">
                     <div class="header__logo">
-                        <a href="/"><img src="/img/logoWhite.png" alt=""></a>
+                        <a href="/" class="logo">SneakerVerse</a>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -157,17 +215,150 @@
                 </div>
                 <div class="col-lg-3 col-md-3">
                     <div class="header__nav__option">
-                        <!-- <a href="#" class="search-switch"><img src="/img/icon/search.png" alt=""></a> -->
-                        <a href="/wishlist"><img src="/img/icon/heart.png" alt=""></a>
-                        <a href="/cart"><img src="/img/icon/cart.png" alt=""> <span>0</span></a>
+                        <% if (locals.currentPage === 'home') { %>
+                        <div class="search-box" style="position: relative;">
+                            <input type="text" id="headerSearch" placeholder="Search products...">
+                            <i class="fas fa-search" style="position: absolute; right: 25px; top: 50%; 
+                                transform: translateY(-50%); color: rgba(255, 255, 255, 0.5); font-size: 12px;"></i>
+                            <div id="searchResults" class="search-results" style="display: none; position: absolute; 
+                                top: calc(100% + 8px); left: 0; width: 220px;
+                                max-height: 350px; overflow-y: auto; z-index: 1000;">
+                            </div>
+                        </div>
+                        <% } %>
+                        <a href="/wishlist">
+                            <i class="fas fa-heart"></i>
+                        </a>
+                        <a href="/cart">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="count">0</span>
+                        </a>
                     </div>
                 </div>
             </div>
             <div class="canvas__open"><i class="fa fa-bars"></i></div>
         </div>
     </header>
+</div>
     <!-- Header Section End -->
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const headerSearchInput = document.getElementById('headerSearch');
+            const searchResults = document.getElementById('searchResults');
+            
+            if (headerSearchInput) {
+                // Focus effects
+                headerSearchInput.addEventListener('focus', () => {
+                    headerSearchInput.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                    if (headerSearchInput.value.trim().length > 0) {
+                        searchResults.style.display = 'block';
+                    }
+                });
+
+                headerSearchInput.addEventListener('blur', () => {
+                    headerSearchInput.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                });
+
+                // Close search results when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!headerSearchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                        searchResults.style.display = 'none';
+                    }
+                });
+
+                headerSearchInput.addEventListener('input', debounce(async (e) => {
+                    const searchQuery = e.target.value.trim();
+                    
+                    if (searchQuery.length === 0) {
+                        searchResults.style.display = 'none';
+                        return;
+                    }
+
+                    try {
+                        const queryString = new URLSearchParams({
+                            search: searchQuery,
+                            category: 'all',
+                            brand: 'all',
+                            sort: 'new'
+                        }).toString();
+
+                        const response = await fetch(`/filter-products?${queryString}`);
+                        const data = await response.json();
+
+                        if (data.success && data.products.length > 0) {
+                            searchResults.innerHTML = data.products.slice(0, 4).map(product => {
+                                const categoryName = product.category && product.category.name ? product.category.name : '';
+                                const price = product.offer ? product.offer.discountedPrice : product.salesPrice;
+                                return `
+                                <a href="/product-details?id=${product._id}" class="search-result-item" style="
+                                    display: flex;
+                                    align-items: center;
+                                    padding: 8px;
+                                    color: rgba(255, 255, 255, 0.9);
+                                    text-decoration: none;
+                                    transition: background-color 0.2s;
+                                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <img src="${product.images[0]}" alt="${product.productName}" style="
+                                        width: 32px;
+                                        height: 32px;
+                                        object-fit: cover;
+                                        margin-right: 10px;
+                                        border-radius: 4px;
+                                        opacity: 0.9;">
+                                    <div style="flex-grow: 1;">
+                                        <div style="font-size: 12px;">${product.productName}</div>
+                                        <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px;">
+                                            ${categoryName ? categoryName + ' • ' : ''}₹${price}
+                                        </div>
+                                    </div>
+                                </a>`;
+                            }).join('');
+
+                            if (data.products.length > 4) {
+                                searchResults.innerHTML += `
+                                    <a href="/home?search=${encodeURIComponent(searchQuery)}" style="
+                                        display: block;
+                                        padding: 8px;
+                                        text-align: center;
+                                        color: rgba(255, 255, 255, 0.5);
+                                        text-decoration: none;
+                                        font-size: 11px;
+                                        border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                                        View all ${data.pagination.totalProducts} results
+                                    </a>`;
+                            }
+
+                            searchResults.style.display = 'block';
+                        } else {
+                            searchResults.innerHTML = `
+                                <div style="padding: 8px; text-align: center; color: rgba(255, 255, 255, 0.5); font-size: 11px;">
+                                    No products found
+                                </div>`;
+                            searchResults.style.display = 'block';
+                        }
+                    } catch (error) {
+                        console.error('Error fetching search results:', error);
+                    }
+                }, 300));
+            }
+        });
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

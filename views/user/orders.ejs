@@ -2,68 +2,162 @@
 
 <style>
     .orders-container {
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        padding: 20px;
+        background: linear-gradient(145deg, #bef17b, #f5f5f5);
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(226, 255, 98, 0.05);
+        padding: 2rem;
+        margin: 1rem;
     }
-
-    .order-card {
-        background-color: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 15px;
+    .orders-header {
+        margin-bottom: 2rem;
+        position: relative;
+        padding-bottom: 1rem;
     }
-
-    .order-header {
-        padding-bottom: 10px;
+    .orders-header::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #bef17b, #e2ff62);
+        border-radius: 2px;
     }
-
-    .product-image {
-        max-width: 100px;
-        height: auto;
-        border-radius: 4px;
-    }
-
     .nav-tabs {
-        border-bottom: 1px solid #dee2e6;
-    }
-
-    .nav-tabs .nav-link {
-        color: #495057;
         border: none;
-        border-bottom: 2px solid transparent;
-        padding: 10px 20px;
+        margin-bottom: 2rem;
+        gap: 1rem;
+    }
+    .nav-tabs .nav-link {
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        color: #95a5a6;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: transparent;
+    }
+    .nav-tabs .nav-link.active {
+        color: #2c3e50;
+        background: rgba(190, 241, 123, 0.2);
+    }
+    .nav-tabs .nav-link:hover {
+        color: #2c3e50;
+    }
+    .order-card {
+        background: #fff;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .order-header {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    .order-id {
+        font-size: 0.9rem;
+        color: #95a5a6;
+    }
+    .order-date {
+        font-size: 0.9rem;
+        color: #95a5a6;
+    }
+    .order-status {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
         font-weight: 500;
     }
-
-    .nav-tabs .nav-link.active {
-        color: #a1ca40;
-        background: none;
-        border-bottom: 2px solid #a1ca40;
+    .status-pending {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
     }
-
-    .nav-tabs .nav-link:hover {
-        border-color: transparent;
-        border-bottom: 2px solid #a1ca40;
-        color: #a1ca40;
+    .status-processing {
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
     }
-
-    .badge {
-        padding: 8px 12px;
-        font-size: 0.8rem;
+    .status-shipped {
+        background: rgba(102, 16, 242, 0.1);
+        color: #6610f2;
     }
-
-    .cancel-item-btn {
-        white-space: nowrap;
+    .status-delivered {
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
     }
-
-    .order-item {
-        transition: background-color 0.2s ease;
+    .status-cancelled {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
     }
-
-    .order-item:hover {
-        background-color: #f8f9fa;
+    .order-product {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    .order-product:last-child {
+        border-bottom: none;
+    }
+    .product-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-right: 1rem;
+    }
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .product-info {
+        flex: 1;
+    }
+    .product-name {
+        font-weight: 500;
+        margin-bottom: 0.3rem;
+    }
+    .product-price {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    .order-total {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-top: 1rem;
+        text-align: right;
+    }
+    .empty-orders {
+        text-align: center;
+        padding: 3rem 0;
+    }
+    .empty-orders i {
+        font-size: 4rem;
+        color: #95a5a6;
+        margin-bottom: 1rem;
+    }
+    .empty-orders h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+    .empty-orders p {
+        color: #95a5a6;
+        margin-bottom: 2rem;
+    }
+    .btn-custom {
+        background: linear-gradient(90deg, #bef17b, #e2ff62);
+        color: #2c3e50;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(190, 241, 123, 0.2);
     }
 </style>
 
@@ -71,333 +165,196 @@
     <div class="row">
         <%- include('../partials/user/usersidebar') %>
         
-        <!-- Main Content -->
-        <div class="col-md-9 ms-auto px-4">
-            <div class="orders-container mt-4">
-                <h4 class="mb-4">My Orders</h4>
+        <div class="col-md-9">
+            <div class="orders-container">
+                <h4 class="orders-header">My Orders</h4>
                 
                 <!-- Flash Messages -->
                 <% if (error_msg && error_msg.length > 0) { %>
-                    <div class="alert alert-danger" role="alert">
-                        <%= error_msg %>
-                    </div>
+                    <div class="alert alert-danger"><%= error_msg %></div>
                 <% } %>
                 <% if (success_msg && success_msg.length > 0) { %>
-                    <div class="alert alert-success" role="alert">
-                        <%= success_msg %>
-                    </div>
+                    <div class="alert alert-success"><%= success_msg %></div>
                 <% } %>
-
-                <ul class="nav nav-tabs" id="orderTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">Active</button>
+                
+                <!-- Order Tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#active">Active Orders</a>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled" type="button" role="tab">Cancelled</button>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#delivered">Delivered</a>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="delivered-tab" data-bs-toggle="tab" data-bs-target="#delivered" type="button" role="tab">Delivered</button>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#cancelled">Cancelled</a>
                     </li>
                 </ul>
-
-                <div class="tab-content mt-3" id="orderTabContent">
+                
+                <div class="tab-content" id="orderTabContent">
                     <!-- Active Orders Tab -->
-                    <div class="tab-pane fade show active" id="active" role="tabpanel" aria-labelledby="active-tab">
+                    <div class="tab-pane fade show active" id="active" role="tabpanel">
                         <% const activeOrders = orders.filter(order => 
                             order.status !== 'Cancelled' && order.status !== 'Delivered'
                         ); %>
+                        
                         <% if (activeOrders.length === 0) { %>
-                            <div class="text-center py-5">
-                                <i class="fas fa-shopping-bag mb-3" style="font-size: 48px; color: #ccc;"></i>
-                                <h5>No Active Orders</h5>
-                                <p class="text-muted">You don't have any active orders at the moment.</p>
+                            <div class="empty-orders">
+                                <i class="fas fa-shopping-bag"></i>
+                                <h3>No active orders</h3>
+                                <p>When you place an order, it will appear here</p>
+                                <a href="/home" class="btn btn-custom">Continue Shopping</a>
                             </div>
                         <% } else { %>
                             <% activeOrders.forEach(function(order) { %>
-                                <div class="order-card mb-4" data-order-id="<%= order._id %>">
-                                    <div class="order-header mb-3">
+                                <div class="order-card" data-order-id="<%= order._id %>">
+                                    <div class="order-header">
                                         <div class="row align-items-center">
-                                            <div class="col-md-8">
-                                                <p class="text-muted mb-1">Order ID: <%= order._id %></p>
-                                                <p class="text-muted mb-1">Ordered: <%= new Date(order.orderDate).toLocaleDateString() %></p>
-                                                <p class="mb-1">Payment Method: <%= order.paymentMethod.toUpperCase() %></p>
-                                                <p class="mb-1">Payment Status: 
-                                                    <span class="badge <%= order.paymentStatus === 'Paid' ? 'bg-success' : (order.paymentStatus === 'Failed' ? 'bg-danger' : 'bg-warning') %>">
-                                                        <%= order.paymentStatus %>
-                                                    </span>
-                                                </p>
-                                                <h5 class="mb-2">Order Total: ₹<%= order.totalAmount %></h5>
+                                            <div class="col-md-4">
+                                                <div class="order-id">Order #<%= order._id %></div>
+                                                <div class="order-date"><%= new Date(order.orderDate).toLocaleDateString() %></div>
+                                            </div>
+                                            <div class="col-md-4 text-center">
+                                                <span class="order-status status-<%= order.status.toLowerCase() %>">
+                                                    <%= order.status %>
+                                                </span>
                                             </div>
                                             <div class="col-md-4 text-end">
-                                                <% if (order.paymentMethod === 'online' && (order.paymentStatus === 'Failed' || order.paymentStatus === 'Pending') && order.status !== 'Cancelled') { %>
-                                                    <button class="btn btn-primary btn-sm mb-2" onclick="retryPayment('<%= order._id %>')">
-                                                        Pay Now
-                                                    </button>
-                                                <% } %>
-                                                <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
-                                                    <button class="btn btn-danger btn-sm mb-2" onclick="cancelOrder('<%= order._id %>')">
-                                                        Cancel Order
+                                                <% if (order.status === 'Pending') { %>
+                                                    <button class="btn btn-custom" onclick="retryPayment('<%= order._id %>')">
+                                                        Retry Payment
                                                     </button>
                                                 <% } %>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <% order.items.forEach(function(item) { %>
-                                        <div class="order-item py-3 border-top">
-                                            <div class="row align-items-center">
-                                                <div class="col-md-2">
+                                    
+                                    <div class="order-products">
+                                        <% order.items.forEach(function(item) { %>
+                                            <div class="order-product">
+                                                <div class="product-image">
                                                     <img src="<%= item.product.productImage ? '/uploads/product-images/' + item.product.productImage[0] : '/images/no-image.jpg' %>" 
-                                                         alt="Product Image" 
-                                                         class="img-fluid rounded">
+                                                         alt="<%= item.product.productName %>">
                                                 </div>
-                                                <div class="col-md-7">
-                                                    <h6 class="mb-1"><%= item.product.productName %></h6>
-                                                    <p class="mb-1">Size: <%= item.size %></p>
-                                                    <p class="mb-1">Quantity: <%= item.quantity %></p>
-                                                    <% 
-                                                        let displayPrice = item.product.salesPrice;
-                                                        let discountPercentage = 0;
-                                                        
-                                                        // Check for product offer first
-                                                        if (item.product.offer && item.product.offer.discountedPrice) {
-                                                            displayPrice = item.product.offer.discountedPrice;
-                                                            discountPercentage = item.product.offer.discountPercentage;
-                                                        }
-                                                        // Then check for category offer if no product offer exists
-                                                        else if (item.product.category && item.product.category.categoryOffer > 0) {
-                                                            displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
-                                                            discountPercentage = item.product.category.categoryOffer;
-                                                        }
-                                                    %>
-                                                    
-                                                    <% if (discountPercentage > 0) { %>
-                                                        <p class="mb-1">
-                                                            Price: ₹<%= displayPrice.toLocaleString('en-IN') %>
-                                                            <small class="text-muted text-decoration-line-through">
-                                                                ₹<%= item.product.salesPrice.toLocaleString('en-IN') %>
-                                                            </small>
-                                                            <span class="badge bg-danger"><%= discountPercentage %>% OFF</span>
-                                                        </p>
-                                                    <% } else { %>
-                                                        <p class="mb-1">Price: ₹<%= displayPrice.toLocaleString('en-IN') %></p>
-                                                    <% } %>
-                                                    <p class="mb-0">Total: ₹<%= (displayPrice * item.quantity).toLocaleString('en-IN') %></p>
-                                                </div>
-                                                <div class="col-md-3 text-end">
-                                                    <p class="mb-2">
-                                                        <span class="badge <%= item.status === 'Cancelled' ? 'bg-danger' : (item.status === 'Delivered' ? 'bg-success' : 'bg-primary') %>">
-                                                            <%= item.status %>
-                                                        </span>
-                                                    </p>
-                                                    <h6 class="mb-2">Item Total: ₹<%= item.price * item.quantity %></h6>
-                                                    <a href="/order-details/<%= order._id %>?itemId=<%= item._id %>" class="btn btn-outline-primary btn-sm">
-                                                        View Details
-                                                    </a>
+                                                <div class="product-info">
+                                                    <div class="product-name"><%= item.product.productName %></div>
+                                                    <div class="product-details">
+                                                        Size: <%= item.size %> | Quantity: <%= item.quantity %>
+                                                    </div>
+                                                    <div class="product-price">₹<%= item.price %></div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    <% }); %>
-                                </div>
-                            <% }); %>
-                        <% } %>
-                    </div>
-
-                    <!-- Cancelled Orders Tab -->
-                    <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
-                        <% const cancelledOrders = orders.filter(order => order.status === 'Cancelled'); %>
-                        <% if (cancelledOrders.length === 0) { %>
-                            <div class="text-center py-5">
-                                <i class="fas fa-times-circle mb-3" style="font-size: 48px; color: #ccc;"></i>
-                                <h5>No Cancelled Orders</h5>
-                                <p class="text-muted">You don't have any cancelled orders.</p>
-                            </div>
-                        <% } else { %>
-                            <% cancelledOrders.forEach(function(order) { %>
-                                <div class="order-card mb-4" data-order-id="<%= order._id %>">
-                                    <div class="order-header mb-3">
-                                        <div class="row align-items-center">
-                                            <div class="col-md-8">
-                                                <p class="text-muted mb-1">Order ID: <%= order._id %></p>
-                                                <p class="text-muted mb-1">Ordered: <%= new Date(order.orderDate).toLocaleDateString() %></p>
-                                                <p class="mb-1">Payment Method: <%= order.paymentMethod.toUpperCase() %></p>
-                                                <p class="mb-1">Payment Status: 
-                                                    <span class="badge <%= order.paymentStatus === 'Paid' ? 'bg-success' : (order.paymentStatus === 'Failed' ? 'bg-danger' : 'bg-warning') %>">
-                                                        <%= order.paymentStatus %>
-                                                    </span>
-                                                </p>
-                                                <h5 class="mb-2">Order Total: ₹<%= order.totalAmount %></h5>
-                                            </div>
-                                            <div class="col-md-4 text-end">
-                                                <% if (order.paymentMethod === 'online' && (order.paymentStatus === 'Failed' || order.paymentStatus === 'Pending') && order.status !== 'Cancelled') { %>
-                                                    <button class="btn btn-primary btn-sm mb-2" onclick="retryPayment('<%= order._id %>')">
-                                                        Pay Now
-                                                    </button>
-                                                <% } %>
-                                                <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
-                                                    <button class="btn btn-danger btn-sm mb-2" onclick="cancelOrder('<%= order._id %>')">
-                                                        Cancel Order
-                                                    </button>
-                                                <% } %>
-                                            </div>
-                                        </div>
+                                        <% }); %>
                                     </div>
-
-                                    <% order.items.forEach(function(item) { %>
-                                        <div class="order-item py-3 border-top">
-                                            <div class="row align-items-center">
-                                                <div class="col-md-2">
-                                                    <img src="<%= item.product.productImage ? '/uploads/product-images/' + item.product.productImage[0] : '/images/no-image.jpg' %>" 
-                                                         alt="Product Image" 
-                                                         class="img-fluid rounded">
-                                                </div>
-                                                <div class="col-md-7">
-                                                    <h6 class="mb-1"><%= item.product.productName %></h6>
-                                                    <p class="mb-1">Size: <%= item.size %></p>
-                                                    <p class="mb-1">Quantity: <%= item.quantity %></p>
-                                                    <% 
-                                                        let displayPrice = item.product.salesPrice;
-                                                        let discountPercentage = 0;
-                                                        
-                                                        // Check for product offer first
-                                                        if (item.product.offer && item.product.offer.discountedPrice) {
-                                                            displayPrice = item.product.offer.discountedPrice;
-                                                            discountPercentage = item.product.offer.discountPercentage;
-                                                        }
-                                                        // Then check for category offer if no product offer exists
-                                                        else if (item.product.category && item.product.category.categoryOffer > 0) {
-                                                            displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
-                                                            discountPercentage = item.product.category.categoryOffer;
-                                                        }
-                                                    %>
-                                                    
-                                                    <% if (discountPercentage > 0) { %>
-                                                        <p class="mb-1">
-                                                            Price: ₹<%= displayPrice.toLocaleString('en-IN') %>
-                                                            <small class="text-muted text-decoration-line-through">
-                                                                ₹<%= item.product.salesPrice.toLocaleString('en-IN') %>
-                                                            </small>
-                                                            <span class="badge bg-danger"><%= discountPercentage %>% OFF</span>
-                                                        </p>
-                                                    <% } else { %>
-                                                        <p class="mb-1">Price: ₹<%= displayPrice.toLocaleString('en-IN') %></p>
-                                                    <% } %>
-                                                    <p class="mb-0">Total: ₹<%= (displayPrice * item.quantity).toLocaleString('en-IN') %></p>
-                                                </div>
-                                                <div class="col-md-3 text-end">
-                                                    <p class="mb-2">
-                                                        <span class="badge bg-danger">Cancelled</span>
-                                                    </p>
-                                                    <h6 class="mb-2">Item Total: ₹<%= item.price * item.quantity %></h6>
-                                                    <a href="/order-details/<%= order._id %>?itemId=<%= item._id %>" class="btn btn-outline-primary btn-sm mt-2">
-                                                        View Details
-                                                    </a>
-                                                </div>
-                                                <div class="col-md-2 text-end">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <% }); %>
+                                    
+                                    <div class="order-total">
+                                        Total: ₹<%= order.totalAmount %>
+                                    </div>
                                 </div>
                             <% }); %>
                         <% } %>
                     </div>
 
                     <!-- Delivered Orders Tab -->
-                    <div class="tab-pane fade" id="delivered" role="tabpanel" aria-labelledby="delivered-tab">
+                    <div class="tab-pane fade" id="delivered" role="tabpanel">
                         <% const deliveredOrders = orders.filter(order => order.status === 'Delivered'); %>
+                        
                         <% if (deliveredOrders.length === 0) { %>
-                            <div class="text-center py-5">
-                                <i class="fas fa-check-circle mb-3" style="font-size: 48px; color: #ccc;"></i>
-                                <h5>No Delivered Orders</h5>
-                                <p class="text-muted">You don't have any delivered orders yet.</p>
+                            <div class="empty-orders">
+                                <i class="fas fa-check-circle"></i>
+                                <h3>No delivered orders</h3>
+                                <p>Your delivered orders will appear here</p>
                             </div>
                         <% } else { %>
                             <% deliveredOrders.forEach(function(order) { %>
-                                <div class="order-card mb-4" data-order-id="<%= order._id %>">
-                                    <div class="order-header mb-3">
+                                <div class="order-card">
+                                    <div class="order-header">
                                         <div class="row align-items-center">
-                                            <div class="col-md-8">
-                                                <p class="text-muted mb-1">Order ID: <%= order._id %></p>
-                                                <p class="text-muted mb-1">Ordered: <%= new Date(order.orderDate).toLocaleDateString() %></p>
-                                                <p class="mb-1">Payment Method: <%= order.paymentMethod.toUpperCase() %></p>
-                                                <p class="mb-1">Payment Status: 
-                                                    <span class="badge <%= order.paymentStatus === 'Paid' ? 'bg-success' : (order.paymentStatus === 'Failed' ? 'bg-danger' : 'bg-warning') %>">
-                                                        <%= order.paymentStatus %>
-                                                    </span>
-                                                </p>
-                                                <h5 class="mb-2">Order Total: ₹<%= order.totalAmount %></h5>
+                                            <div class="col-md-4">
+                                                <div class="order-id">Order #<%= order._id %></div>
+                                                <div class="order-date"><%= new Date(order.orderDate).toLocaleDateString() %></div>
                                             </div>
-                                            <div class="col-md-4 text-end">
-                                                <% if (order.paymentMethod === 'online' && (order.paymentStatus === 'Failed' || order.paymentStatus === 'Pending') && order.status !== 'Cancelled') { %>
-                                                    <button class="btn btn-primary btn-sm mb-2" onclick="retryPayment('<%= order._id %>')">
-                                                        Pay Now
-                                                    </button>
-                                                <% } %>
-                                                <% if (order.status !== 'Cancelled' && order.status !== 'Delivered') { %>
-                                                    <button class="btn btn-danger btn-sm mb-2" onclick="cancelOrder('<%= order._id %>')">
-                                                        Cancel Order
-                                                    </button>
-                                                <% } %>
+                                            <div class="col-md-4 text-center">
+                                                <span class="order-status status-<%= order.status.toLowerCase() %>">
+                                                    <%= order.status %>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <% order.items.forEach(function(item) { %>
-                                        <div class="order-item py-3 border-top">
-                                            <div class="row align-items-center">
-                                                <div class="col-md-2">
+                                    
+                                    <div class="order-products">
+                                        <% order.items.forEach(function(item) { %>
+                                            <div class="order-product">
+                                                <div class="product-image">
                                                     <img src="<%= item.product.productImage ? '/uploads/product-images/' + item.product.productImage[0] : '/images/no-image.jpg' %>" 
-                                                         alt="Product Image" 
-                                                         class="img-fluid rounded">
+                                                         alt="<%= item.product.productName %>">
                                                 </div>
-                                                <div class="col-md-7">
-                                                    <h6 class="mb-1"><%= item.product.productName %></h6>
-                                                    <p class="mb-1">Size: <%= item.size %></p>
-                                                    <p class="mb-1">Quantity: <%= item.quantity %></p>
-                                                    <% 
-                                                        let displayPrice = item.product.salesPrice;
-                                                        let discountPercentage = 0;
-                                                        
-                                                        // Check for product offer first
-                                                        if (item.product.offer && item.product.offer.discountedPrice) {
-                                                            displayPrice = item.product.offer.discountedPrice;
-                                                            discountPercentage = item.product.offer.discountPercentage;
-                                                        }
-                                                        // Then check for category offer if no product offer exists
-                                                        else if (item.product.category && item.product.category.categoryOffer > 0) {
-                                                            displayPrice = Math.floor(item.product.salesPrice - (item.product.salesPrice * item.product.category.categoryOffer / 100));
-                                                            discountPercentage = item.product.category.categoryOffer;
-                                                        }
-                                                    %>
-                                                    
-                                                    <% if (discountPercentage > 0) { %>
-                                                        <p class="mb-1">
-                                                            Price: ₹<%= displayPrice.toLocaleString('en-IN') %>
-                                                            <small class="text-muted text-decoration-line-through">
-                                                                ₹<%= item.product.salesPrice.toLocaleString('en-IN') %>
-                                                            </small>
-                                                            <span class="badge bg-danger"><%= discountPercentage %>% OFF</span>
-                                                        </p>
-                                                    <% } else { %>
-                                                        <p class="mb-1">Price: ₹<%= displayPrice.toLocaleString('en-IN') %></p>
-                                                    <% } %>
-                                                    <p class="mb-0">Total: ₹<%= (displayPrice * item.quantity).toLocaleString('en-IN') %></p>
-                                                </div>
-                                                <div class="col-md-3 text-end">
-                                                    <p class="mb-2">
-                                                        <span class="badge bg-success">Delivered</span>
-                                                    </p>
-                                                    <h6 class="mb-2">Item Total: ₹<%= item.price * item.quantity %></h6>
-                                                    <a href="/order-details/<%= order._id %>?itemId=<%= item._id %>" class="btn btn-outline-primary btn-sm mt-2">
-                                                        View Details
-                                                    </a>
-                                                </div>
-                                                <div class="col-md-2 text-end">
+                                                <div class="product-info">
+                                                    <div class="product-name"><%= item.product.productName %></div>
+                                                    <div class="product-details">
+                                                        Size: <%= item.size %> | Quantity: <%= item.quantity %>
+                                                    </div>
+                                                    <div class="product-price">₹<%= item.price %></div>
                                                 </div>
                                             </div>
+                                        <% }); %>
+                                    </div>
+                                    
+                                    <div class="order-total">
+                                        Total: ₹<%= order.totalAmount %>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+
+                    <!-- Cancelled Orders Tab -->
+                    <div class="tab-pane fade" id="cancelled" role="tabpanel">
+                        <% const cancelledOrders = orders.filter(order => order.status === 'Cancelled'); %>
+                        
+                        <% if (cancelledOrders.length === 0) { %>
+                            <div class="empty-orders">
+                                <i class="fas fa-times-circle"></i>
+                                <h3>No cancelled orders</h3>
+                                <p>Your cancelled orders will appear here</p>
+                            </div>
+                        <% } else { %>
+                            <% cancelledOrders.forEach(function(order) { %>
+                                <div class="order-card">
+                                    <div class="order-header">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-4">
+                                                <div class="order-id">Order #<%= order._id %></div>
+                                                <div class="order-date"><%= new Date(order.orderDate).toLocaleDateString() %></div>
+                                            </div>
+                                            <div class="col-md-4 text-center">
+                                                <span class="order-status status-<%= order.status.toLowerCase() %>">
+                                                    <%= order.status %>
+                                                </span>
+                                            </div>
                                         </div>
-                                    <% }); %>
+                                    </div>
+                                    
+                                    <div class="order-products">
+                                        <% order.items.forEach(function(item) { %>
+                                            <div class="order-product">
+                                                <div class="product-image">
+                                                    <img src="<%= item.product.productImage ? '/uploads/product-images/' + item.product.productImage[0] : '/images/no-image.jpg' %>" 
+                                                         alt="<%= item.product.productName %>">
+                                                </div>
+                                                <div class="product-info">
+                                                    <div class="product-name"><%= item.product.productName %></div>
+                                                    <div class="product-details">
+                                                        Size: <%= item.size %> | Quantity: <%= item.quantity %>
+                                                    </div>
+                                                    <div class="product-price">₹<%= item.price %></div>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                    
+                                    <div class="order-total">
+                                        Total: ₹<%= order.totalAmount %>
+                                    </div>
                                 </div>
                             <% }); %>
                         <% } %>
@@ -408,98 +365,36 @@
     </div>
 </div>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
-
+    
     // Listen for order status updates
     socket.on('orderStatusUpdate', function(data) {
-        console.log('Order status update received:', data);
-        
-        // Find the order card
         const orderCard = document.querySelector(`[data-order-id="${data.orderId}"]`);
         if (orderCard) {
-            // Update order status badge
             const statusBadge = orderCard.querySelector('.order-status');
-            if (statusBadge) {
-                statusBadge.textContent = data.status;
-                
-                // Update badge color
-                statusBadge.className = 'badge order-status';
-                switch(data.status.toLowerCase()) {
-                    case 'delivered':
-                        statusBadge.classList.add('bg-success');
-                        break;
-                    case 'cancelled':
-                        statusBadge.classList.add('bg-danger');
-                        break;
-                    default:
-                        statusBadge.classList.add('bg-warning');
-                }
-            }
-
-            // Update items status
-            data.items.forEach(item => {
-                const itemStatus = orderCard.querySelector(`[data-item-id="${item.product._id}"]`);
-                if (itemStatus) {
-                    itemStatus.textContent = item.status;
-                    
-                    // Update item status color
-                    itemStatus.className = 'badge';
-                    switch(item.status.toLowerCase()) {
-                        case 'delivered':
-                            itemStatus.classList.add('bg-success');
-                            break;
-                        case 'cancelled':
-                            itemStatus.classList.add('bg-danger');
-                            break;
-                        default:
-                            itemStatus.classList.add('bg-warning');
-                    }
-                }
-            });
-
-            // Move order to appropriate tab
-            const currentTab = orderCard.closest('.tab-pane');
-            let targetTab;
+            statusBadge.className = `order-status status-${data.status.toLowerCase()}`;
+            statusBadge.textContent = data.status;
             
-            switch(data.status.toLowerCase()) {
-                case 'delivered':
-                    targetTab = document.getElementById('delivered');
-                    break;
-                case 'cancelled':
-                    targetTab = document.getElementById('cancelled');
-                    break;
-                default:
-                    targetTab = document.getElementById('active');
-            }
-
-            if (targetTab && currentTab !== targetTab) {
-                // Clone the order card
-                const newCard = orderCard.cloneNode(true);
-                
-                // Remove from current tab
-                orderCard.remove();
-                
-                // Add to target tab
-                const noOrdersMessage = targetTab.querySelector('.text-center.py-5');
-                if (noOrdersMessage) {
-                    noOrdersMessage.remove();
-                }
-                targetTab.appendChild(newCard);
+            // If order is delivered or cancelled, move it to the appropriate tab
+            if (data.status === 'Delivered' || data.status === 'Cancelled') {
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             }
         }
     });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     async function retryPayment(orderId) {
         try {
             // Show loading
             Swal.fire({
-                title: 'Initializing Payment',
+                title: 'Processing Payment',
                 text: 'Please wait...',
                 allowOutsideClick: false,
                 showConfirmButton: false,
@@ -507,123 +402,45 @@
                     Swal.showLoading();
                 }
             });
-
-            const response = await fetch('/retry-payment', {
+            
+            const response = await fetch(`/retry-payment/${orderId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ orderId })
+                }
             });
-
+            
             const data = await response.json();
             
-            // Close loading dialog
-            Swal.close();
-
-            if (!data.success) {
-                throw new Error(data.message || 'Failed to initialize payment');
-            }
-
-            const options = {
-                key: data.key,
-                amount: data.order.amount,
-                currency: "INR",
-                name: "SneakerVerse",
-                description: "Payment for Order #" + orderId,
-                order_id: data.order.id,
-                handler: async function (response) {
-                    try {
-                        // Show processing message
-                        Swal.fire({
-                            title: 'Processing Payment',
-                            text: 'Please wait while we verify your payment...',
-                            allowOutsideClick: false,
-                            showConfirmButton: false,
-                            willOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-
-                        const verifyResponse = await fetch('/verify-payment', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                orderId: orderId,
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature
-                            })
-                        });
-
-                        const verifyData = await verifyResponse.json();
-                        
-                        if (verifyData.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Payment Successful',
-                                text: 'Your payment has been processed successfully!'
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        } else {
-                            throw new Error(verifyData.message || 'Payment verification failed');
-                        }
-                    } catch (error) {
-                        console.error('Payment verification error:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Payment Failed',
-                            text: error.message || 'Payment verification failed. Please try again.'
-                        });
-                    }
-                },
-                prefill: {
-                    name: "<%= user.name %>",
-                    email: "<%= user.email %>"
-                },
-                theme: {
-                    color: "#3399cc"
-                }
-            };
-
-            const rzp = new Razorpay(options);
-            rzp.open();
-
-            rzp.on('payment.failed', function (response) {
+            if (data.success) {
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Successful',
+                    text: 'Your order has been confirmed!',
+                    showConfirmButton: false,
+                    timer: 2000
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                // Show error message
                 Swal.fire({
                     icon: 'error',
                     title: 'Payment Failed',
-                    text: 'The payment attempt failed. Please try again.'
+                    text: data.message || 'Something went wrong. Please try again.',
+                    confirmButtonText: 'OK'
                 });
-            });
-
+            }
         } catch (error) {
-            console.error('Payment error:', error);
+            console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: error.message || 'Failed to initialize payment. Please try again.'
+                text: 'Something went wrong. Please try again later.',
+                confirmButtonText: 'OK'
             });
         }
-    }
-
-    function cancelOrder(orderId) {
-        Swal.fire({
-            title: 'Cancel Order',
-            text: 'Are you sure you want to cancel this order?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, cancel it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = `/cancel-order/${orderId}`;
-            }
-        });
     }
 </script>
 

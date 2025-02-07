@@ -1,72 +1,201 @@
 <%- include('../partials/user/header') %>
-<%-include("../../views/partials/user/usersidebar")%>
-        <!-- Content -->
-        <div class="col-md-9 content">
-            <h4>My Info</h4>
-            <h5 class="mt-4">Contact Details</h5>
 
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="name" class="form-label">Name</label>
-                    <input type="text" id="name" class="form-control" value="<%= user.name %>" readonly>
-                    <button class="btn btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#changeNameModal">Change</button>
-                </div>
-                <div class="col-md-6">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" class="form-control" value="<%= user.email %>" readonly>
-                </div>
-                <div class="col-md-6">
-                    <label for="phone" class="form-label">Phone</label>
-                    <input type="tel" id="phone" class="form-control" value="<%= user.phone %>" readonly>
-                    <button class="btn btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#changePhoneModal">Change</button>
-                </div>
-                <div class="col-md-6">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" class="form-control" value="********" readonly>
-                    <button class="btn btn-primary mt-1" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change</button>
-                </div>
-            </div>
+<style>
+    .profile-container {
+        background: linear-gradient(145deg, #bef17b, #f5f5f5);
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(226, 255, 98, 0.05);
+        padding: 2rem;
+        margin: 1rem;
+    }
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #f0a500, #f5d100);
+        border-radius: 2px;
+    }
+    .form-control {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+    }
+    .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(240, 165, 0, 0.1);
+        border-color: #f0a500;
+    }
+    .btn-custom {
+        background: linear-gradient(90deg, #f0a500, #f5d100);
+        border: none;
+        border-radius: 12px;
+        padding: 0.6rem 1.2rem;
+        color: #fff;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(240, 165, 0, 0.2);
+    }
+    .address-card {
+        background: #fff;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+    .address-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+    .address-type-badge {
+        background: rgba(240, 165, 0, 0.1);
+        color: #f0a500;
+        padding: 0.4rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .address-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .btn-outline {
+        border: 1px solid #e0e0e0;
+        background: transparent;
+        color: #2c3e50;
+        padding: 0.4rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-outline:hover {
+        background: #f8f9fa;
+        border-color: #d0d0d0;
+    }
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    .modal-header {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 1.5rem;
+    }
+    .modal-body {
+        padding: 1.5rem;
+    }
+    .modal-footer {
+        border-top: 1px solid #f0f0f0;
+        padding: 1.5rem;
+    }
+</style>
 
-            <h5 class="mt-4">Address</h5>
-            <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addAddressModal">Add New</button>
-
-            <div class="container mt-4">
-                <div class="row">
-                    <!-- User Profile Section -->
-                    <div class="col-md-12 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Addresses</h5>
-                                <div class="row gy-3">
-                                    <% if (user.addresses && user.addresses.length > 0) { %>
-                                        <% user.addresses.forEach(function(address) { %>
-                                            <div class="col-md-6">
-                                                <div class="address-card">
-                                                    <h6><%= address.name %></h6>
-                                                    <p><%= address.phone %></p>
-                                                    <p><%= address.landMark %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %></p>
-                                                    <div class="card-footer">
-                                                        <button class="btn btn-secondary"><%= address.addressType %></button>
-                                                    </div>
-                                                    <div class="mt-2">
-                                                        <button class="btn btn-outline-primary btn-sm" onclick="editAddress('<%= address._id %>')">Edit</button>
-                                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteAddress('<%= address._id %>')">Delete</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <% }); %>
-                                    <% } else { %>
-                                        <div class="col-12">
-                                            <p>No addresses found. Add a new address using the button above.</p>
-                                        </div>
-                                    <% } %>
-                                </div>
-                            </div>
+<!-- Content -->
+<div class="container-fluid">
+    <div class="row">
+        <%-include("../../views/partials/user/usersidebar")%>
+        
+        <div class="col-md-9">
+            <div class="profile-container">
+                <h4 class="section-title">My Info</h4>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label fw-medium mb-2">Name</label>
+                            <input type="text" class="form-control" value="<%= user.name %>" readonly>
+                            <button class="btn btn-custom mt-2" data-bs-toggle="modal" data-bs-target="#changeNameModal">
+                                <i class="fas fa-edit me-2"></i>Edit Name
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label fw-medium mb-2">Email</label>
+                            <input type="email" class="form-control" value="<%= user.email %>" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label fw-medium mb-2">Phone</label>
+                            <input type="tel" class="form-control" value="<%= user.phone %>" readonly>
+                            <button class="btn btn-custom mt-2" data-bs-toggle="modal" data-bs-target="#changePhoneModal">
+                                <i class="fas fa-edit me-2"></i>Edit Phone
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label fw-medium mb-2">Password</label>
+                            <input type="password" class="form-control" value="********" readonly>
+                            <button class="btn btn-custom mt-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
 
+                <h4 class="section-title mt-5">My Addresses</h4>
+                <button class="btn btn-custom mb-4" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                    <i class="fas fa-plus me-2"></i>Add New Address
+                </button>
+
+                <div class="row">
+                    <% if (user.addresses && user.addresses.length > 0) { %>
+                        <% user.addresses.forEach(function(address) { %>
+                            <div class="col-md-6 mb-4">
+                                <div class="address-card">
+                                    <span class="address-type-badge mb-3 d-inline-block">
+                                        <%= address.addressType %>
+                                    </span>
+                                    <h6 class="mb-2 fw-bold"><%= address.name %></h6>
+                                    <p class="mb-1 text-muted"><i class="fas fa-phone me-2"></i><%= address.phone %></p>
+                                    <p class="mb-3 text-muted">
+                                        <i class="fas fa-map-marker-alt me-2"></i>
+                                        <%= address.landMark %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
+                                    </p>
+                                    <div class="address-actions">
+                                        <button class="btn btn-outline" onclick="editAddress('<%= address._id %>')">
+                                            <i class="fas fa-edit me-1"></i>Edit
+                                        </button>
+                                        <button class="btn btn-outline text-danger" onclick="deleteAddress('<%= address._id %>')">
+                                            <i class="fas fa-trash-alt me-1"></i>Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-home fa-3x mb-3 text-muted"></i>
+                            <h5 class="text-muted">No addresses found</h5>
+                            <p class="text-muted mb-4">Add your first address to get started</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal for Name Change -->
 <div class="modal fade" id="changeNameModal" tabindex="-1" aria-labelledby="changeNameModalLabel" aria-hidden="true">

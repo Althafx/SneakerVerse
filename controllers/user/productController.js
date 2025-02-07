@@ -69,18 +69,25 @@ const productDetails = async (req, res) => {
 const filterProducts = async (req, res) => {
     try {
         const { search, category, brand, sort, page = 1 } = req.query;
-        const productsPerPage = 8; // 4 products per row * 2 rows
+        const productsPerPage = 8;
         
         console.log('Received filter request with:', { search, category, brand, sort, page });
         
         // Build the filter query
         let query = { isBlocked: false };
         
-        // Add search filter
+        // Add search filter with category name
         if (search) {
+            const categories = await Category.find({
+                name: { $regex: search, $options: 'i' }
+            }).select('_id');
+            
+            const categoryIds = categories.map(cat => cat._id);
+            
             query.$or = [
                 { productName: { $regex: search, $options: 'i' } },
-                { brand: { $regex: search, $options: 'i' } }
+                { brand: { $regex: search, $options: 'i' } },
+                { category: { $in: categoryIds } }
             ];
         }
         
@@ -94,8 +101,6 @@ const filterProducts = async (req, res) => {
             query.brand = { $regex: new RegExp('^' + brand + '$', 'i') };
         }
 
-        console.log('MongoDB query:', JSON.stringify(query, null, 2));
-        
         // Get total count for pagination
         const totalProducts = await Product.countDocuments(query);
         const totalPages = Math.ceil(totalProducts / productsPerPage);
@@ -103,7 +108,6 @@ const filterProducts = async (req, res) => {
         // Get products with filters
         let sortQuery = {};
         
-        // Apply sorting at the database level
         switch (sort) {
             case 'price-low':
                 sortQuery = { salesPrice: 1 };
@@ -124,44 +128,41 @@ const filterProducts = async (req, res) => {
                 sortQuery = { createdAt: -1 };
         }
 
-        console.log('MongoDB sort query:', JSON.stringify(sortQuery, null, 2));
-
-        // Fetch products with pagination
+        // Fetch products with pagination and populate category with offer information
         const products = await Product.find(query)
-            .populate('category')
+            .populate({
+                path: 'category',
+                select: 'name categoryOffer isListed'
+            })
             .sort(sortQuery)
             .skip((page - 1) * productsPerPage)
             .limit(productsPerPage)
             .lean();
 
-        // Log sample data
-        if (products.length > 0) {
-            console.log('Products on page', page, ':');
-            products.forEach((p, i) => {
-                console.log(`Product ${i + 1}:`, {
-                    id: p._id,
-                    name: p.productName,
-                    price: p.salesPrice,
-                    createdAt: p.createdAt
-                });
-            });
-        }
-
-        console.log(`Found ${products.length} products on page ${page} of ${totalPages}`);
+        // Process products to include correct offer information
+        const processedProducts = products.map(product => {
+            const processed = { ...product };
+            // Only include offer information if category has an offer
+            if (product.category && product.category.categoryOffer) {
+                processed.offer = {
+                    discountPercentage: product.category.categoryOffer,
+                    discountedPrice: Math.floor(product.salesPrice * (1 - product.category.categoryOffer / 100))
+                };
+            } else {
+                // Remove offer property if no valid offer exists
+                delete processed.offer;
+            }
+            return processed;
+        });
         
         res.json({ 
             success: true, 
-            products,
+            products: processedProducts,
             pagination: {
                 currentPage: parseInt(page),
                 totalPages,
                 totalProducts,
                 productsPerPage
-            },
-            debug: {
-                appliedSort: sort,
-                sortQuery,
-                totalProducts: products.length
             }
         });
     } catch (error) {

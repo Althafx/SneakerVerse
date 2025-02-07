@@ -278,6 +278,19 @@ const loadHomepage = async (req, res) => {
 
         console.log("Original products", products);
 
+        // Check wishlist status if user is logged in
+        if (req.session.user) {
+            const userId = req.session.user._id;
+            const wishlist = await Wishlist.findOne({ userId });
+            
+            products = products.map(product => {
+                product.isInWishlist = wishlist && wishlist.products.some(item => 
+                    item.productId.toString() === product._id.toString()
+                );
+                return product;
+            });
+        }
+
         // Apply category offers to products
         products = products.map(product => {
             const categoryOffer = categoriesWithOffers.find(cat => cat._id.equals(product.category._id));
@@ -322,7 +335,8 @@ const loadHomepage = async (req, res) => {
             user: req.session.user,
             title: 'Home',
             path: req.path,
-            showBanner: true
+            showBanner: true,
+            currentPage: 'home'  // Add this line to indicate we're on the home page
         });
 
     } catch (error) {
