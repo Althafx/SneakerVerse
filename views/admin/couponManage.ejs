@@ -176,7 +176,12 @@
                                     <td>₹<%= coupon.minPurchase %></td>
                                     <td><%= new Date(coupon.startDate).toLocaleDateString() %></td>
                                     <td><%= new Date(coupon.expiryDate).toLocaleDateString() %></td>
-                                    <td><%= coupon.usedCount %>/<%= coupon.totalUses %></td>
+                                    <td>
+                                        <% const usedCount = coupon.usedCount || 0 %>
+                                        <span class="<%= usedCount >= coupon.totalUses ? 'text-danger' : 'text-success' %>">
+                                            <%= usedCount %>/<%= coupon.totalUses %>
+                                        </span>
+                                    </td>
                                     <td>
                                         <span class="badge <%= coupon.isActive ? 'badge-active' : 'badge-inactive' %>">
                                             <%= coupon.isActive ? 'Active' : 'Inactive' %>

@@ -5,6 +5,7 @@ const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const Category = require('../../models/categorySchema');
 const Wallet = require('../../models/walletSchema');
+const Coupon = require('../../models/couponModel'); // Changed from couponSchema to couponModel
 const razorpay = require('../../config/razorpay');
 const crypto = require('crypto');
 
@@ -587,6 +588,29 @@ const placeOrder = async(req, res, next) => {
 
         await order.save();
         console.log('Order saved:', order._id);
+
+        // Update coupon usage if a coupon was applied
+        if (appliedCoupon) {
+            const coupon = await Coupon.findOne({ code: appliedCoupon.code });
+            if (coupon) {
+                // Increment total usage count
+                coupon.usedCount = (coupon.usedCount || 0) + 1;
+                
+                // Update user's usage count
+                const userUsageIndex = coupon.userUsage.findIndex(u => u.userId.toString() === userId);
+                if (userUsageIndex >= 0) {
+                    coupon.userUsage[userUsageIndex].usageCount += 1;
+                } else {
+                    coupon.userUsage.push({
+                        userId: userId,
+                        usageCount: 1
+                    });
+                }
+                
+                await coupon.save();
+                console.log('Updated coupon usage:', coupon.code, 'Total uses:', coupon.usedCount);
+            }
+        }
 
         // Clear applied coupon after order is placed
         if (req.session.appliedCoupon) {
