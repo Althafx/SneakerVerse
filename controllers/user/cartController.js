@@ -511,11 +511,18 @@ const placeOrder = async(req, res, next) => {
         }
 
         // Calculate order total
-        const orderTotal = cart.items.reduce((total, item) => {
+        let orderTotal = cart.items.reduce((total, item) => {
             return total + (item.product.salesPrice * item.quantity);
         }, 0);
 
-        console.log('Order total:', orderTotal);
+        // Apply coupon discount if present
+        let appliedCoupon = null;
+        if (req.session.appliedCoupon) {
+            appliedCoupon = req.session.appliedCoupon;
+            orderTotal -= appliedCoupon.discount;
+        }
+
+        console.log('Order total:', orderTotal, 'Applied coupon:', appliedCoupon);
 
         // If payment method is wallet, check balance
         if (paymentMethod === 'wallet') {
@@ -559,6 +566,10 @@ const placeOrder = async(req, res, next) => {
             user: userId,
             items: orderItems,
             totalAmount: orderTotal,
+            couponDiscount: appliedCoupon ? {
+                code: appliedCoupon.code,
+                amount: appliedCoupon.discount
+            } : null,
             shippingAddress: {
                 name: selectedAddress.name,
                 street: selectedAddress.landMark,
@@ -576,6 +587,11 @@ const placeOrder = async(req, res, next) => {
 
         await order.save();
         console.log('Order saved:', order._id);
+
+        // Clear applied coupon after order is placed
+        if (req.session.appliedCoupon) {
+            delete req.session.appliedCoupon;
+        }
 
         // Handle different payment methods
         if (paymentMethod === 'online') {

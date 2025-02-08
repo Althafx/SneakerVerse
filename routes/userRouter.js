@@ -8,6 +8,7 @@ const orderController = require("../controllers/user/orderController")
 const wishlistController = require("../controllers/user/wishlistController")
 const walletController = require("../controllers/user/walletController")
 const returnRequestController = require('../controllers/user/returnRequestController');
+const userCouponController = require('../controllers/user/couponController');
 const { userAuth, isBlockedUser } = require('../middlewares/auth');
 
 
@@ -156,5 +157,11 @@ router.get("/wallet/transactions", userAuth, isBlockedUser, walletController.get
 
 // Return request routes
 router.post('/submit-return-request', userAuth, isBlockedUser, returnRequestController.submitReturnRequest);
+
+// Coupon routes
+router.post('/coupons/validate', userAuth, userCouponController.validateCoupon);
+router.get('/coupons/applicable', userAuth, userCouponController.getApplicableCoupons);
+router.post('/coupons/apply', userAuth, userCouponController.applyCoupon);
+router.post('/coupons/remove', userAuth, userCouponController.removeCoupon);
 
 module.exports = router

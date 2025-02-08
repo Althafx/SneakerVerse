@@ -165,6 +165,12 @@
     span,h4{
         color: #ffffff;
     }
+    h6,h5{
+        color: white !important;
+    }
+    .tots{
+        color: white;
+    }
 </style>
 
 <div class="container mt-5 mb-5">
@@ -268,27 +274,37 @@
 
             <!-- Right Column - Order Summary -->
             <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="mb-0">Order Summary</h4>
-                    </div>
+                <div class="card mb-4">
                     <div class="card-body">
-                        <div class="order-summary-item">
-                            <span>Subtotal</span>
+                        <h5 class="card-title">Apply Coupon</h5>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="couponCode" placeholder="Enter coupon code" style="background: #353535; color: #ffffff; border-color: #4a4a4a;">
+                            <button class="btn btn-success" type="button" id="applyCoupon">Apply</button>
+                        </div>
+                        <div id="couponMessage"></div>
+                        <div id="availableCoupons" class="mt-3">
+                            <h6>Available Coupons:</h6>
+                            <div id="couponsList" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Order Summary</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
                             <span>₹<%= subtotal.toFixed(2) %></span>
                         </div>
-                        <div class="order-summary-item">
-                            <span>Shipping</span>
-                            <span>Free</span>
+                        <div class="d-flex justify-content-between mb-2" id="couponDiscountRow" style="display: none;">
+                            <span>Coupon Discount:</span>
+                            <span id="couponDiscount" class="text-success">-₹0</span>
                         </div>
-                        <div class="order-summary-item">
-                            <span>Tax</span>
-                            <span>₹0.00</span>
+                        <hr>
+                        <div class="d-flex justify-content-between tots">
+                            <strong>Total:</strong>
+                            <strong id="finalTotal">₹<%= subtotal.toFixed(2) %></strong>
                         </div>
-                        <div class="order-summary-item order-total">
-                            <span>Total</span>
-                            <span>₹<%= subtotal.toFixed(2) %></span>
-                        </div>
+                        <input type="hidden" id="finalAmountInput" name="finalAmount" value="<%= subtotal %>">
                         <button onclick="handleOrder()" class="btn btn-primary w-100 mt-3">
                             Place Order
                         </button>
@@ -579,6 +595,113 @@ function saveAddress() {
             addAddressBtn.setAttribute('data-bs-target', '#addAddressModal');
         }
     });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let appliedDiscount = 0;
+    const totalAmount = parseFloat('<%= subtotal %>');
+    <% if (locals.user) { %>
+    const userId = '<%= user._id %>';
+    <% } %>
+
+    // Load available coupons
+    async function loadAvailableCoupons() {
+        try {
+            console.log('Loading coupons for:', { userId, totalAmount });
+            const response = await fetch(`/coupons/applicable?userId=${userId}&totalAmount=${totalAmount}`);
+            const data = await response.json();
+            console.log('Received coupons:', data);
+            
+            const couponsListDiv = document.getElementById('couponsList');
+            couponsListDiv.innerHTML = '';
+            
+            if (data.coupons && data.coupons.length > 0) {
+                data.coupons.forEach(coupon => {
+                    const couponDiv = document.createElement('div');
+                    couponDiv.className = 'alert alert-dark mb-2';
+                    couponDiv.style.cursor = 'pointer';
+                    couponDiv.innerHTML = `
+                        <strong>${coupon.code}</strong><br>
+                        Get ₹${coupon.offerAmount} off on minimum purchase of ₹${coupon.minPurchase}<br>
+                        <small>Valid till ${new Date(coupon.expiryDate).toLocaleDateString()}</small>
+                    `;
+                    couponDiv.addEventListener('click', () => {
+                        document.getElementById('couponCode').value = coupon.code;
+                        document.getElementById('applyCoupon').click();
+                    });
+                    couponsListDiv.appendChild(couponDiv);
+                });
+            } else {
+                couponsListDiv.innerHTML = '<p class="text-muted">No coupons available</p>';
+            }
+        } catch (error) {
+            console.error('Error loading coupons:', error);
+            const couponsListDiv = document.getElementById('couponsList');
+            couponsListDiv.innerHTML = '<div class="alert alert-danger">Error loading coupons</div>';
+        }
+    }
+
+    // Apply coupon
+    document.getElementById('applyCoupon').addEventListener('click', async function() {
+        const code = document.getElementById('couponCode').value.trim();
+        const messageDiv = document.getElementById('couponMessage');
+        
+        if (!code) {
+            messageDiv.innerHTML = '<div class="alert alert-warning">Please enter a coupon code</div>';
+            return;
+        }
+
+        try {
+            console.log('Applying coupon:', { code, totalAmount });
+            const response = await fetch('/coupons/apply', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code,
+                    totalAmount: totalAmount.toString()
+                })
+            });
+
+            const data = await response.json();
+            console.log('Coupon response:', data);
+
+            if (response.ok) {
+                messageDiv.innerHTML = '<div class="alert alert-success">Coupon applied successfully!</div>';
+                appliedDiscount = data.discount;
+                updateTotal();
+                document.getElementById('couponDiscountRow').style.display = 'flex';
+            } else {
+                messageDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                appliedDiscount = 0;
+                updateTotal();
+                document.getElementById('couponDiscountRow').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error applying coupon:', error);
+            messageDiv.innerHTML = '<div class="alert alert-danger">Failed to apply coupon</div>';
+        }
+    });
+
+    // Update total amount
+    function updateTotal() {
+        const discountElement = document.getElementById('couponDiscount');
+        const finalTotalElement = document.getElementById('finalTotal');
+        const finalAmountInput = document.getElementById('finalAmountInput');
+        
+        discountElement.textContent = `-₹${appliedDiscount}`;
+        const finalTotal = totalAmount - appliedDiscount;
+        finalTotalElement.textContent = `₹${finalTotal.toFixed(2)}`;
+        finalAmountInput.value = finalTotal.toFixed(2);
+    }
+
+    // Load available coupons on page load
+    if (typeof userId !== 'undefined') {
+        loadAvailableCoupons();
+    }
+});
 </script>
 
 <%- include('../partials/user/footer') %>

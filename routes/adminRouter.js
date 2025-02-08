@@ -9,6 +9,7 @@ const productController = require("../controllers/admin/productController");
 const multer = require("../helpers/multer");
 const dashboardController = require('../controllers/admin/dashboardController');
 const adminReturnRequestController = require('../controllers/admin/returnRequestController');
+const couponController = require('../controllers/admin/couponController');
 
 // Add path middleware to all admin routes
 router.use(adminController.addPathMiddleware);
@@ -56,6 +57,12 @@ router.post('/addCategoryOffer', adminAuth, categoryController.addOffer);
 router.post('/removeCategoryOffer', adminAuth, categoryController.removeOffer);
 router.post('/addProductOffer', adminAuth, productController.addProductOffer);
 router.post('/removeProductOffer', adminAuth, productController.removeProductOffer);
+
+// Coupon Management Routes
+router.get('/offers', adminAuth, couponController.getCouponPage);
+router.post('/coupons/add', adminAuth, couponController.addCoupon);
+router.patch('/coupons/toggle/:couponId', adminAuth, couponController.toggleCouponStatus);
+router.delete('/coupons/delete/:couponId', adminAuth, couponController.deleteCoupon);
 
 // Return request management routes
 router.get('/return-requests', adminAuth, adminReturnRequestController.getAllReturnRequests);

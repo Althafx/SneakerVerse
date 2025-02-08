@@ -115,11 +115,11 @@
             <li class="<%= path === '/admin/users' ? 'active' : '' %>">
                 <a href="/admin/users"><i class="fas fa-users"></i> Customers</a>
             </li>
-            <li class="<%= path === '/admin/reviews' ? 'active' : '' %>">
+            <!-- <li class="<%= path === '/admin/reviews' ? 'active' : '' %>">
                 <a href="/admin/reviews"><i class="fas fa-star"></i> Reviews</a>
-            </li>
+            </li> -->
             <li class="<%= path.startsWith('/admin/offers') ? 'active' : '' %>">
-                <a href="/admin/offers"><i class="fas fa-gift"></i> Offers</a>
+                <a href="/admin/offers"><i class="fas fa-ticket"></i> Coupons</a>
             </li>
             <li class="<%= path === '/admin/addProducts' ? 'active' : '' %>">
                 <a href="/admin/addProducts"><i class="fas fa-plus"></i> Add Sneakers</a>
@@ -131,14 +131,9 @@
                 <a href="/admin/brands"><i class="fas fa-tags"></i> Brands</a>
             </li>
             <li class="<%= path === '/admin/banner' ? 'active' : '' %>">
-                <a href="/admin/banner"><i class="fas fa-image"></i> Banner Management</a>
+                <a href="/admin/banner"><i class="fas fa-bullhorn"></i> Banner Management</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link <%= path === '/admin/offers' ? 'active' : '' %>" href="/admin/offers">
-                    <i class="fas fa-tags"></i>
-                    <span>Offers</span>
-                </a>
-            </li>
+           
             <li><a href="/admin/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
     </div>
