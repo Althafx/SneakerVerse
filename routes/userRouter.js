@@ -113,7 +113,7 @@ router.get("/orders", userAuth, isBlockedUser, orderController.loadOrders)
 router.post("/cancel-order/:orderId", userAuth, isBlockedUser, orderController.cancelOrder)
 router.get("/order-details/:orderId", userAuth, isBlockedUser, orderController.getOrderDetails)
 router.post("/cancel-order-item/:orderId/:itemId", userAuth, isBlockedUser, orderController.cancelOrderItem)
-
+router.get("/order-product-details/:orderId/:productId", userAuth, isBlockedUser, orderController.getOrderProductDetails)
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 

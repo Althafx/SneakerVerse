@@ -4,34 +4,42 @@ const Product = require("../../models/productSchema");
 
 const loadOrders = async (req, res) => {
     try {
-        console.log('Session user:', req.session.user);
+        console.log('Session data:', req.session);
+        console.log('User in session:', req.session.user);
 
-        const user = await User.findById(req.session.user._id);
-        if (!user) {
-            console.log('User not found in database');
-            req.flash('error', 'User not found');
+        if (!req.session.user || !req.session.user._id) {
+            req.flash('error', 'Please login to view orders');
             return res.redirect('/login');
         }
 
-        console.log('Found user:', user._id);
+        const userId = req.session.user._id;
+        console.log('User ID:', userId);
 
         // Get orders data with populated product details
-        const orders = await Order.find({ user: user._id })
+        const orders = await Order.find({ user: userId })
             .populate({
                 path: 'items.product',
-                model: 'Product',
-                select: 'productName productImage salesPrice quantities'
+                select: 'productName productImage salesPrice'
             })
             .populate('items.returnRequest')
             .sort({ orderDate: -1 });
 
         console.log('Found orders:', orders.length);
         if (orders.length > 0) {
-            console.log('Sample order:', JSON.stringify(orders[0], null, 2));
+            console.log('Sample order:', {
+                _id: orders[0]._id,
+                items: orders[0].items.map(item => ({
+                    _id: item._id,
+                    product: {
+                        _id: item.product._id,
+                        name: item.product.productName
+                    }
+                }))
+            });
         }
 
         res.render('user/orders', {
-            user: user,
+            user: req.session.user,
             orders: orders,
             error_msg: req.flash('error'),
             success_msg: req.flash('success'),
@@ -250,9 +258,97 @@ const getOrderDetails = async (req, res) => {
     }
 };
 
+const getOrderProductDetails = async (req, res) => {
+    try {
+        const { orderId, productId } = req.params;
+        console.log('Params:', { orderId, productId });
+        console.log('Session:', req.session);
+        
+        // Get user ID from session
+        if (!req.session.user) {
+            console.log('No user in session');
+            req.flash('error', 'Please login to view order details');
+            return res.redirect('/login');
+        }
+        
+        const userId = req.session.user._id;
+        console.log('User ID:', userId);
+
+        // Find the order with populated data
+        const order = await Order.findOne({
+            _id: orderId,
+            user: userId
+        }).populate({
+            path: 'items.product',
+            select: 'productName productImage price'
+        }).populate('shippingAddress');
+
+        console.log('Found order:', order ? order._id : 'No order found');
+        
+        if (!order) {
+            console.log('Order not found for user:', userId);
+            req.flash('error', 'Order not found');
+            return res.redirect('/orders');
+        }
+
+        // Find the specific item in the order
+        const orderItem = order.items.find(item => item._id.toString() === productId);
+        console.log('Looking for item:', productId);
+        console.log('Available items:', order.items.map(item => ({
+            id: item._id.toString(),
+            product: item.product.productName
+        })));
+        
+        if (!orderItem) {
+            console.log('Item not found in order');
+            req.flash('error', 'Product not found in order');
+            return res.redirect('/orders');
+        }
+
+        console.log('Found order item:', {
+            id: orderItem._id,
+            product: orderItem.product.productName,
+            status: orderItem.status
+        });
+
+        // Create a timeline of status changes
+        const timeline = [
+            { status: 'Pending', active: false, completed: false },
+            { status: 'Processing', active: false, completed: false },
+            { status: 'Shipped', active: false, completed: false },
+            { status: 'Out for Delivery', active: false, completed: false },
+            { status: 'Delivered', active: false, completed: false }
+        ];
+
+        const statusIndex = timeline.findIndex(t => t.status === orderItem.status);
+        if (statusIndex !== -1) {
+            timeline[statusIndex].active = true;
+            for (let i = 0; i < statusIndex; i++) {
+                timeline[i].completed = true;
+            }
+        }
+
+        // Render the order product details page
+        res.render('user/orderProductDetails', {
+            order,
+            item: orderItem,
+            timeline,
+            user: req.session.user,
+            error_msg: req.flash('error'),
+            success_msg: req.flash('success')
+        });
+
+    } catch (error) {
+        console.error('Error in getOrderProductDetails:', error);
+        req.flash('error', 'Failed to load order details');
+        res.redirect('/orders');
+    }
+};
+
 module.exports = {
     loadOrders,
     cancelOrder,
     cancelOrderItem,
-    getOrderDetails
+    getOrderDetails,
+    getOrderProductDetails
 };

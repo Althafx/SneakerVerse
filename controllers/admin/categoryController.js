@@ -377,37 +377,29 @@ const removeOffer = async (req, res) => {
             });
         }
 
-        // Find all products in this category
-        const products = await Product.find({ category: categoryId });
-
-        // Update each product
-        for (const product of products) {
-            // Only update if the product doesn't have its own offer
-            if (!product.productOffer || product.productOffer <= 0) {
-                // Restore original salesPrice
-                product.salesPrice = product.mainPrice;
-                product.offer = {
-                    discountedPrice: null,
-                    discountPercentage: 0
-                };
-                await product.save();
-            }
-        }
-
-        // Reset category offer
+        // Reset category offer first
         category.categoryOffer = 0;
         await category.save();
 
+        // Find all products in this category and populate category
+        const products = await Product.find({ category: categoryId }).populate('category');
+
+        // Update each product
+        for (const product of products) {
+            // The pre-save middleware will handle the offer recalculation
+            await product.save();
+        }
+
         res.json({ 
             status: true, 
-            message: "Category offer removed successfully" 
+            message: "Offer removed successfully" 
         });
 
     } catch (error) {
         console.error("Error in removeOffer:", error);
         res.status(500).json({ 
             status: false, 
-            message: "Internal server error" 
+            message: "Internal Server Error" 
         });
     }
 };

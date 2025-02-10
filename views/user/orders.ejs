@@ -118,6 +118,10 @@
         font-weight: 500;
         margin-bottom: 0.3rem;
     }
+    .product-details {
+        font-size: 0.9rem;
+        color: #95a5a6;
+    }
     .product-price {
         color: #2c3e50;
         font-weight: 600;
@@ -275,9 +279,21 @@
                                                 <div class="product-info">
                                                     <div class="product-name"><%= item.product.productName %></div>
                                                     <div class="product-details">
-                                                        Size: <%= item.size %> | Quantity: <%= item.quantity %>
+                                                        Size: <%= item.size %><br>
+                                                        Quantity: <%= item.quantity %><br>
+                                                        Price: ₹<%= item.price.toFixed(2) %>
                                                     </div>
                                                     <div class="product-price">₹<%= item.price %></div>
+                                                    <div class="product-actions mt-2">
+                                                        <a href="/order-product-details/<%= order._id %>/<%= item._id %>" class="btn btn-sm btn-outline-primary">
+                                                            View Details
+                                                        </a>
+                                                        <% if (item.status === 'Delivered' && !item.returnRequest) { %>
+                                                            <button class="btn btn-sm btn-warning ms-2" onclick="openReturnModal('<%= order._id %>', '<%= item.product._id %>', '<%= item.size %>', '<%= item.product.productName %>')">
+                                                                Return
+                                                            </button>
+                                                        <% } %>
+                                                    </div>
                                                 </div>
                                             </div>
                                         <% }); %>
@@ -319,6 +335,11 @@
                                                 <p class="mb-1">Size: <%= item.size %></p>
                                                 <p class="mb-1">Quantity: <%= item.quantity %></p>
                                                 <p class="mb-0">₹<%= item.price.toFixed(2) %></p>
+                                                <div class="mt-2">
+                                                    <a href="/order-product-details/<%= order._id %>/<%= item._id %>" class="btn btn-sm btn-outline-primary">
+                                                        View Details
+                                                    </a>
+                                                </div>
                                             </div>
                                             <div class="ms-3">
                                                 <% if (item.returnRequest) { %>
@@ -326,7 +347,7 @@
                                                         Return <%= item.returnRequest.status %>
                                                     </span>
                                                 <% } else { %>
-                                                    <button class="btn-return" onclick="openReturnModal('<%= order._id %>', '<%= item.product._id %>', '<%= item.size %>', '<%= item.product.productName %>')">
+                                                    <button class="btn btn-sm btn-warning ms-2" onclick="openReturnModal('<%= order._id %>', '<%= item.product._id %>', '<%= item.size %>', '<%= item.product.productName %>')">
                                                         Return
                                                     </button>
                                                 <% } %>
@@ -383,6 +404,11 @@
                                                         Size: <%= item.size %> | Quantity: <%= item.quantity %>
                                                     </div>
                                                     <div class="product-price">₹<%= item.price %></div>
+                                                    <div class="product-actions mt-2">
+                                                        <a href="/order-product-details/<%= order._id %>/<%= item._id %>" class="btn btn-sm btn-outline-primary">
+                                                            View Details
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         <% }); %>
@@ -423,27 +449,6 @@
         </div>
     </div>
 </div>
-
-<script>
-    const socket = io();
-    
-    // Listen for order status updates
-    socket.on('orderStatusUpdate', function(data) {
-        const orderCard = document.querySelector(`[data-order-id="${data.orderId}"]`);
-        if (orderCard) {
-            const statusBadge = orderCard.querySelector('.order-status');
-            statusBadge.className = `order-status status-${data.status.toLowerCase()}`;
-            statusBadge.textContent = data.status;
-            
-            // If order is delivered or cancelled, move it to the appropriate tab
-            if (data.status === 'Delivered' || data.status === 'Cancelled') {
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
-            }
-        }
-    });
-</script>
 
 <script>
     async function retryPayment(orderId) {
@@ -559,7 +564,7 @@
     }
 
     // Helper function to show messages using SweetAlert2 if available, otherwise use regular alert
-    function showMessage(message, type, reload = false) {
+    function showMessage(message, type = 'success', reload = false) {
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 icon: type === 'success' ? 'success' : 'error',

@@ -1,0 +1,314 @@
+<%- include('../partials/user/header') %>
+
+<style>
+    .product-details-container {
+        background: linear-gradient(145deg, #bef17b, #f5f5f5);
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(226, 255, 98, 0.05);
+        padding: 2rem;
+        margin: 2rem auto;
+    }
+
+    .timeline {
+        position: relative;
+        margin: 2rem 0;
+    }
+
+    .timeline-line {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e0e0e0;
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+
+    .timeline-progress {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        height: 2px;
+        background: #4CAF50;
+        transform: translateY(-50%);
+        z-index: 2;
+        transition: width 0.3s ease;
+    }
+
+    .timeline-points {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        z-index: 3;
+    }
+
+    .timeline-point {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    .point-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .point-circle.active {
+        border-color: #4CAF50;
+        background: #4CAF50;
+        color: white;
+    }
+
+    .point-circle.completed {
+        border-color: #4CAF50;
+        background: #4CAF50;
+        color: white;
+    }
+
+    .point-label {
+        font-size: 0.85rem;
+        color: #666;
+        text-align: center;
+        position: absolute;
+        top: 100%;
+        width: 100px;
+        margin-top: 0.5rem;
+        transform: translateX(-35px);
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .product-image {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .address-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-processing { background: #cce5ff; color: #004085; }
+    .status-shipped { background: #d4edda; color: #155724; }
+    .status-delivered { background: #d1e7dd; color: #0f5132; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+    .status-outfordelivery { background: #e2efda; color: #1d6f42; }
+</style>
+
+<div class="container">
+    <div class="product-details-container">
+     
+        <div class="row">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/orders">My Orders</a></li>
+                        <li class="breadcrumb-item active">Order #<%= order._id %></li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline">
+            <div class="timeline-line"></div>
+            <div class="timeline-progress" style="width: <%= 
+                item.status === 'Pending' ? '0%' :
+                item.status === 'Processing' ? '25%' :
+                item.status === 'Shipped' ? '50%' :
+                item.status === 'Out for Delivery' ? '75%' :
+                item.status === 'Delivered' ? '100%' :
+                '0%'
+            %>"></div>
+            <div class="timeline-points">
+                <% timeline.forEach(point => { %>
+                    <div class="timeline-point">
+                        <div class="point-circle <%= point.active ? 'active' : '' %> <%= point.completed ? 'completed' : '' %>">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="point-label"><%= point.status %></div>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <!-- Product Details -->
+            <div class="col-md-6">
+                <div class="product-card">
+                    <h5 class="mb-4">Product Details</h5>
+                    <img src="/uploads/product-images/<%= item.product.productImage[0] %>" 
+                         alt="<%= item.product.productName %>" 
+                         class="product-image">
+                    <h6><%= item.product.productName %></h6>
+                    <p>Size: <%= item.size %></p>
+                    <p>Quantity: <%= item.quantity %></p>
+                    <p>Price: ₹<%= item.price.toLocaleString('en-IN') %></p>
+                    <div class="status-badge status-<%= item.status.toLowerCase().replace(/\s+/g, '') %>">
+                        <%= item.status %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="col-md-6">
+                <div class="address-card">
+                    <h5 class="mb-4">Shipping Address</h5>
+                    <p><strong><%= order.shippingAddress.name %></strong></p>
+                    <p><%= order.shippingAddress.street %></p>
+                    <p><%= order.shippingAddress.city %>, <%= order.shippingAddress.state %></p>
+                    <p>PIN: <%= order.shippingAddress.pincode %></p>
+                    <p>Phone: <%= order.shippingAddress.mobile %></p>
+                    <% if (order.shippingAddress.alternativePhone) { %>
+                        <p>Alternative Phone: <%= order.shippingAddress.alternativePhone %></p>
+                    <% } %>
+                    <% if (order.shippingAddress.landmark) { %>
+                        <p>Landmark: <%= order.shippingAddress.landmark %></p>
+                    <% } %>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="address-card mt-4">
+                    <h5 class="mb-4">Order Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Order Date:</span>
+                        <span><%= new Date(order.orderDate).toLocaleDateString() %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Order ID:</span>
+                        <span>#<%= order._id %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Payment Method:</span>
+                        <span><%= order.paymentMethod %></span>
+                    </div>
+                    <% if (item.status === 'Delivered' && !item.returnRequested) { %>
+                        <div class="mt-3">
+                            <button class="btn btn-warning w-100" 
+                                    onclick="openReturnModal('<%= order._id %>', '<%= item._id %>', '<%= item.size %>', '<%= item.product.productName %>')">
+                                Return Product
+                            </button>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Return Request Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="returnModalLabel">Return Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="returnReason" class="form-label">Reason for Return</label>
+                    <textarea class="form-control" id="returnReason" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitReturnRequest()">Submit Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentReturnData = null;
+
+function openReturnModal(orderId, productId, size, productName) {
+    currentReturnData = { orderId, productId, size };
+    document.getElementById('returnModalLabel').textContent = `Return Request - ${productName}`;
+    document.getElementById('returnReason').value = '';
+    const modal = new bootstrap.Modal(document.getElementById('returnModal'));
+    modal.show();
+}
+
+async function submitReturnRequest() {
+    try {
+        const reason = document.getElementById('returnReason').value.trim();
+        if (!reason) {
+            showToast('Please provide a reason for return', 'warning');
+            return;
+        }
+
+        const response = await fetch('/return-request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                orderId: currentReturnData.orderId,
+                productId: currentReturnData.productId,
+                size: currentReturnData.size,
+                reason: reason
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showToast('Return request submitted successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('returnModal')).hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            throw new Error(data.message || 'Failed to submit return request');
+        }
+    } catch (error) {
+        console.error('Error submitting return request:', error);
+        showToast(error.message || 'Failed to submit return request', 'error');
+    }
+}
+
+function showToast(message, type = 'success') {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            text: message,
+            icon: type,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    } else {
+        alert(message);
+    }
+}
+</script>
+
+<%- include('../partials/user/footer') %>
