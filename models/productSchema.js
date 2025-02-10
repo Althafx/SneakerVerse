@@ -23,18 +23,15 @@ const productSchema = new Schema({
         type: Number,
         required: true
     },
-    salesPrice: {
-        type: Number,
-        required: true,
-        default: function() {
-            return this.regularPrice;
-        }
-    },
     mainPrice: {
         type: Number,
         default: function() {
-            return this.regularPrice;
+            return this.salesPrice || this.regularPrice;
         }
+    },
+    salesPrice: {
+        type: Number,
+        required: true
     },
     productOffer: {  // Discount percentage (e.g., 10 means 10% off)
         type: Number,
@@ -86,36 +83,63 @@ const productSchema = new Schema({
 }, { timestamps: true })
 
 // Middleware to calculate discounted price before saving
-productSchema.pre('save', function (next) {
-    // If product has a product offer
-    if (this.productOffer > 0) {
-        this.offer = {
-            discountedPrice: Math.floor(this.salesPrice - (this.salesPrice * this.productOffer / 100)),
-            discountPercentage: this.productOffer
-        };
-    } 
-    // If product's category has an offer and it's better than the product offer
-    else if (this.category && this.category.categoryOffer > 0) {
-        this.offer = {
-            discountedPrice: Math.floor(this.salesPrice - (this.salesPrice * this.category.categoryOffer / 100)),
-            discountPercentage: this.category.categoryOffer
-        };
-    } 
-    // No offers or invalid offers
-    else {
-        this.offer = {
-            discountedPrice: null,
-            discountPercentage: 0
-        };
-        this.productOffer = 0; // Reset product offer if it's 0 or negative
-    }
+productSchema.pre('save', async function (next) {
+    try {
+        // On first save, set mainPrice to salesPrice
+        if (this.isNew) {
+            this.mainPrice = this.salesPrice;
+        }
+        // If salesPrice is changing and no offers are active, update mainPrice
+        else if (this.isModified('salesPrice') && 
+                (!this.productOffer || this.productOffer <= 0) && 
+                (!this.category?.categoryOffer || this.category.categoryOffer <= 0)) {
+            this.mainPrice = this.salesPrice;
+        }
 
-    // Ensure salesPrice is always set
-    if (!this.salesPrice || isNaN(this.salesPrice)) {
-        this.salesPrice = this.regularPrice;
-    }
+        // Ensure category is populated for offer calculation
+        if (this.category && !this.category.categoryOffer && typeof this.category !== 'string') {
+            await this.populate('category');
+        }
 
-    next();
+        let productOfferPercentage = this.productOffer || 0;
+        let categoryOfferPercentage = 0;
+
+        // Get category offer percentage
+        if (this.category) {
+            if (typeof this.category === 'object') {
+                categoryOfferPercentage = this.category.categoryOffer || 0;
+            } else {
+                // If category is not populated, populate it
+                const populatedProduct = await this.constructor.findById(this._id).populate('category');
+                if (populatedProduct && populatedProduct.category) {
+                    categoryOfferPercentage = populatedProduct.category.categoryOffer || 0;
+                }
+            }
+        }
+
+        // If there are any offers, calculate the new salesPrice
+        if (productOfferPercentage > 0 || categoryOfferPercentage > 0) {
+            const finalPercentage = Math.max(productOfferPercentage, categoryOfferPercentage);
+            const discountAmount = Math.floor(this.mainPrice * (finalPercentage / 100));
+            this.salesPrice = this.mainPrice - discountAmount;
+            
+            this.offer = {
+                discountedPrice: this.salesPrice,
+                discountPercentage: finalPercentage
+            };
+        } else {
+            // No offers - restore original salesPrice from mainPrice
+            this.salesPrice = this.mainPrice;
+            this.offer = {
+                discountedPrice: null,
+                discountPercentage: 0
+            };
+        }
+
+        next();
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Virtual for checking if product has any active offer

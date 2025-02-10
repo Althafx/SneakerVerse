@@ -319,22 +319,38 @@ const updateProduct = async (req, res, next) => {
             productImage = [...productImage, ...newImages];
         }
 
+        // Get the product with its current state
+        const product = await Product.findById(productId);
+        
+        // Update mainPrice if salesPrice is changing and there are no active offers
+        const shouldUpdateMainPrice = 
+            salesPrice !== product.salesPrice && 
+            (!product.productOffer || product.productOffer <= 0) && 
+            (!product.category?.categoryOffer || product.category.categoryOffer <= 0);
+
         // Update the product
+        const updateData = {
+            productName,
+            description,
+            regularPrice,
+            salesPrice,
+            category,
+            brand,
+            quantities,
+            totalQuantity,
+            color,
+            productImage,
+            updatedAt: Date.now()
+        };
+
+        // Only update mainPrice if there are no active offers
+        if (shouldUpdateMainPrice) {
+            updateData.mainPrice = salesPrice;
+        }
+
         const updatedProduct = await Product.findByIdAndUpdate(
             productId,
-            {
-                productName,
-                description,
-                regularPrice,
-                salesPrice,
-                category,
-                brand,
-                quantities,
-                totalQuantity,
-                color,
-                productImage,
-                updatedAt: Date.now()
-            },
+            updateData,
             { new: true }
         );
 
@@ -354,7 +370,6 @@ const updateProduct = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-
 };
 
 
@@ -494,18 +509,10 @@ const addProductOffer = async (req, res) => {
             });
         }
 
-        // Store current salesPrice before applying offer
-        findProduct.mainPrice = findProduct.salesPrice;
-
-        // Calculate discount from salesPrice
-        const discountAmount = Math.floor(findProduct.salesPrice * (percentage / 100));
-        findProduct.salesPrice = findProduct.salesPrice - discountAmount;
+        // Set the product offer percentage
         findProduct.productOffer = parseInt(percentage);
-        findProduct.offer = {
-            discountedPrice: findProduct.salesPrice,
-            discountPercentage: percentage
-        };
-
+        
+        // Let the schema's pre-save middleware handle the price calculations
         await findProduct.save();
         
         res.json({
@@ -541,27 +548,10 @@ const removeProductOffer = async (req, res) => {
             });
         }
 
-        // Reset product offer
+        // Reset product offer to 0
         findProduct.productOffer = 0;
         
-        // If category has an offer, apply category offer
-        if (findProduct.category && findProduct.category.categoryOffer > 0) {
-            // Calculate from the original price (mainPrice)
-            const discountAmount = Math.floor(findProduct.mainPrice * (findProduct.category.categoryOffer / 100));
-            findProduct.salesPrice = findProduct.mainPrice - discountAmount;
-            findProduct.offer = {
-                discountedPrice: findProduct.salesPrice,
-                discountPercentage: findProduct.category.categoryOffer
-            };
-        } else {
-            // Restore the original salesPrice
-            findProduct.salesPrice = findProduct.mainPrice;
-            findProduct.offer = {
-                discountedPrice: null,
-                discountPercentage: 0
-            };
-        }
-
+        // Let the schema's pre-save middleware handle price restoration
         await findProduct.save();
         
         res.json({
