@@ -85,39 +85,21 @@ const productSchema = new Schema({
 // Middleware to calculate discounted price before saving
 productSchema.pre('save', async function (next) {
     try {
-        // On first save, set mainPrice to salesPrice
-        if (this.isNew) {
-            this.mainPrice = this.salesPrice;
-        }
-        // If salesPrice is changing and no offers are active, update mainPrice
-        else if (this.isModified('salesPrice') && 
-                (!this.productOffer || this.productOffer <= 0) && 
-                (!this.category?.categoryOffer || this.category.categoryOffer <= 0)) {
-            this.mainPrice = this.salesPrice;
+        // On first save or if regularPrice changes, set mainPrice to regularPrice
+        if (this.isNew || this.isModified('regularPrice')) {
+            this.mainPrice = this.regularPrice;
+            this.salesPrice = this.regularPrice;
         }
 
         // Ensure category is populated for offer calculation
-        if (this.category && !this.category.categoryOffer && typeof this.category !== 'string') {
+        if (this.category && typeof this.category !== 'string') {
             await this.populate('category');
         }
 
         let productOfferPercentage = this.productOffer || 0;
-        let categoryOfferPercentage = 0;
+        let categoryOfferPercentage = this.category?.categoryOffer || 0;
 
-        // Get category offer percentage
-        if (this.category) {
-            if (typeof this.category === 'object') {
-                categoryOfferPercentage = this.category.categoryOffer || 0;
-            } else {
-                // If category is not populated, populate it
-                const populatedProduct = await this.constructor.findById(this._id).populate('category');
-                if (populatedProduct && populatedProduct.category) {
-                    categoryOfferPercentage = populatedProduct.category.categoryOffer || 0;
-                }
-            }
-        }
-
-        // If there are any offers, calculate the new salesPrice
+        // If there are any offers, calculate the new salesPrice from mainPrice
         if (productOfferPercentage > 0 || categoryOfferPercentage > 0) {
             const finalPercentage = Math.max(productOfferPercentage, categoryOfferPercentage);
             const discountAmount = Math.floor(this.mainPrice * (finalPercentage / 100));
@@ -128,7 +110,7 @@ productSchema.pre('save', async function (next) {
                 discountPercentage: finalPercentage
             };
         } else {
-            // No offers - restore original salesPrice from mainPrice
+            // No offers - restore original price from mainPrice
             this.salesPrice = this.mainPrice;
             this.offer = {
                 discountedPrice: null,

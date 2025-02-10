@@ -316,7 +316,7 @@ const addOffer = async (req, res) => {
             return res.status(400).json({ status: false, message: "Category not found" });
         }
 
-        const products = await Product.find({ category: category._id });
+        const products = await Product.find({ category: category._id }).populate('category');
         if (products.length === 0) {
             return res.json({ status: false, message: "No products found in this category" });
         }
@@ -331,22 +331,10 @@ const addOffer = async (req, res) => {
         category.categoryOffer = percentage;
         await category.save();
 
-        // Update each product's offer
+        // Update each product
         for (const product of products) {
-            // Only apply category offer if there's no product offer
-            if (!product.productOffer || product.productOffer <= 0) {
-                // Store current salesPrice before applying offer
-                product.mainPrice = product.salesPrice;
-
-                // Calculate discount from salesPrice
-                const discountAmount = Math.floor(product.salesPrice * (percentage / 100));
-                product.salesPrice = product.salesPrice - discountAmount;
-                product.offer = {
-                    discountedPrice: product.salesPrice,
-                    discountPercentage: percentage
-                };
-                await product.save();
-            }
+            // The pre-save middleware will handle the offer calculations
+            await product.save();
         }
 
         res.json({ status: true, message: "Offer added successfully" });
