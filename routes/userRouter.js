@@ -84,7 +84,7 @@ router.delete("/delete-address/:id", userAuth, isBlockedUser, userController.del
 //cart routes
 router.get("/cart", userAuth, isBlockedUser, cartController.loadCart)
 router.post("/cart/add", userAuth, isBlockedUser, cartController.addToCart)
-router.put("/cart/update-quantity", userAuth, isBlockedUser, cartController.updateQuantity)
+router.post("/cart/update-quantity", userAuth, isBlockedUser, cartController.updateQuantity)
 router.delete("/cart/remove/:productId/:size", userAuth, isBlockedUser, cartController.removeFromCart)
 
 

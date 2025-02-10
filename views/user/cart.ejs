@@ -296,7 +296,7 @@
                                         <th>Product</th>
                                         <th>Price</th>
                                         <th>Quantity</th>
-                                        <th>Total</th>
+                                        <th>Subtotal</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -347,7 +347,7 @@
                                                     <div class="quantity__control">
                                                         <div class="d-flex align-items-center">
                                                             <button class="quantity-btn" 
-                                                                    onclick="updateQuantity('<%= item.product._id %>','<%= item.size %>', 'decrease')"
+                                                                    onclick="updateQuantityAsync('<%= item.product._id %>','<%= item.size %>', 'decrease')"
                                                                     id="decrease-<%= item.product._id %>"
                                                                     <%= item.quantity <= 1 ? 'disabled' : '' %>>
                                                                 -
@@ -356,7 +356,7 @@
                                                                 <%= item.quantity %>
                                                             </span>
                                                             <button class="quantity-btn" 
-                                                                    onclick="updateQuantity('<%= item.product._id %>','<%= item.size %>', 'increase')"
+                                                                    onclick="updateQuantityAsync('<%= item.product._id %>','<%= item.size %>', 'increase')"
                                                                     id="increase-<%= item.product._id %>"
                                                                     data-stock="<%= item.availableQuantity %>"
                                                                     <%= item.quantity >= Math.min(10, item.availableQuantity) ? 'disabled' : '' %>>
@@ -374,7 +374,9 @@
                                                         <% } %>
                                                     </div>
                                                 </td>
-                                                <td class="cart__total">₹<%= (item.product.salesPrice * item.quantity).toLocaleString('en-IN') %></td>
+                                                <td class="cart__subtotal" id="subtotal-<%= item.product._id %>">
+                                                    ₹<%= (item.quantity * item.product.salesPrice).toLocaleString('en-IN') %>
+                                                </td>
                                                 <td class="cart__close">
                                                     <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart('<%= item.product._id %>','<%= item.size %>')">
                                                         <i class="fa fa-close"></i>
@@ -416,7 +418,7 @@
                                             %>
                                             <li>Subtotal <span>₹<%= subtotal.toLocaleString('en-IN') %></span></li>
                                             <li>Shipping <span>Free</span></li>
-                                            <li>Total <span>₹<%= subtotal.toLocaleString('en-IN') %></span></li>
+                                            <li>Total <span id="cart-total">₹<%= subtotal.toLocaleString('en-IN') %></span></li>
                                         </ul>
                                         <a href="/checkout" class="primary-btn">Proceed to checkout</a>
                                     </div>
@@ -434,72 +436,64 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 
     <script>
-    async function updateQuantity(productId, size, action) {
-        try {
-            // Get current quantity and stock limit
-            const quantityElement = document.getElementById(`quantity-${productId}`);
-            const currentQuantity = parseInt(quantityElement.textContent);
-            const increaseButton = document.getElementById(`increase-${productId}`);
-            const decreaseButton = document.getElementById(`decrease-${productId}`);
-            const stockLimit = parseInt(increaseButton.dataset.stock);
-            const maxLimit = Math.min(10, stockLimit);
-
-            // Check limits before making the request
-            if (action === 'decrease' && currentQuantity <= 1) {
-                return;
-            }
-            if (action === 'increase' && currentQuantity >= maxLimit) {
-                Swal.fire({
-                    title: 'Limit Reached',
-                    text: currentQuantity >= 10 ? 
-                          'Maximum 10 items allowed per product' : 
-                          'Cannot exceed available stock quantity',
-                    icon: 'warning',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
+        async function updateQuantityAsync(productId, size, action) {
+            try {
+                const response = await fetch('/cart/update-quantity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        size,
+                        action
+                    })
                 });
-                return;
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update quantity display
+                    document.getElementById(`quantity-${productId}`).textContent = data.quantity;
+                    
+                    // Update total price (remove the ₹ symbol from the response)
+                    document.getElementById('cart-total').textContent = '₹' + data.total.toLocaleString('en-IN');
+                    
+                    // Update item subtotal
+                    document.getElementById(`subtotal-${productId}`).textContent = '₹' + data.itemTotal.toLocaleString('en-IN');
+
+                    // Update button states
+                    const decreaseBtn = document.getElementById(`decrease-${productId}`);
+                    const increaseBtn = document.getElementById(`increase-${productId}`);
+                    const maxQuantity = Math.min(10, parseInt(increaseBtn.getAttribute('data-stock')));
+
+                    decreaseBtn.disabled = data.quantity <= 1;
+                    increaseBtn.disabled = data.quantity >= maxQuantity;
+
+                    // Update cart count in header if it exists
+                    const cartCountElement = document.getElementById('cart-count');
+                    if (cartCountElement) {
+                        cartCountElement.textContent = data.cartCount;
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to update quantity'
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to update quantity'
+                });
             }
-
-            const response = await fetch('/cart/update-quantity', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ productId, size, action })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                // Update quantity display
-                const newQuantity = action === 'increase' ? currentQuantity + 1 : currentQuantity - 1;
-                quantityElement.textContent = newQuantity;
-
-                // Update button states
-                decreaseButton.disabled = newQuantity <= 1;
-                increaseButton.disabled = newQuantity >= maxLimit;
-
-                // Update total price and cart summary
-                location.reload();
-            } else {
-                throw new Error(data.message || 'Failed to update quantity');
-            }
-        } catch (error) {
-            console.error('Error updating quantity:', error);
-            Swal.fire({
-                title: 'Error',
-                text: error.message || 'Failed to update quantity',
-                icon: 'error',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
         }
-    }
+    </script>
 
+    <script>
     async function removeFromCart(productId, size) {
         try {
             const result = await Swal.fire({

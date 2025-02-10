@@ -86,18 +86,30 @@ const addPathMiddleware = (req, res, next) => {
 // Get all orders for admin management
 const getOrders = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        const totalOrders = await Order.countDocuments();
+        const totalPages = Math.ceil(totalOrders / limit);
+
         const orders = await Order.find()
             .populate('user', 'username email')
             .populate({
                 path: 'items.product',
                 select: 'productName productImage salesPrice'
             })
-            .sort({ orderDate: -1 });
+            .sort({ orderDate: -1 })
+            .skip(skip)
+            .limit(limit);
 
         res.render('admin/orderManage', {
             orders,
             admin: req.session.admin,
-            path: '/admin/orders'
+            path: '/admin/orders',
+            currentPage: page,
+            totalPages: totalPages,
+            totalOrders: totalOrders
         });
     } catch (error) {
         console.error('Error fetching orders:', error);

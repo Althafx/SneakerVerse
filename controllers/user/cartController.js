@@ -212,7 +212,7 @@ const addToCart = async (req, res, next) => {
     }
 };
 
-const updateQuantity = async (req, res, next) => {
+const updateQuantity = async (req, res) => {
     try {
         const { productId, size, action } = req.body;
         const userId = req.session.user;
@@ -226,19 +226,21 @@ const updateQuantity = async (req, res, next) => {
         }
 
         // Get cart and product
-        const cart = await Cart.findOne({ userId });
-        const product = await Product.findById(productId);
-
-        if (!cart || !product) {
+        const cart = await Cart.findOne({ userId }).populate({
+            path: 'items.product',
+            select: 'productName salesPrice quantities'
+        });
+        
+        if (!cart) {
             return res.status(404).json({
                 success: false,
-                message: 'Cart or product not found'
+                message: 'Cart not found'
             });
         }
 
         // Find the cart item
         const cartItem = cart.items.find(item => 
-            item.product.toString() === productId && 
+            item.product._id.toString() === productId && 
             item.size === size
         );
 
@@ -256,7 +258,7 @@ const updateQuantity = async (req, res, next) => {
             'L': 'large'
         };
         const sizeKey = sizeMap[size] || size.toLowerCase();
-        const availableStock = product.quantities[sizeKey] || 0;
+        const availableStock = cartItem.product.quantities[sizeKey] || 0;
 
         // Calculate new quantity
         let newQuantity = cartItem.quantity;
@@ -276,28 +278,34 @@ const updateQuantity = async (req, res, next) => {
                 });
             }
             newQuantity += 1;
-        } else if (action === 'decrease') {
-            if (newQuantity > 1) {
-                newQuantity -= 1;
-            }
+        } else if (action === 'decrease' && newQuantity > 1) {
+            newQuantity -= 1;
         }
 
         // Update cart item quantity and price
         cartItem.quantity = newQuantity;
-        cartItem.price = newQuantity * product.salesPrice;
+        cartItem.price = newQuantity * cartItem.product.salesPrice;
 
         // Recalculate cart total
         cart.totalAmount = cart.items.reduce((total, item) => total + item.price, 0);
 
         await cart.save();
 
+        // Send back all necessary data
         res.json({
             success: true,
-            message: 'Quantity updated successfully'
+            message: 'Quantity updated successfully',
+            quantity: newQuantity,
+            itemTotal: cartItem.price,
+            total: cart.totalAmount,
+            cartCount: cart.items.reduce((total, item) => total + item.quantity, 0)
         });
     } catch (error) {
-        next(error);
-
+        console.error('Error updating quantity:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update quantity'
+        });
     }
 };
 
