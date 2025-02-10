@@ -285,7 +285,12 @@
                                                     </div>
                                                     <div class="product-price">₹<%= item.price %></div>
                                                     <div class="product-actions mt-2">
-                                                        <a href="/order-product-details/<%= order._id %>/<%= item._id %>" class="btn btn-sm btn-outline-primary">
+                                                        <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 
+                                                           class="btn btn-sm btn-outline-primary"
+                                                           onclick="console.log('Clicking view details for:', {
+                                                               orderId: '<%= order._id %>',
+                                                               productId: '<%= item.product._id %>'
+                                                           })">
                                                             View Details
                                                         </a>
                                                         <% if (item.status === 'Delivered' && !item.returnRequest) { %>
@@ -336,7 +341,12 @@
                                                 <p class="mb-1">Quantity: <%= item.quantity %></p>
                                                 <p class="mb-0">₹<%= item.price.toFixed(2) %></p>
                                                 <div class="mt-2">
-                                                    <a href="/order-product-details/<%= order._id %>/<%= item._id %>" class="btn btn-sm btn-outline-primary">
+                                                    <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       onclick="console.log('Clicking view details for:', {
+                                                           orderId: '<%= order._id %>',
+                                                           productId: '<%= item.product._id %>'
+                                                       })">
                                                         View Details
                                                     </a>
                                                 </div>
@@ -405,7 +415,12 @@
                                                     </div>
                                                     <div class="product-price">₹<%= item.price %></div>
                                                     <div class="product-actions mt-2">
-                                                        <a href="/order-product-details/<%= order._id %>/<%= item._id %>" class="btn btn-sm btn-outline-primary">
+                                                        <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 
+                                                           class="btn btn-sm btn-outline-primary"
+                                                           onclick="console.log('Clicking view details for:', {
+                                                               orderId: '<%= order._id %>',
+                                                               productId: '<%= item.product._id %>'
+                                                           })">
                                                             View Details
                                                         </a>
                                                     </div>
@@ -502,6 +517,10 @@
                 confirmButtonText: 'OK'
             });
         }
+    }
+    
+    function viewProductDetails(orderId, productId) {
+        window.location.href = `/order-product-details/${orderId}/${productId}`;
     }
     
     function viewOrderDetails(orderId) {

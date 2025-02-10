@@ -47,6 +47,7 @@ const loadOrders = async (req, res) => {
         });
     } catch (error) {
         console.error('Error loading orders:', error);
+        console.error('Stack trace:', error.stack);
         req.flash('error', 'Failed to load orders');
         res.redirect('/home');
     }
@@ -121,6 +122,7 @@ const cancelOrder = async (req, res) => {
         });
     } catch (error) {
         console.error('Error cancelling order:', error);
+        console.error('Stack trace:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Failed to cancel order'
@@ -214,6 +216,7 @@ const cancelOrderItem = async (req, res) => {
         });
     } catch (error) {
         console.error('Error cancelling order item:', error);
+        console.error('Stack trace:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Failed to cancel order item'
@@ -253,6 +256,7 @@ const getOrderDetails = async (req, res) => {
         });
     } catch (error) {
         console.error('Error getting order details:', error);
+        console.error('Stack trace:', error.stack);
         req.flash('error', 'Failed to load order details');
         res.redirect('/orders');
     }
@@ -261,87 +265,68 @@ const getOrderDetails = async (req, res) => {
 const getOrderProductDetails = async (req, res) => {
     try {
         const { orderId, productId } = req.params;
-        console.log('Params:', { orderId, productId });
-        console.log('Session:', req.session);
+        console.log('1. Starting getOrderProductDetails with params:', { orderId, productId });
         
-        // Get user ID from session
         if (!req.session.user) {
-            console.log('No user in session');
+            console.log('2. No user in session - redirecting to login');
             req.flash('error', 'Please login to view order details');
             return res.redirect('/login');
         }
         
         const userId = req.session.user._id;
-        console.log('User ID:', userId);
+        console.log('3. User ID:', userId);
 
-        // Find the order with populated data
+        console.log('4. Finding order...');
         const order = await Order.findOne({
             _id: orderId,
             user: userId
         }).populate({
             path: 'items.product',
-            select: 'productName productImage price'
-        }).populate('shippingAddress');
+            select: 'productName description images price' // Make sure we're selecting the images field
+        });
 
-        console.log('Found order:', order ? order._id : 'No order found');
-        
         if (!order) {
-            console.log('Order not found for user:', userId);
+            console.log('5. Order not found');
             req.flash('error', 'Order not found');
             return res.redirect('/orders');
         }
 
-        // Find the specific item in the order
-        const orderItem = order.items.find(item => item._id.toString() === productId);
-        console.log('Looking for item:', productId);
-        console.log('Available items:', order.items.map(item => ({
-            id: item._id.toString(),
-            product: item.product.productName
-        })));
+        console.log('6. Looking for product in order items...');
+        const orderItem = order.items.find(item => item.product._id.toString() === productId);
         
         if (!orderItem) {
-            console.log('Item not found in order');
+            console.log('7. Product not found in order');
             req.flash('error', 'Product not found in order');
             return res.redirect('/orders');
         }
 
-        console.log('Found order item:', {
-            id: orderItem._id,
-            product: orderItem.product.productName,
-            status: orderItem.status
+        console.log('8. Product found:', {
+            productName: orderItem.product.productName,
+            images: orderItem.product.images,
+            hasImages: orderItem.product.images && orderItem.product.images.length > 0
         });
 
-        // Create a timeline of status changes
-        const timeline = [
-            { status: 'Pending', active: false, completed: false },
-            { status: 'Processing', active: false, completed: false },
-            { status: 'Shipped', active: false, completed: false },
-            { status: 'Out for Delivery', active: false, completed: false },
-            { status: 'Delivered', active: false, completed: false }
-        ];
-
-        const statusIndex = timeline.findIndex(t => t.status === orderItem.status);
-        if (statusIndex !== -1) {
-            timeline[statusIndex].active = true;
-            for (let i = 0; i < statusIndex; i++) {
-                timeline[i].completed = true;
-            }
+        try {
+            return res.render('user/orderProductDetails', {
+                title: 'Order Details',
+                order,
+                item: orderItem,
+                user: req.session.user
+            });
+        } catch (renderError) {
+            console.error('Error during render:', renderError);
+            console.error('Render error stack:', renderError.stack);
+            console.log('Order data:', JSON.stringify(order, null, 2));
+            console.log('Order item data:', JSON.stringify(orderItem, null, 2));
+            req.flash('error', 'Error displaying order details');
+            return res.redirect('/orders');
         }
-
-        // Render the order product details page
-        res.render('user/orderProductDetails', {
-            order,
-            item: orderItem,
-            timeline,
-            user: req.session.user,
-            error_msg: req.flash('error'),
-            success_msg: req.flash('success')
-        });
 
     } catch (error) {
         console.error('Error in getOrderProductDetails:', error);
+        console.error('Stack trace:', error.stack);
         req.flash('error', 'Failed to load order details');
-        res.redirect('/orders');
+        return res.redirect('/orders');
     }
 };
 
