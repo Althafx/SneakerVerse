@@ -703,15 +703,16 @@
                       <% 
                         let displayPrice = product.salesPrice;
                         let discountPercentage = 0;
+                        let originalPrice = product.mainPrice;
                         
                         // Check for product offer first
-                        if (product.offer && product.offer.discountedPrice) {
+                        if (product.offer && product.offer.discountPercentage > 0) {
                           displayPrice = product.offer.discountedPrice;
                           discountPercentage = product.offer.discountPercentage;
                         }
                         // Then check for category offer if no product offer exists
                         else if (product.category && product.category.categoryOffer > 0) {
-                          displayPrice = Math.floor(product.salesPrice - (product.salesPrice * product.category.categoryOffer / 100));
+                          displayPrice = Math.floor(originalPrice - (originalPrice * product.category.categoryOffer / 100));
                           discountPercentage = product.category.categoryOffer;
                         }
                       %>
@@ -723,10 +724,10 @@
                       <h6><%= product.productName %></h6>
                       <div class="product-price">
                         <% if (discountPercentage > 0) { %>
-                          <span class="current-price">₹<%= product.salesPrice.toLocaleString('en-IN') %></span>
-                          <span class="original-price">₹<%= product.mainPrice.toLocaleString('en-IN') %></span>
-                        <% } else { %>₹<%= displayPrice.toLocaleString('en-IN') %>
-                          <span class="current-price"></span>
+                          <span class="current-price">₹<%= displayPrice.toLocaleString('en-IN') %></span>
+                          <span class="original-price">₹<%= originalPrice.toLocaleString('en-IN') %></span>
+                        <% } else { %>
+                          <span>₹<%= displayPrice.toLocaleString('en-IN') %></span>
                         <% } %>
                       </div>
                       <h6><%= product.category ? product.category.name : '' %></h6>
