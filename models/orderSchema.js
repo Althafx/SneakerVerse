@@ -33,6 +33,10 @@ const orderSchema = new mongoose.Schema({
         returnRequest: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'ReturnRequest'
+        },
+        refundProcessed: {
+            type: Boolean,
+            default: false
         }
     }],
     totalAmount: {

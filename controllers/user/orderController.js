@@ -1,6 +1,7 @@
 const User = require("../../models/userSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema");
+const Wallet = require("../../models/walletSchema"); // Add this line
 
 const loadOrders = async (req, res) => {
     try {
@@ -171,6 +172,14 @@ const cancelOrderItem = async (req, res) => {
             });
         }
 
+        // Check if refund is already processed
+        if (orderItem.refundProcessed) {
+            return res.status(400).json({
+                success: false,
+                message: 'Refund already processed for this item'
+            });
+        }
+
         // Update product stock
         const product = await Product.findById(orderItem.product._id);
         if (product) {
@@ -201,6 +210,7 @@ const cancelOrderItem = async (req, res) => {
 
         // Cancel the specific item
         orderItem.status = 'Cancelled';
+        orderItem.refundProcessed = true; // Mark refund as processed
         
         // If all items are cancelled, cancel the entire order
         const activeItems = order.items.filter(item => item.status !== 'Cancelled');
@@ -208,12 +218,34 @@ const cancelOrderItem = async (req, res) => {
             order.status = 'Cancelled';
         }
 
-        await order.save();
+        // Add refund to user's wallet
+        const wallet = await Wallet.findOne({ userId: req.session.user._id });
+        if (wallet) {
+            const refundAmount = orderItem.price * orderItem.quantity;
+            wallet.balance += refundAmount;
+            wallet.transactions.push({
+                amount: refundAmount,
+                type: 'credit',
+                description: `Refund for cancelled order item (Order #${order._id.toString().slice(-6)})`,
+                status: 'completed',  
+                timestamp: new Date()    
+            });
+            await wallet.save();
+            
+            // Save order after successful refund
+            await order.save();
 
-        res.json({
-            success: true,
-            message: 'Order item cancelled successfully'
-        });
+            res.json({
+                success: true,
+                message: 'Order item cancelled and refund processed successfully',
+                refundAmount: refundAmount
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: 'User wallet not found'
+            });
+        }
     } catch (error) {
         console.error('Error cancelling order item:', error);
         console.error('Stack trace:', error.stack);
