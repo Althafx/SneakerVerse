@@ -515,60 +515,36 @@ function saveAddress() {
                 },
                 body: JSON.stringify({
                     addressId: addressId,
-                    paymentMethod: 'online'
+                    paymentMethod: 'online',
+                    appliedCouponCode: document.getElementById('appliedCouponCode')?.value || null
                 })
             });
 
-            const result = await response.json();
-
-            if (!result.success) {
-                throw new Error(result.message || 'Failed to create order');
+            const orderData = await response.json();
+            if (!orderData.success) {
+                throw new Error(orderData.message || 'Failed to create order');
             }
 
             const options = {
-                key: result.key,
-                amount: result.order.amount,
-                currency: result.order.currency,
+                key: '<%= process.env.RAZORPAY_KEY_ID %>',
+                amount: orderData.amount,
+                currency: 'INR',
                 name: 'SneakerVerse',
-                description: 'Purchase Payment',
-                order_id: result.order.id,
+                description: 'Order Payment',
+                order_id: orderData.razorpayOrderId,
+                handler: function (response) {
+                    verifyPayment(orderData.orderId, response);
+                },
                 prefill: {
-                    name: result.orderDetails.name,
-                    email: result.orderDetails.email
+                    name: orderData.orderDetails.name,
+                    email: orderData.orderDetails.email
                 },
                 theme: {
                     color: '#4CAF50'
                 },
-                handler: async function(response) {
-                    try {
-                        const verifyResponse = await fetch('/checkout/verify-payment', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                ...response,
-                                orderId: result.orderDetails.orderId
-                            })
-                        });
-
-                        const verifyResult = await verifyResponse.json();
-
-                        if (verifyResult.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Payment Successful!',
-                                text: 'Your order has been placed.',
-                                confirmButtonText: 'View Orders'
-                            }).then(() => {
-                                window.location.href = '/orders';
-                            });
-                        } else {
-                            throw new Error('Payment verification failed');
-                        }
-                    } catch (error) {
-                        console.error('Verification Error:', error);
-                        throw new Error('Payment verification failed');
+                modal: {
+                    ondismiss: function() {
+                        console.log('Payment modal closed');
                     }
                 }
             };
@@ -576,25 +552,90 @@ function saveAddress() {
             const rzp = new Razorpay(options);
             rzp.open();
 
+            rzp.on('payment.failed', function (response) {
+                console.log('Payment failed:', response.error);
+                // Update order status through backend
+                fetch('/verify-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderId: orderData.orderId,
+                        razorpay_payment_id: response.error.metadata.payment_id,
+                        razorpay_order_id: response.error.metadata.order_id,
+                        razorpay_signature: '',
+                        status: 'failed'
+                    })
+                }).then(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Payment Failed',
+                        text: response.error.description || 'Please try again or choose a different payment method.',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        window.location.href = '/orders';
+                    });
+                }).catch(error => {
+                    console.error('Error updating failed payment:', error);
+                    window.location.href = '/orders';
+                });
+            });
+
         } catch (error) {
-            console.error('Razorpay Error:', error);
+            console.error('Error in Razorpay payment:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Payment Failed',
+                title: 'Error',
                 text: error.message || 'Failed to process payment. Please try again.'
             });
         }
     }
 
-    // Add this to your existing script section
-    document.addEventListener('DOMContentLoaded', function() {
-        // Update the Add Address button to open modal
-        const addAddressBtn = document.querySelector('.add-address-btn');
-        if (addAddressBtn) {
-            addAddressBtn.setAttribute('data-bs-toggle', 'modal');
-            addAddressBtn.setAttribute('data-bs-target', '#addAddressModal');
+    async function verifyPayment(orderId, response) {
+        try {
+            console.log('Verifying payment...', { orderId, response });
+            const verifyResponse = await fetch('/verify-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature
+                })
+            });
+
+            const verifyData = await verifyResponse.json();
+            console.log('Verification response:', verifyData);
+
+            if (verifyData.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Successful!',
+                    text: 'Your order has been placed successfully.',
+                    showConfirmButton: false,
+                    timer: 2000
+                }).then(() => {
+                    window.location.href = verifyData.redirect;
+                });
+            } else {
+                throw new Error(verifyData.message);
+            }
+        } catch (error) {
+            console.error('Payment verification error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Payment Verification Failed',
+                text: error.message || 'Please check your order status.',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.href = '/orders';
+            });
         }
-    });
+    }
 </script>
 
 <script>

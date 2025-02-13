@@ -255,7 +255,7 @@
                                                 <span class="order-status status-<%= order.status.toLowerCase() %>">
                                                     <%= order.status %>
                                                 </span>
-                                                <% if (order.paymentMethod === 'online') { %>
+                                                <% if (order.paymentMethod === 'online' || order.paymentMethod === 'wallet') { %>
                                                     <br>
                                                     <span class="payment-status mt-2 badge <%= 
                                                         order.paymentStatus === 'Paid' ? 'bg-success' : 
