@@ -2,200 +2,139 @@
 
 <style>
     .orders-container {
-        background: linear-gradient(145deg, #bef17b, #f5f5f5);
-        border-radius: 20px;
-        box-shadow: 0 8px 30px rgba(226, 255, 98, 0.05);
+        background: #f8f9fa;
+        border-radius: 15px;
         padding: 2rem;
         margin: 1rem;
     }
-    .orders-header {
-        margin-bottom: 2rem;
-        position: relative;
-        padding-bottom: 1rem;
-    }
-    .orders-header::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 50px;
-        height: 3px;
-        background: linear-gradient(90deg, #bef17b, #e2ff62);
-        border-radius: 2px;
-    }
-    .nav-tabs {
-        border: none;
-        margin-bottom: 2rem;
-        gap: 1rem;
-    }
-    .nav-tabs .nav-link {
-        border: none;
-        padding: 0.8rem 1.5rem;
-        border-radius: 12px;
-        color: #95a5a6;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        background: transparent;
-    }
-    .nav-tabs .nav-link.active {
-        color: #2c3e50;
-        background: rgba(190, 241, 123, 0.2);
-    }
-    .nav-tabs .nav-link:hover {
-        color: #2c3e50;
-    }
+
     .order-card {
         background: #fff;
-        border-radius: 15px;
+        border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+        transition: transform 0.2s;
     }
+
+    .order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* Different background colors for different order types */
+    .order-card.active-order {
+        border-left: 4px solid #0d6efd;
+    }
+
+    .order-card.delivered-order {
+        border-left: 4px solid #198754;
+    }
+
+    .order-card.cancelled-order {
+        border-left: 4px solid #dc3545;
+    }
+
+    .order-card.returned-order {
+        border-left: 4px solid #ffc107;
+    }
+
     .order-header {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #e9ecef;
         padding-bottom: 1rem;
         margin-bottom: 1rem;
     }
-    .order-id {
-        font-size: 0.9rem;
-        color: #95a5a6;
-    }
-    .order-date {
-        font-size: 0.9rem;
-        color: #95a5a6;
-    }
+
     .order-status {
         padding: 0.4rem 1rem;
         border-radius: 20px;
         font-size: 0.85rem;
         font-weight: 500;
     }
-    .status-pending {
-        background: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-    }
-    .status-processing {
+
+    .status-active {
         background: rgba(13, 110, 253, 0.1);
         color: #0d6efd;
     }
-    .status-shipped {
-        background: rgba(102, 16, 242, 0.1);
-        color: #6610f2;
-    }
+
     .status-delivered {
         background: rgba(25, 135, 84, 0.1);
         color: #198754;
     }
+
     .status-cancelled {
         background: rgba(220, 53, 69, 0.1);
         color: #dc3545;
     }
+
+    .status-returned {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+
     .order-product {
         display: flex;
         align-items: center;
-        padding: 1rem 0;
-        border-bottom: 1px solid #eee;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: background-color 0.2s;
     }
-    .order-product:last-child {
-        border-bottom: none;
+
+    .order-product:hover {
+        background: #e9ecef;
     }
+
     .product-image {
-        width: 80px;
-        height: 80px;
-        border-radius: 10px;
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
         overflow: hidden;
-        margin-right: 1rem;
     }
+
     .product-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
-    .product-info {
-        flex: 1;
-    }
-    .product-name {
-        font-weight: 500;
-        margin-bottom: 0.3rem;
-    }
+
     .product-details {
-        font-size: 0.9rem;
-        color: #95a5a6;
+        flex: 1;
+        padding: 0 1rem;
     }
-    .product-price {
-        color: #2c3e50;
-        font-weight: 600;
+
+    .product-actions {
+        display: flex;
+        gap: 0.5rem;
     }
-    .order-total {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-top: 1rem;
-        text-align: right;
-    }
-    .empty-orders {
-        text-align: center;
-        padding: 3rem 0;
-    }
-    .empty-orders i {
-        font-size: 4rem;
-        color: #95a5a6;
-        margin-bottom: 1rem;
-    }
-    .empty-orders h3 {
-        color: #2c3e50;
-        margin-bottom: 1rem;
-    }
-    .empty-orders p {
-        color: #95a5a6;
+
+    .nav-tabs {
+        border: none;
         margin-bottom: 2rem;
     }
-    .btn-custom {
-        background: linear-gradient(90deg, #bef17b, #e2ff62);
-        color: #2c3e50;
+
+    .nav-tabs .nav-link {
         border: none;
         padding: 0.8rem 1.5rem;
-        border-radius: 10px;
+        border-radius: 8px;
+        color: #6c757d;
         font-weight: 500;
-        transition: all 0.3s ease;
+        margin-right: 0.5rem;
     }
-    .btn-custom:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(190, 241, 123, 0.2);
-    }
-    .btn-return {
-        background: linear-gradient(90deg, #f0a500, #f5d100);
-        border: none;
-        border-radius: 12px;
-        padding: 0.6rem 1.2rem;
+
+    .nav-tabs .nav-link.active {
+        background: #0d6efd;
         color: #fff;
-        font-weight: 500;
-        transition: all 0.3s ease;
     }
-    .btn-return:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(240, 165, 0, 0.2);
-    }
-    .return-status-pending {
-        background: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-    }
-    .return-status-approved {
-        background: rgba(25, 135, 84, 0.1);
-        color: #198754;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-    }
-    .return-status-rejected {
-        background: rgba(220, 53, 69, 0.1);
-        color: #dc3545;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
+
+    .empty-orders {
+        text-align: center;
+        padding: 3rem;
+        background: #fff;
+        border-radius: 12px;
+        margin: 1rem 0;
     }
 </style>
 
@@ -205,7 +144,7 @@
         
         <div class="col-md-9">
             <div class="orders-container">
-                <h4 class="orders-header">My Orders</h4>
+                <h4 class="mb-4">My Orders</h4>
                 
                 <!-- Flash Messages -->
                 <% if (error_msg && error_msg.length > 0) { %>
@@ -214,7 +153,7 @@
                 <% if (success_msg && success_msg.length > 0) { %>
                     <div class="alert alert-success"><%= success_msg %></div>
                 <% } %>
-                
+
                 <!-- Order Tabs -->
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item">
@@ -227,91 +166,60 @@
                         <a class="nav-link" data-bs-toggle="tab" href="#cancelled">Cancelled</a>
                     </li>
                 </ul>
-                
+
                 <div class="tab-content" id="orderTabContent">
                     <!-- Active Orders Tab -->
                     <div class="tab-pane fade show active" id="active" role="tabpanel">
-                        <% const activeOrders = orders.filter(order => 
-                            order.status !== 'Cancelled' && order.status !== 'Delivered'
-                        ); %>
+                        <% const activeOrders = orders.filter(order => order.displayStatus === 'active'); %>
                         
                         <% if (activeOrders.length === 0) { %>
                             <div class="empty-orders">
-                                <i class="fas fa-shopping-bag"></i>
-                                <h3>No active orders</h3>
-                                <p>When you place an order, it will appear here</p>
-                                <a href="/home" class="btn btn-custom">Continue Shopping</a>
+                                <i class="fas fa-box-open fa-3x mb-3 text-muted"></i>
+                                <h5>No active orders</h5>
+                                <p class="text-muted">When you place an order, it will appear here</p>
+                                <a href="/home" class="btn btn-primary">Start Shopping</a>
                             </div>
                         <% } else { %>
                             <% activeOrders.forEach(function(order) { %>
-                                <div class="order-card" data-order-id="<%= order._id %>">
+                                <div class="order-card active-order">
                                     <div class="order-header">
                                         <div class="row align-items-center">
                                             <div class="col-md-4">
-                                                <div class="order-id">Order #<%= order._id %></div>
-                                                <div class="order-date"><%= new Date(order.orderDate).toLocaleDateString() %></div>
+                                                <div class="order-id fw-bold">#<%= order._id.toString().slice(-6) %></div>
+                                                <div class="order-date text-muted">
+                                                    <%= new Date(order.orderDate).toLocaleDateString() %>
+                                                </div>
                                             </div>
                                             <div class="col-md-4 text-center">
-                                                <span class="order-status status-<%= order.status.toLowerCase() %>">
-                                                    <%= order.status %>
-                                                </span>
-                                                <% if (order.paymentMethod === 'online' || order.paymentMethod === 'wallet') { %>
-                                                    <br>
-                                                    <span class="payment-status mt-2 badge <%= 
-                                                        order.paymentStatus === 'Paid' ? 'bg-success' : 
-                                                        order.paymentStatus === 'Failed' ? 'bg-danger' : 
-                                                        'bg-warning' %>">
-                                                        Payment: <%= order.paymentStatus %>
-                                                    </span>
-                                                <% } %>
+                                                <span class="order-status status-active">Active</span>
                                             </div>
                                             <div class="col-md-4 text-end">
-                                                <% if ((order.paymentStatus === 'Failed' || order.paymentStatus === 'Pending') && order.paymentMethod === 'online') { %>
-                                                    <button class="btn btn-danger mb-2" onclick="retryPayment('<%= order._id %>')">
-                                                        <i class="fas fa-redo-alt me-1"></i> Retry Payment
-                                                    </button>
-                                                <% } %>
+                                                <strong>Total: ₹<%= order.totalAmount.toFixed(2) %></strong>
                                             </div>
                                         </div>
                                     </div>
-                                    
                                     <div class="order-products">
                                         <% order.items.forEach(function(item) { %>
                                             <div class="order-product">
                                                 <div class="product-image">
                                                     <img src="<%= item.product.productImage ? '/uploads/product-images/' + item.product.productImage[0] : '/images/no-image.jpg' %>" 
-                                                         alt="<%= item.product.productName %>">
+                                                         alt="<%= item.product.productName %>"
+                                                         class="img-fluid">
                                                 </div>
-                                                <div class="product-info">
-                                                    <div class="product-name"><%= item.product.productName %></div>
-                                                    <div class="product-details">
-                                                        Size: <%= item.size %><br>
-                                                        Quantity: <%= item.quantity %><br>
-                                                        Price: ₹<%= item.price.toFixed(2) %>
-                                                    </div>
-                                                    <div class="product-price">₹<%= item.price %></div>
-                                                    <div class="product-actions mt-2">
-                                                        <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 
-                                                           class="btn btn-sm btn-outline-primary"
-                                                           onclick="console.log('Clicking view details for:', {
-                                                               orderId: '<%= order._id %>',
-                                                               productId: '<%= item.product._id %>'
-                                                           })">
-                                                            View Details
-                                                        </a>
-                                                        <% if (item.status === 'Delivered' && !item.returnRequest) { %>
-                                                            <button class="btn btn-sm btn-warning ms-2" onclick="openReturnModal('<%= order._id %>', '<%= item.product._id %>', '<%= item.size %>', '<%= item.product.productName %>')">
-                                                                Return
-                                                            </button>
-                                                        <% } %>
-                                                    </div>
+                                                <div class="product-details">
+                                                    <h6 class="mb-2"><%= item.product.productName %></h6>
+                                                    <p class="mb-1 text-muted">Size: <%= item.size %> | Quantity: <%= item.quantity %></p>
+                                                    <p class="mb-1">Price: ₹<%= item.price.toFixed(2) %></p>
+                                                    <p class="mb-0">Status: <span class="badge bg-primary"><%= item.status %></span></p>
+                                                </div>
+                                                <div class="product-actions">
+                                                    <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        View Details
+                                                    </a>
                                                 </div>
                                             </div>
                                         <% }); %>
-                                    </div>
-                                    
-                                    <div class="order-total">
-                                        Total: ₹<%= order.totalAmount %>
                                     </div>
                                 </div>
                             <% }); %>
@@ -320,56 +228,71 @@
 
                     <!-- Delivered Orders Tab -->
                     <div class="tab-pane fade" id="delivered" role="tabpanel">
-                        <% const deliveredOrders = orders.filter(order => order.status === 'Delivered'); %>
+                        <% const deliveredOrders = orders.filter(order => order.displayStatus === 'delivered'); %>
                         
                         <% if (deliveredOrders.length === 0) { %>
                             <div class="empty-orders">
-                                <i class="fas fa-box-open"></i>
-                                <p>No delivered orders yet</p>
+                                <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                                <h5>No delivered orders</h5>
+                                <p class="text-muted">Your delivered orders will appear here</p>
                             </div>
                         <% } else { %>
-                            <% deliveredOrders.forEach(order => { %>
-                                <div class="order-card">
-                                    <div class="order-header d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="order-id">Order #<%= order._id %></div>
-                                            <div class="order-date"><%= new Date(order.orderDate).toLocaleDateString() %></div>
+                            <% deliveredOrders.forEach(function(order) { %>
+                                <div class="order-card delivered-order">
+                                    <div class="order-header">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-4">
+                                                <div class="order-id fw-bold">#<%= order._id.toString().slice(-6) %></div>
+                                                <div class="order-date text-muted">
+                                                    <%= new Date(order.orderDate).toLocaleDateString() %>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 text-center">
+                                                <span class="order-status status-delivered">Delivered</span>
+                                            </div>
+                                            <div class="col-md-4 text-end">
+                                                <strong>Total: ₹<%= order.totalAmount.toFixed(2) %></strong>
+                                            </div>
                                         </div>
-                                        <span class="order-status status-delivered">Delivered</span>
                                     </div>
-                                    
-                                    <% order.items.forEach(item => { %>
-                                        <div class="order-product">
-                                            <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt="<%= item.product.productName %>" style="width: 80px; height: 80px; object-fit: cover; margin-right: 1rem;">
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-1"><%= item.product.productName %></h6>
-                                                <p class="mb-1">Size: <%= item.size %></p>
-                                                <p class="mb-1">Quantity: <%= item.quantity %></p>
-                                                <p class="mb-0">₹<%= item.price.toFixed(2) %></p>
-                                                <div class="mt-2">
+                                    <div class="order-products">
+                                        <% order.items.forEach(function(item) { %>
+                                            <div class="order-product">
+                                                <div class="product-image">
+                                                    <img src="<%= item.product.productImage ? '/uploads/product-images/' + item.product.productImage[0] : '/images/no-image.jpg' %>" 
+                                                         alt="<%= item.product.productName %>"
+                                                         class="img-fluid">
+                                                </div>
+                                                <div class="product-details">
+                                                    <h6 class="mb-2"><%= item.product.productName %></h6>
+                                                    <p class="mb-1 text-muted">Size: <%= item.size %> | Quantity: <%= item.quantity %></p>
+                                                    <p class="mb-1">Price: ₹<%= item.price.toFixed(2) %></p>
+                                                    <p class="mb-0">
+                                                        Status: 
+                                                        <% if (item.returnRequest) { %>
+                                                            <% if (item.returnRequest.status === 'Pending') { %>
+                                                                <span class="badge bg-warning">Return Pending</span>
+                                                            <% } else if (item.returnRequest.status === 'Approved') { %>
+                                                                <span class="badge bg-success">Return Approved</span>
+                                                            <% } else if (item.returnRequest.status === 'Rejected') { %>
+                                                                <span class="badge bg-danger">Return Rejected</span>
+                                                            <% } %>
+                                                        <% } else if (item.status === 'Return Approved') { %>
+                                                            <span class="badge bg-info">Product Returned</span>
+                                                        <% } else { %>
+                                                            <span class="badge bg-success">Delivered</span>
+                                                        <% } %>
+                                                    </p>
+                                                </div>
+                                                <div class="product-actions">
                                                     <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 
-                                                       class="btn btn-sm btn-outline-primary"
-                                                       onclick="console.log('Clicking view details for:', {
-                                                           orderId: '<%= order._id %>',
-                                                           productId: '<%= item.product._id %>'
-                                                       })">
+                                                       class="btn btn-sm btn-outline-primary">
                                                         View Details
                                                     </a>
                                                 </div>
                                             </div>
-                                            <div class="ms-3">
-                                                <% if (item.returnRequest) { %>
-                                                    <span class="return-status-<%= item.returnRequest.status.toLowerCase() %>">
-                                                        Return <%= item.returnRequest.status %>
-                                                    </span>
-                                                <% } else { %>
-                                                    <button class="btn btn-sm btn-warning ms-2" onclick="openReturnModal('<%= order._id %>', '<%= item.product._id %>', '<%= item.size %>', '<%= item.product.productName %>')">
-                                                        Return
-                                                    </button>
-                                                <% } %>
-                                            </div>
-                                        </div>
-                                    <% }); %>
+                                        <% }); %>
+                                    </div>
                                 </div>
                             <% }); %>
                         <% } %>
@@ -377,63 +300,55 @@
 
                     <!-- Cancelled Orders Tab -->
                     <div class="tab-pane fade" id="cancelled" role="tabpanel">
-                        <% const cancelledOrders = orders.filter(order => order.status === 'Cancelled'); %>
+                        <% const cancelledOrders = orders.filter(order => order.displayStatus === 'cancelled'); %>
                         
                         <% if (cancelledOrders.length === 0) { %>
                             <div class="empty-orders">
-                                <i class="fas fa-times-circle"></i>
-                                <h3>No cancelled orders</h3>
-                                <p>Your cancelled orders will appear here</p>
+                                <i class="fas fa-times-circle fa-3x mb-3 text-danger"></i>
+                                <h5>No cancelled orders</h5>
+                                <p class="text-muted">Cancelled orders will appear here</p>
                             </div>
                         <% } else { %>
                             <% cancelledOrders.forEach(function(order) { %>
-                                <div class="order-card">
+                                <div class="order-card cancelled-order">
                                     <div class="order-header">
                                         <div class="row align-items-center">
                                             <div class="col-md-4">
-                                                <div class="order-id">Order #<%= order._id %></div>
-                                                <div class="order-date"><%= new Date(order.orderDate).toLocaleDateString() %></div>
+                                                <div class="order-id fw-bold">#<%= order._id.toString().slice(-6) %></div>
+                                                <div class="order-date text-muted">
+                                                    <%= new Date(order.orderDate).toLocaleDateString() %>
+                                                </div>
                                             </div>
                                             <div class="col-md-4 text-center">
-                                                <span class="order-status status-<%= order.status.toLowerCase() %>">
-                                                    <%= order.status %>
-                                                </span>
+                                                <span class="order-status status-cancelled">Cancelled</span>
                                             </div>
                                             <div class="col-md-4 text-end">
+                                                <strong>Total: ₹<%= order.totalAmount.toFixed(2) %></strong>
                                             </div>
                                         </div>
                                     </div>
-                                    
                                     <div class="order-products">
                                         <% order.items.forEach(function(item) { %>
                                             <div class="order-product">
                                                 <div class="product-image">
                                                     <img src="<%= item.product.productImage ? '/uploads/product-images/' + item.product.productImage[0] : '/images/no-image.jpg' %>" 
-                                                         alt="<%= item.product.productName %>">
+                                                         alt="<%= item.product.productName %>"
+                                                         class="img-fluid">
                                                 </div>
-                                                <div class="product-info">
-                                                    <div class="product-name"><%= item.product.productName %></div>
-                                                    <div class="product-details">
-                                                        Size: <%= item.size %> | Quantity: <%= item.quantity %>
-                                                    </div>
-                                                    <div class="product-price">₹<%= item.price %></div>
-                                                    <div class="product-actions mt-2">
-                                                        <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 
-                                                           class="btn btn-sm btn-outline-primary"
-                                                           onclick="console.log('Clicking view details for:', {
-                                                               orderId: '<%= order._id %>',
-                                                               productId: '<%= item.product._id %>'
-                                                           })">
-                                                            View Details
-                                                        </a>
-                                                    </div>
+                                                <div class="product-details">
+                                                    <h6 class="mb-2"><%= item.product.productName %></h6>
+                                                    <p class="mb-1 text-muted">Size: <%= item.size %> | Quantity: <%= item.quantity %></p>
+                                                    <p class="mb-1">Price: ₹<%= item.price.toFixed(2) %></p>
+                                                    <p class="mb-0">Status: <span class="badge bg-danger">Cancelled</span></p>
+                                                </div>
+                                                <div class="product-actions">
+                                                    <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        View Details
+                                                    </a>
                                                 </div>
                                             </div>
                                         <% }); %>
-                                    </div>
-                                    
-                                    <div class="order-total">
-                                        Total: ₹<%= order.totalAmount %>
                                     </div>
                                 </div>
                             <% }); %>
@@ -473,7 +388,7 @@
 
     function openReturnModal(orderId, productId, size, productName) {
         currentReturnData = { orderId, productId, size };
-        document.getElementById('productNameInModal').textContent = productName;
+        document.getElementById('productNameInModal').textContent = `Product: ${productName}`;
         var returnModal = new bootstrap.Modal(document.getElementById('returnModal'));
         returnModal.show();
     }
@@ -496,17 +411,6 @@
         }
 
         try {
-            // Show loading indicator
-            Swal.fire({
-                title: 'Processing...',
-                text: 'Submitting return request',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
             const response = await fetch('/submit-return-request', {
                 method: 'POST',
                 headers: {
@@ -521,7 +425,6 @@
             const data = await response.json();
 
             if (data.success) {
-                // Close the modal
                 const returnModal = bootstrap.Modal.getInstance(document.getElementById('returnModal'));
                 returnModal.hide();
 
@@ -532,7 +435,6 @@
                     confirmButtonText: 'OK'
                 });
                 
-                // Reload the page to show updated status
                 window.location.reload();
             } else {
                 Swal.fire({
@@ -552,144 +454,9 @@
             });
         }
     }
-
-    async function retryPayment(orderId) {
-        try {
-            // Show loading
-            Swal.fire({
-                title: 'Processing',
-                text: 'Initializing payment...',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            console.log('Initiating retry payment for order:', orderId);
-            const response = await fetch('/retry-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ orderId })
-            });
-
-            const data = await response.json();
-            console.log('Retry payment response:', data);
-            
-            // Close loading dialog
-            Swal.close();
-            
-            if (data.success) {
-                const options = {
-                    key: data.key,
-                    amount: data.orderDetails.amount,
-                    currency: "INR",
-                    name: "SneakerVerse",
-                    description: "Payment for Order #" + orderId,
-                    order_id: data.order.id,
-                    handler: function (response) {
-                        verifyRetryPayment(response, orderId);
-                    },
-                    prefill: {
-                        name: data.orderDetails.name,
-                        email: data.orderDetails.email
-                    },
-                    theme: {
-                        color: "#3399cc"
-                    }
-                };
-
-                console.log('Opening Razorpay with options:', options);
-                const rzp = new Razorpay(options);
-                rzp.on('payment.failed', function (response) {
-                    console.error('Payment failed:', response);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Payment Failed',
-                        text: 'The payment could not be processed. Please try again.'
-                    });
-                });
-                rzp.open();
-            } else {
-                console.error('Failed to initialize payment:', data.message);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.message || 'Failed to initialize payment'
-                });
-            }
-        } catch (error) {
-            console.error('Error in retry payment:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to initialize payment. Please try again.'
-            });
-        }
-    }
-
-    async function verifyRetryPayment(response, orderId) {
-        try {
-            console.log('Verifying payment with data:', {
-                orderId,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-            });
-
-            const verifyResponse = await fetch('/verify-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    orderId,
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_signature: response.razorpay_signature
-                })
-            });
-
-            const data = await verifyResponse.json();
-            console.log('Verify payment response:', data);
-            
-            if (data.success) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'Payment successful!',
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                window.location.reload();
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.message || 'Payment verification failed'
-                });
-            }
-        } catch (error) {
-            console.error('Error in verify payment:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Payment verification failed. Please contact support.'
-            });
-        }
-    }
-
-    function viewOrderDetails(orderId) {
-        window.location.href = `/order-details/${orderId}`;
-    }
 </script>
 
 <!-- Include SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- Include Razorpay SDK -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <%- include('../partials/user/footer') %>

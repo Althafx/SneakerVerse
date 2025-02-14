@@ -1,7 +1,7 @@
 const User = require("../../models/userSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema");
-const Wallet = require("../../models/walletSchema"); // Add this line
+const Wallet = require("../../models/walletSchema");
 
 const loadOrders = async (req, res) => {
     try {
@@ -16,41 +16,85 @@ const loadOrders = async (req, res) => {
         const userId = req.session.user._id;
         console.log('User ID:', userId);
 
-        // Get orders data with populated product details
+        // Get orders data with populated product details and return requests
         const orders = await Order.find({ user: userId })
             .populate({
                 path: 'items.product',
                 select: 'productName productImage salesPrice'
             })
-            .populate('items.returnRequest')
+            .populate({
+                path: 'items.returnRequest',
+                select: 'status requestDate'
+            })
             .sort({ orderDate: -1 });
 
-        console.log('Found orders:', orders.length);
-        if (orders.length > 0) {
-            console.log('Sample order:', {
-                _id: orders[0]._id,
-                items: orders[0].items.map(item => ({
-                    _id: item._id,
-                    product: {
-                        _id: item.product._id,
-                        name: item.product.productName
+        // Process orders to separate them based on item status
+        const processedOrders = orders.map(order => {
+            // Create a deep copy of the order
+            const orderObj = order.toObject();
+            
+            // Separate items by status
+            const activeItems = [];
+            const deliveredItems = [];
+            const cancelledItems = [];
+
+            order.items.forEach(item => {
+                if (item.status === 'Delivered') {
+                    // Check if there's a return request
+                    if (item.returnRequest) {
+                        if (item.returnRequest.status === 'Approved') {
+                            // If return is approved, update item status
+                            item.status = 'Return Approved';
+                        }
                     }
-                }))
+                    deliveredItems.push(item);
+                } else if (item.status === 'Cancelled') {
+                    cancelledItems.push(item);
+                } else {
+                    activeItems.push(item);
+                }
             });
-        }
+
+            // Create separate order objects for each status
+            const orderCopies = [];
+
+            if (activeItems.length > 0) {
+                const activeOrder = { ...orderObj, items: activeItems, displayStatus: 'active' };
+                orderCopies.push(activeOrder);
+            }
+
+            if (deliveredItems.length > 0) {
+                const deliveredOrder = { ...orderObj, items: deliveredItems, displayStatus: 'delivered' };
+                orderCopies.push(deliveredOrder);
+            }
+
+            if (cancelledItems.length > 0) {
+                const cancelledOrder = { ...orderObj, items: cancelledItems, displayStatus: 'cancelled' };
+                orderCopies.push(cancelledOrder);
+            }
+
+            return orderCopies;
+        });
+
+        // Flatten the array of order arrays
+        const flattenedOrders = processedOrders.flat();
+
+        console.log('Processed Orders:', JSON.stringify(flattenedOrders, null, 2));
 
         res.render('user/orders', {
+            title: 'Orders',
+            orders: flattenedOrders,
             user: req.session.user,
-            orders: orders,
             error_msg: req.flash('error'),
             success_msg: req.flash('success'),
             path: '/orders'
         });
+
     } catch (error) {
-        console.error('Error loading orders:', error);
+        console.error('Error in loadOrders:', error);
         console.error('Stack trace:', error.stack);
         req.flash('error', 'Failed to load orders');
-        res.redirect('/home');
+        res.redirect('/');
     }
 };
 
@@ -89,33 +133,57 @@ const cancelOrder = async (req, res) => {
             if (product) {
                 // Convert size to lowercase for quantities object
                 let sizeField;
-                switch (item.size) {
-                    case 'S':
+                switch (item.size.toLowerCase()) {
+                    case 's':
+                    case 'small':
                         sizeField = 'small';
                         break;
-                    case 'M':
+                    case 'm':
+                    case 'medium':
                         sizeField = 'medium';
                         break;
-                    case 'L':
+                    case 'l':
+                    case 'large':
                         sizeField = 'large';
                         break;
                     default:
                         continue;
                 }
 
-                // Increment the stock quantity
-                product.quantities[sizeField] += item.quantity;
-                product.totalQuantity = Object.values(product.quantities).reduce((a, b) => a + b, 0);
-                await product.save();
-                
-                // Update item status
-                item.status = 'Cancelled';
+                if (product.quantities[sizeField] !== undefined) {
+                    product.quantities[sizeField] += item.quantity;
+                    product.totalQuantity += item.quantity;
+                    await product.save();
+                }
             }
         }
 
-        // Update order status
         order.status = 'Cancelled';
+        order.items.forEach(item => {
+            if (item.status !== 'Delivered' && item.status !== 'Return Approved') {
+                item.status = 'Cancelled';
+            }
+        });
+
         await order.save();
+
+        // If payment was made, process refund to wallet
+        if (order.paymentStatus === 'Paid') {
+            const wallet = await Wallet.findOneAndUpdate(
+                { userId: req.session.user._id },
+                {
+                    $inc: { balance: order.totalAmount },
+                    $push: {
+                        transactions: {
+                            type: 'credit',
+                            amount: order.totalAmount,
+                            description: `Refund for cancelled order #${order._id}`
+                        }
+                    }
+                },
+                { upsert: true, new: true }
+            );
+        }
 
         res.json({
             success: true,
@@ -123,7 +191,6 @@ const cancelOrder = async (req, res) => {
         });
     } catch (error) {
         console.error('Error cancelling order:', error);
-        console.error('Stack trace:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Failed to cancel order'
@@ -185,14 +252,17 @@ const cancelOrderItem = async (req, res) => {
         if (product) {
             // Convert size to lowercase for quantities object
             let sizeField;
-            switch (orderItem.size) {
-                case 'S':
+            switch (orderItem.size.toLowerCase()) {
+                case 's':
+                case 'small':
                     sizeField = 'small';
                     break;
-                case 'M':
+                case 'm':
+                case 'medium':
                     sizeField = 'medium';
                     break;
-                case 'L':
+                case 'l':
+                case 'large':
                     sizeField = 'large';
                     break;
                 default:
@@ -202,10 +272,11 @@ const cancelOrderItem = async (req, res) => {
                     });
             }
 
-            // Increment the stock quantity
-            product.quantities[sizeField] += orderItem.quantity;
-            product.totalQuantity = Object.values(product.quantities).reduce((a, b) => a + b, 0);
-            await product.save();
+            if (product.quantities[sizeField] !== undefined) {
+                product.quantities[sizeField] += orderItem.quantity;
+                product.totalQuantity += orderItem.quantity;
+                await product.save();
+            }
         }
 
         // Cancel the specific item

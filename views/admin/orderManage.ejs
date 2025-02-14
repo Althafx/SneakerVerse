@@ -602,6 +602,17 @@ async function viewReturnRequests() {
 // Function to update return request status
 async function updateReturnStatus(requestId, status) {
     try {
+        // Show loading indicator
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Updating return request status',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         const response = await fetch('/admin/update-return-status', {
             method: 'POST',
             headers: {
@@ -611,14 +622,27 @@ async function updateReturnStatus(requestId, status) {
         });
         
         const data = await response.json();
+        
         if (data.success) {
+            await Swal.fire({
+                title: 'Success!',
+                text: `Return request ${status.toLowerCase()} successfully`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
             viewReturnRequests(); // Refresh the return requests table
         } else {
-            alert(data.message || 'Failed to update return status');
+            throw new Error(data.message || 'Failed to update return status');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to update return status');
+        Swal.fire({
+            title: 'Error!',
+            text: error.message || 'Failed to update return status. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
     }
 }
 
