@@ -252,6 +252,11 @@
                                         Cancel Order
                                     </button>
                                 <% } %>
+                                <% if (item.status === 'Delivered') { %>
+                                    <button class="btn btn-primary mt-3" onclick="submitReturnRequest('<%= order._id %>', '<%= item.product._id %>', '<%= item.size %>')">
+                                        Return Product
+                                    </button>
+                                <% } %>
                             </div>
                         </div>
                     </div>
@@ -332,6 +337,85 @@ async function cancelOrderItem(orderId, itemId) {
         Swal.fire({
             title: 'Error!',
             text: 'Something went wrong while cancelling the order',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
+}
+
+async function submitReturnRequest(orderId, productId, size) {
+    if (typeof Swal === 'undefined') {
+        console.error('SweetAlert2 is not loaded');
+        alert('Unable to show dialog. Please try again later.');
+        return;
+    }
+
+    try {
+        const { value: reason } = await Swal.fire({
+            title: 'Return Request',
+            input: 'textarea',
+            inputLabel: 'Please provide a reason for return',
+            inputPlaceholder: 'Type your reason here...',
+            inputAttributes: {
+                'aria-label': 'Type your reason here'
+            },
+            showCancelButton: true,
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to provide a reason for return!'
+                }
+            }
+        });
+
+        if (reason) {
+            // Show loading indicator
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Submitting return request',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const response = await fetch('/submit-return-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    orderId,
+                    productId,
+                    size,
+                    reason
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                await Swal.fire({
+                    title: 'Success!',
+                    text: 'Return request submitted successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message || 'Failed to submit return request',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Something went wrong while submitting the return request',
             icon: 'error',
             confirmButtonText: 'OK'
         });

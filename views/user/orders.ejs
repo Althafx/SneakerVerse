@@ -478,6 +478,81 @@
         returnModal.show();
     }
 
+    async function submitReturnRequest() {
+        if (!currentReturnData) {
+            console.error('No return data available');
+            return;
+        }
+
+        const reason = document.getElementById('returnReason').value;
+        if (!reason) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please provide a reason for return',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        try {
+            // Show loading indicator
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Submitting return request',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const response = await fetch('/submit-return-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...currentReturnData,
+                    reason
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Close the modal
+                const returnModal = bootstrap.Modal.getInstance(document.getElementById('returnModal'));
+                returnModal.hide();
+
+                await Swal.fire({
+                    title: 'Success!',
+                    text: 'Return request submitted successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+                
+                // Reload the page to show updated status
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message || 'Failed to submit return request',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error!',
+                text: 'Something went wrong while submitting the return request',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    }
+
     async function retryPayment(orderId) {
         try {
             // Show loading
