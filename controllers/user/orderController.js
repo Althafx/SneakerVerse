@@ -2,6 +2,7 @@ const User = require("../../models/userSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema");
 const Wallet = require("../../models/walletSchema");
+const PDFDocument = require('pdfkit');
 
 const loadOrders = async (req, res) => {
     try {
@@ -433,10 +434,146 @@ const getOrderProductDetails = async (req, res) => {
     }
 };
 
+const generateInvoice = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const order = await Order.findById(orderId)
+            .populate('user')
+            .populate('items.product');
+
+        if (!order) {
+            return res.status(404).send('Order not found');
+        }
+
+        // Create a new PDF document
+        const doc = new PDFDocument({
+            size: 'A4',
+            margin: 50
+        });
+
+        // Set response headers for PDF download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderId}.pdf`);
+
+        // Pipe the PDF to the response
+        doc.pipe(res);
+
+        // Add company logo or name
+        doc.fontSize(20).font('Helvetica-Bold').text('SneakerVerse', { align: 'center' });
+        doc.fontSize(16).font('Helvetica-Bold').text('Order Invoice', { align: 'center' });
+        doc.moveDown();
+
+        // Add order details
+        doc.fontSize(12).font('Helvetica-Bold');
+        doc.text(`Order ID: ${order._id}`);
+        doc.text(`Order Date: ${new Date(order.orderDate).toLocaleDateString()}`);
+        doc.moveDown();
+
+        // Add customer details
+        doc.text('Customer Details:');
+        doc.fontSize(10).font('Helvetica');
+        doc.text(`Name: ${order.shippingAddress.name}`);
+        doc.text(`Address: ${order.shippingAddress.street}`);
+        if (order.shippingAddress.landmark) {
+            doc.text(`Landmark: ${order.shippingAddress.landmark}`);
+        }
+        doc.text(`${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.pincode}`);
+        doc.text(`Phone: ${order.shippingAddress.mobile}`);
+        doc.moveDown();
+
+        // Add payment details
+        doc.fontSize(12).font('Helvetica-Bold');
+        doc.text(`Payment Method: ${order.paymentMethod}`);
+        doc.moveDown();
+
+        // Add table headers
+        const tableTop = doc.y;
+        doc.fontSize(10).font('Helvetica-Bold');
+        doc.text('Product', 50, tableTop);
+        doc.text('Quantity', 300, tableTop);
+        doc.text('Price', 400, tableTop);
+        doc.text('Total', 500, tableTop);
+
+        // Add line below headers
+        doc.moveTo(50, doc.y + 5)
+           .lineTo(550, doc.y + 5)
+           .stroke();
+
+        // Add items
+        let tableY = doc.y + 20;
+        doc.fontSize(10).font('Helvetica');
+        
+        order.items.forEach(item => {
+            doc.text(item.product.productName, 50, tableY, { width: 240 });
+            doc.text(item.quantity.toString(), 300, tableY);
+            doc.text(`₹${item.price.toFixed(2)}`, 400, tableY);
+            doc.text(`₹${(item.price * item.quantity).toFixed(2)}`, 500, tableY);
+            tableY += 25;
+        });
+
+        // Add line above total
+        doc.moveTo(50, tableY + 5)
+           .lineTo(550, tableY + 5)
+           .stroke();
+
+        // Add total
+        tableY += 20;
+        doc.fontSize(12).font('Helvetica-Bold');
+        doc.text('Total Amount:', 400, tableY);
+        doc.text(`₹${order.totalAmount.toFixed(2)}`, 500, tableY);
+
+        // Move down for footer section
+        doc.moveDown(4);
+
+        // Add separator line
+        doc.moveTo(50, doc.y)
+           .lineTo(550, doc.y)
+           .stroke();
+
+        // Add thank you note
+        doc.moveDown(2);
+        doc.fontSize(14).font('Helvetica-Bold');
+        doc.text('Thank you for shopping with SneakerVerse!', 50, doc.y, {
+            align: 'center',
+            width: 500
+        });
+
+        // Add support information
+        doc.moveDown(2);
+        doc.fontSize(12).font('Helvetica-Bold');
+        doc.text('Customer Support', 50, doc.y, {
+            align: 'center',
+            width: 500
+        });
+
+        // Add support details
+        doc.moveDown();
+        doc.fontSize(10).font('Helvetica');
+        doc.text('Email: support@SneakerVerse.com', 50, doc.y, {
+            align: 'center',
+            width: 500
+        });
+        
+        doc.moveDown();
+        doc.text('Phone: 8592930487', 50, doc.y, {
+            align: 'center',
+            width: 500
+        });
+
+        // Finalize the PDF
+        doc.end();
+
+    } catch (error) {
+        console.error('Invoice generation error:', error);
+        res.status(500).send('Error generating invoice');
+    }
+};
+
 module.exports = {
     loadOrders,
     cancelOrder,
     cancelOrderItem,
     getOrderDetails,
-    getOrderProductDetails
+    getOrderProductDetails,
+    generateInvoice
 };

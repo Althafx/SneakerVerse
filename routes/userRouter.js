@@ -110,6 +110,7 @@ router.get("/success", userAuth, isBlockedUser, (req, res) => {
 
 //order routes
 router.get("/orders", userAuth, isBlockedUser, orderController.loadOrders)
+router.get("/order/invoice/:orderId", userAuth, isBlockedUser, orderController.generateInvoice)
 router.post("/cancel-order/:orderId", userAuth, isBlockedUser, orderController.cancelOrder)
 router.get("/order-details/:orderId", userAuth, isBlockedUser, orderController.getOrderDetails)
 router.post("/cancel-order-item/:orderId/:itemId", userAuth, isBlockedUser, orderController.cancelOrderItem)

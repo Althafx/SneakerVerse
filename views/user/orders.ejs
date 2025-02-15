@@ -267,6 +267,14 @@
                                                     <h6 class="mb-2"><%= item.product.productName %></h6>
                                                     <p class="mb-1 text-muted">Size: <%= item.size %> | Quantity: <%= item.quantity %></p>
                                                     <p class="mb-1">Price: ₹<%= item.price.toFixed(2) %></p>
+                                                    <% if (order.status === 'Delivered') { %>
+                                                        <span class="badge bg-success">Delivered</span>
+                                                        <a href="/order/invoice/<%= order._id %>" class="btn btn-sm btn-primary ms-2">
+                                                            <i class="fas fa-file-pdf me-1"></i>Invoice
+                                                        </a>
+                                                    <% } else if (order.status === 'Cancelled') { %>
+                                                        <span class="badge bg-danger">Cancelled</span>
+                                                    <% } %>
                                                     <p class="mb-0">
                                                         Status: 
                                                         <% if (item.returnRequest) { %>
