@@ -8,19 +8,20 @@ const path = require('path');
 
 const getDashboardData = async (req, res) => {
     try {
+        const range = req.query.range || 'monthly';
+
         // Get counts
         const totalUsers = await User.countDocuments({ isBlocked: false });
         const totalProducts = await Product.countDocuments({ isListed: true });
         const totalOrders = await Order.countDocuments();
 
-        // Calculate total revenue
         const orders = await Order.find({ status: 'Delivered' });
         const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
 
-        // Get monthly revenue and orders data (last 6 months)
-        const monthlyData = await getMonthlyData();
+        // Get revenue and orders data based on selected range
+        const chartData = await getChartData(range);
 
-        // Get top 3 products
+        // Get top 10 products
         const topProducts = await Order.aggregate([
             { $unwind: "$items" },
             {
@@ -30,7 +31,7 @@ const getDashboardData = async (req, res) => {
                 }
             },
             { $sort: { totalQuantity: -1 } },
-            { $limit: 3 },
+            { $limit: 10 },
             {
                 $lookup: {
                     from: "products",
@@ -40,6 +41,40 @@ const getDashboardData = async (req, res) => {
                 }
             },
             { $unwind: "$productDetails" }
+        ]);
+
+        // Get top 10 categories with names
+        const topCategories = await Product.aggregate([
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "category",
+                    foreignField: "_id",
+                    as: "categoryDetails"
+                }
+            },
+            { $unwind: "$categoryDetails" },
+            {
+                $group: {
+                    _id: "$category",
+                    categoryName: { $first: "$categoryDetails.name" },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { count: -1 } },
+            { $limit: 10 }
+        ]);
+
+        // Get top 10 brands
+        const topBrands = await Product.aggregate([
+            {
+                $group: {
+                    _id: "$brand",
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { count: -1 } },
+            { $limit: 10 }
         ]);
 
         // Get recent orders
@@ -54,15 +89,121 @@ const getDashboardData = async (req, res) => {
             totalProducts,
             totalOrders,
             totalRevenue,
-            monthlyData,
+            chartData,
             topProducts,
-            recentOrders
+            topCategories,
+            topBrands,
+            recentOrders,
+            selectedRange: range
         });
     } catch (error) {
         console.error('Dashboard Error:', error);
         res.status(500).send('Internal Server Error');
     }
 };
+
+// API endpoint for chart data
+const getChartDataAPI = async (req, res) => {
+    try {
+        const range = req.query.range || 'monthly';
+        const data = await getChartData(range);
+        res.json(data);
+    } catch (error) {
+        console.error('Chart Data Error:', error);
+        res.status(500).json({ error: 'Failed to fetch chart data' });
+    }
+};
+
+async function getChartData(range = 'monthly') {
+    try {
+        const currentDate = new Date();
+        let startDate = new Date();
+        let labels = [];
+        let format = {};
+
+        // Set date range and format based on selection
+        switch(range) {
+            case 'weekly':
+                startDate.setDate(currentDate.getDate() - 6); // Last 7 days including today
+                startDate.setHours(0, 0, 0, 0);
+                format = { weekday: 'short', month: 'short', day: 'numeric' };
+                break;
+            case 'yearly':
+                startDate.setFullYear(currentDate.getFullYear() - 1);
+                format = { month: 'short' };
+                break;
+            case 'monthly':
+            default:
+                startDate.setMonth(currentDate.getMonth() - 5); // Last 6 months including current
+                format = { month: 'short' };
+                break;
+        }
+
+        // Get all orders within the date range
+        const orders = await Order.find({
+            orderDate: {
+                $gte: startDate,
+                $lte: currentDate
+            }
+        }).sort({ orderDate: 1 });
+
+        let revenueData = {};
+        let orderData = {};
+
+        // Initialize data structure based on range
+        if (range === 'weekly') {
+            for (let i = 0; i < 7; i++) {
+                let date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                let label = date.toLocaleDateString('en-US', format);
+                labels.push(label);
+                revenueData[label] = 0;
+                orderData[label] = 0;
+            }
+        } else if (range === 'yearly') {
+            for (let i = 0; i < 12; i++) {
+                let date = new Date(currentDate);
+                date.setMonth(currentDate.getMonth() - (11 - i));
+                let label = date.toLocaleDateString('en-US', format);
+                labels.push(label);
+                revenueData[label] = 0;
+                orderData[label] = 0;
+            }
+        } else {
+            // Monthly (6 months)
+            for (let i = 0; i < 6; i++) {
+                let date = new Date(currentDate);
+                date.setMonth(currentDate.getMonth() - (5 - i));
+                let label = date.toLocaleDateString('en-US', format);
+                labels.push(label);
+                revenueData[label] = 0;
+                orderData[label] = 0;
+            }
+        }
+
+        // Aggregate orders data
+        orders.forEach(order => {
+            const date = new Date(order.orderDate);
+            const label = date.toLocaleDateString('en-US', format);
+            
+            if (revenueData[label] !== undefined) {
+                if (order.status === 'Delivered') {
+                    revenueData[label] += order.totalAmount;
+                }
+                orderData[label] += 1;
+            }
+        });
+
+        return {
+            labels: labels,
+            revenue: labels.map(label => revenueData[label]),
+            orders: labels.map(label => orderData[label])
+        };
+    } catch (error) {
+        console.error('Error getting chart data:', error);
+        throw error;
+    }
+}
 
 const generateSalesReport = async (req, res) => {
     try {
@@ -259,38 +400,8 @@ const generateSalesReport = async (req, res) => {
     }
 };
 
-async function getMonthlyData() {
-    const months = [];
-    const revenue = [];
-    const orders = [];
-
-    // Get last 6 months data
-    for (let i = 5; i >= 0; i--) {
-        const start = new Date();
-        start.setMonth(start.getMonth() - i);
-        start.setDate(1);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(start);
-        end.setMonth(end.getMonth() + 1);
-
-        const monthOrders = await Order.find({
-            orderDate: { $gte: start, $lt: end }
-        });
-
-        const monthRevenue = monthOrders.reduce((sum, order) => {
-            return sum + (order.status === 'Delivered' ? order.totalAmount : 0);
-        }, 0);
-
-        months.push(start.toLocaleString('default', { month: 'short' }));
-        revenue.push(monthRevenue);
-        orders.push(monthOrders.length);
-    }
-
-    return { months, revenue, orders };
-}
-
 module.exports = {
     getDashboardData,
+    getChartDataAPI,
     generateSalesReport
 };
