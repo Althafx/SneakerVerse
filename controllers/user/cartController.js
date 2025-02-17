@@ -597,6 +597,24 @@ const placeOrder = async(req, res, next) => {
         await order.save();
         console.log('Order saved:', order._id);
 
+        // Update product quantities after order is placed
+        for (const item of orderItems) {
+            const product = await Product.findById(item.product);
+            if (product && product.quantities) {
+                const sizeKey = {
+                    'S': 'small',
+                    'M': 'medium',
+                    'L': 'large'
+                }[item.size] || item.size.toLowerCase();
+                
+                if (product.quantities[sizeKey] !== undefined) {
+                    product.quantities[sizeKey] -= item.quantity;
+                    await product.save();
+                    console.log(`Updated quantity for product ${product._id}, size ${sizeKey}: ${product.quantities[sizeKey]}`);
+                }
+            }
+        }
+
         // Update coupon usage if a coupon was applied
         if (appliedCoupon) {
             const coupon = await Coupon.findOne({ code: appliedCoupon.code });
