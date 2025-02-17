@@ -712,24 +712,35 @@ const placeOrder = async(req, res, next) => {
 
 const verifyPayment = async (req, res) => {
     try {
-        console.log('Verifying payment:', req.body);
+        console.log('Verifying payment with body:', req.body);
         const {
-            orderId,
+            order_id,
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature,
             status
         } = req.body;
 
+        console.log('Looking for order with ID:', order_id);
+        console.log('Order ID type:', typeof order_id);
+        
         // Find the order
-        const order = await Order.findById(orderId);
+        const order = await Order.findById(order_id);
+        console.log('Database query result:', order ? 'Order found' : 'Order not found');
+        
         if (!order) {
-            console.log('Order not found:', orderId);
+            console.log('Order not found:', order_id);
             return res.status(404).json({
                 success: false,
                 message: 'Order not found'
             });
         }
+
+        console.log('Found order:', {
+            id: order._id,
+            status: order.status,
+            paymentStatus: order.paymentStatus
+        });
 
         // If status is failed, update order status and return
         if (status === 'failed') {
@@ -763,9 +774,6 @@ const verifyPayment = async (req, res) => {
             // Clear cart
             await Cart.findOneAndDelete({ userId: order.user });
 
-            // Set success flash message
-            req.flash('success', 'Payment successful! Your order has been placed.');
-
             return res.status(200).json({
                 success: true,
                 message: 'Payment verified successfully',
@@ -785,6 +793,7 @@ const verifyPayment = async (req, res) => {
         }
     } catch (error) {
         console.error('Payment verification error:', error);
+        console.error('Error stack:', error.stack);
         return res.status(500).json({
             success: false,
             message: 'Payment verification failed: ' + error.message,
