@@ -364,12 +364,15 @@
                 </div>
              
                 <% if (product.offer && product.offer.discountedPrice) { %>
-                    <h3 class="text-discount">₹<%= product.salesPrice %></h3>
-                    <small class="text-muted text-decoration-line-through">₹<%= product.mainPrice %></small>
-                    <span class="label" style="background-color: #ff4444;"> <%= product.offer.discountPercentage %>% OFF </span>
+                    <div class="product-price">
+                        <del style="color: #ff4444; font-size: 20px;">₹<%= product.mainPrice %></del>
+                        <span style="color: #6fff0f; font-weight: bold; font-size: 24px;">₹<%= product.offer.discountedPrice %></span>
+                    </div>
                 <% } else { %>
                 
-                    <div class="product__details__price h3 text-success">₹<%= product.salesPrice %></div>
+                    <div class="product-price">
+                        <span style="color: #6fff0f; font-weight: bold; font-size: 24px;">₹<%= product.mainPrice %></span>
+                    </div>
                 <% } %>
                     
                

@@ -16,8 +16,6 @@
       cursor: pointer;
       text-align: center;
   }
-  
-
 
   .btn:hover {
       background-color: #bce743;
@@ -170,12 +168,15 @@
     right: 220px !important;  
 }
 .text-discount {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     color: #6fff0f;
 }
 .text-decoration-line-through {
+    color: #ff4444;
+    font-size: 16px;
     text-decoration: line-through;
+    opacity: 0.8;
 }
 
 
@@ -523,9 +524,19 @@
   .product-price {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    color: #43e702;
+    gap: 10px;
+    margin: 10px 0;
+  }
+  
+  .product-price del {
+    color: #ff4444 !important;
+    font-size: 16px;
+  }
+  
+  .product-price .sale-price {
+    color: #6fff0f !important;
+    font-weight: bold;
+    font-size: 18px;
   }
   .current-price {
     color: #64fa00;
@@ -719,11 +730,11 @@
                     <div class="product-content-wrap">
                       <h6><%= product.productName %></h6>
                       <div class="product-price">
-                        <% if (discountPercentage > 0) { %>
-                          <span class="current-price">₹<%= displayPrice.toLocaleString('en-IN') %></span>
-                          <span class="original-price">₹<%= originalPrice.toLocaleString('en-IN') %></span>
+                        <% if (product.offer && product.offer.discountedPrice) { %>
+                          <del style="color: #ff4444;">₹<%= product.mainPrice %></del>
+                          <span style="color: #6fff0f; font-weight: bold;">₹<%= product.offer.discountedPrice %></span>
                         <% } else { %>
-                          <span>₹<%= displayPrice.toLocaleString('en-IN') %></span>
+                          <span style="color: #6fff0f; font-weight: bold;">₹<%= product.mainPrice %></span>
                         <% } %>
                       </div>
                       <h6><%= product.category ? product.category.name : '' %></h6>
@@ -881,12 +892,14 @@ function updateProductDisplay(products) {
 
         const priceHtml = product.offer ? `
             <div class="product-price">
-              <span class="current-price">₹${product.offer.discountedPrice}</span>
-              <span class="original-price">₹${product.salesPrice}</span>
+              <del style="color: #ff4444;">₹${product.mainPrice}</del>
+              <span style="color: #6fff0f; font-weight: bold;">₹${product.offer.discountedPrice}</span>
             </div>
-        ` : `<div class="product-price">
-              <span class="current-price">₹${product.salesPrice}</span>
-            </div>`;
+        ` : `
+            <div class="product-price">
+              <span style="color: #6fff0f; font-weight: bold;">₹${product.mainPrice}</span>
+            </div>
+        `;
 
         return `
             <div class="col-lg-3 col-md-4 col-12 col-sm-6">

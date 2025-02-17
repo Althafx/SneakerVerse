@@ -1,115 +1,191 @@
-<%- include('../partials/user/header') %>
+<%- include('../partials/user/header.ejs') %>
 
 <style>
+    body {
+        background-color: #1a1a1a !important;
+    }
     .profile-container {
-        background: linear-gradient(145deg, #bef17b, #f5f5f5);
-        border-radius: 20px;
-        box-shadow: 0 8px 30px rgba(226, 255, 98, 0.05);
         padding: 2rem;
-        margin: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        min-height: 100vh;
+        border-radius: 20px;
+        margin: 2rem 1rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .profile-section {
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .section-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #2c3e50;
+        color: #bce743;
+        font-size: 1.2rem;
         margin-bottom: 1.5rem;
-        position: relative;
-        padding-bottom: 0.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
-    .section-title::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 50px;
-        height: 3px;
-        background: linear-gradient(90deg, #f0a500, #f5d100);
-        border-radius: 2px;
-    }
-    .form-control {
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 0.8rem 1rem;
-        transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.9);
-    }
-    .form-control:focus {
-        box-shadow: 0 0 0 3px rgba(240, 165, 0, 0.1);
-        border-color: #f0a500;
-    }
-    .btn-custom {
-        background: linear-gradient(90deg, #f0a500, #f5d100);
-        border: none;
-        border-radius: 12px;
-        padding: 0.6rem 1.2rem;
+    .profile-info {
         color: #fff;
+        margin-bottom: 1.5rem;
+    }
+    .info-label {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 0.5rem;
+    }
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    .edit-btn {
+        background: #e69823;
+        color: #fff;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 10px;
+        font-size: 0.9rem;
         font-weight: 500;
         transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
-    .btn-custom:hover {
+    .edit-btn:hover {
+        background: #bce743;
         transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(240, 165, 0, 0.2);
     }
     .address-card {
-        background: #fff;
-        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
         padding: 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         transition: all 0.3s ease;
-        border: 1px solid #f0f0f0;
     }
     .address-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        border-color: rgba(230, 152, 35, 0.3);
+        box-shadow: 0 8px 25px rgba(230, 152, 35, 0.1);
     }
-    .address-type-badge {
-        background: rgba(240, 165, 0, 0.1);
-        color: #f0a500;
-        padding: 0.4rem 1rem;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 500;
+    .address-type {
+        color: #bce743;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .address-details {
+        color: #fff;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
     }
     .address-actions {
         display: flex;
-        gap: 0.5rem;
-        margin-top: 1rem;
+        gap: 1rem;
     }
-    .btn-outline {
-        border: 1px solid #e0e0e0;
-        background: transparent;
-        color: #2c3e50;
-        padding: 0.4rem 1rem;
-        border-radius: 8px;
+    .address-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1.2rem;
         transition: all 0.3s ease;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        flex: 1;
     }
-    .btn-outline:hover {
-        background: #f8f9fa;
-        border-color: #d0d0d0;
+    .address-btn.edit {
+        background: #e69823;
+    }
+    .address-btn.delete {
+        background: rgba(255, 68, 68, 0.2);
+        color: #ff4444;
+    }
+    .address-btn:hover {
+        transform: translateY(-2px);
+    }
+    .address-btn.edit:hover {
+        background: #bce743;
+    }
+    .address-btn.delete:hover {
+        background: rgba(255, 68, 68, 0.3);
     }
     .modal-content {
-        border-radius: 20px;
-        border: none;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        background: #2a2a2a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
     }
     .modal-header {
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         padding: 1.5rem;
+    }
+    .modal-title {
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 600;
     }
     .modal-body {
         padding: 1.5rem;
     }
+    .form-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    .form-control {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: #fff;
+        padding: 0.8rem 1rem;
+    }
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: #e69823;
+        box-shadow: none;
+    }
     .modal-footer {
-        border-top: 1px solid #f0f0f0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         padding: 1.5rem;
+    }
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: #fff;
+    }
+    .btn-primary {
+        background: #e69823;
+        border: none;
+    }
+    .btn-primary:hover {
+        background: #bce743;
+    }
+    
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 1.5rem;
+            margin: 1rem 0.5rem;
+        }
+        .profile-section {
+            padding: 1.5rem;
+        }
+        .address-card {
+            padding: 1.2rem;
+        }
+        .address-actions {
+            flex-direction: column;
+        }
     }
 </style>
 
-<!-- Content -->
 <div class="container-fluid">
     <div class="row">
-        <%-include("../../views/partials/user/usersidebar")%>
+        <%- include('../partials/user/usersidebar.ejs') %>
         
         <div class="col-md-9">
             <div class="profile-container">
@@ -117,104 +193,113 @@
                 
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label fw-medium mb-2">Name</label>
-                            <input type="text" class="form-control" value="<%= user.name %>" readonly>
-                            <button class="btn btn-custom mt-2" data-bs-toggle="modal" data-bs-target="#changeNameModal">
-                                <i class="fas fa-edit me-2"></i>Edit Name
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label fw-medium mb-2">Email</label>
-                            <input type="email" class="form-control" value="<%= user.email %>" readonly>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label fw-medium mb-2">Phone</label>
-                            <input type="tel" class="form-control" value="<%= user.phone %>" readonly>
-                            <button class="btn btn-custom mt-2" data-bs-toggle="modal" data-bs-target="#changePhoneModal">
-                                <i class="fas fa-edit me-2"></i>Edit Phone
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label fw-medium mb-2">Password</label>
-                            <input type="password" class="form-control" value="********" readonly>
-                            <button class="btn btn-custom mt-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                                <i class="fas fa-key me-2"></i>Change Password
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label fw-medium mb-2">My Referral Code</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" value="<%= user.referralCode || 'No referral code' %>" id="referralCode" readonly>
-                                <button class="btn btn-custom" onclick="copyReferralCode()">
-                                    <i class="fas fa-copy me-2"></i>Copy
-                                </button>
+                        <div class="profile-section">
+                            <h5 class="section-title">Name</h5>
+                            <div class="profile-info">
+                                <span class="info-label">Name:</span>
+                                <span class="info-value"><%= user.name %></span>
                             </div>
-                            <small class="text-muted mt-2 d-block">
-                                Share this code with friends to earn ₹1500 when they sign up!
-                            </small>
+                            <button class="edit-btn" data-bs-toggle="modal" data-bs-target="#changeNameModal">
+                                Edit Name
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="profile-section">
+                            <h5 class="section-title">Email</h5>
+                            <div class="profile-info">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value"><%= user.email %></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="profile-section">
+                            <h5 class="section-title">Phone</h5>
+                            <div class="profile-info">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value"><%= user.phone %></span>
+                            </div>
+                            <button class="edit-btn" data-bs-toggle="modal" data-bs-target="#changePhoneModal">
+                                Edit Phone
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="profile-section">
+                            <h5 class="section-title">Password</h5>
+                            <div class="profile-info">
+                                <span class="info-label">Password:</span>
+                                <span class="info-value">********</span>
+                            </div>
+                            <button class="edit-btn" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                Change Password
+                            </button>
                         </div>
                     </div>
 
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label fw-medium mb-2">Wallet Balance</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" value="₹<%= user.wallet || 0 %>" readonly>
+                        <div class="profile-section">
+                            <h5 class="section-title">My Referral Code</h5>
+                            <div class="profile-info">
+                                <span class="info-label">Referral Code:</span>
+                                <span class="info-value"><%= user.referralCode || 'No referral code' %></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="profile-section">
+                            <h5 class="section-title">Wallet Balance</h5>
+                            <div class="profile-info">
+                                <span class="info-label">Balance:</span>
+                                <span class="info-value">₹<%= user.wallet || 0 %></span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <h4 class="section-title mt-5">My Addresses</h4>
-                <button class="btn btn-custom mb-4" data-bs-toggle="modal" data-bs-target="#addAddressModal">
-                    <i class="fas fa-plus me-2"></i>Add New Address
-                </button>
+                <!-- Addresses Section -->
+                <div class="mt-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="section-title mb-0">My Addresses</h5>
+                        <button class="edit-btn" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                            Add New Address
+                        </button>
+                    </div>
 
-                <div class="row">
-                    <% if (user.addresses && user.addresses.length > 0) { %>
-                        <% user.addresses.forEach(function(address) { %>
-                            <div class="col-md-6 mb-4">
-                                <div class="address-card">
-                                    <span class="address-type-badge mb-3 d-inline-block">
-                                        <%= address.addressType %>
-                                    </span>
-                                    <h6 class="mb-2 fw-bold"><%= address.name %></h6>
-                                    <p class="mb-1 text-muted"><i class="fas fa-phone me-2"></i><%= address.phone %></p>
-                                    <p class="mb-3 text-muted">
-                                        <i class="fas fa-map-marker-alt me-2"></i>
-                                        <%= address.landMark %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
-                                    </p>
-                                    <div class="address-actions">
-                                        <button class="btn btn-outline" onclick="editAddress('<%= address._id %>')">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                        <button class="btn btn-outline text-danger" onclick="deleteAddress('<%= address._id %>')">
-                                            <i class="fas fa-trash-alt me-1"></i>Delete
-                                        </button>
+                    <div class="row">
+                        <% if (user.addresses && user.addresses.length > 0) { %>
+                            <% user.addresses.forEach(function(address) { %>
+                                <div class="col-md-6">
+                                    <div class="address-card">
+                                        <h6 class="address-type"><%= address.addressType %></h6>
+                                        <p class="address-details">
+                                            <%= address.name %><br>
+                                            <%= address.landMark %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
+                                        </p>
+                                        <div class="address-actions">
+                                            <button class="address-btn edit" onclick="editAddress('<%= address._id %>')">
+                                                Edit
+                                            </button>
+                                            <button class="address-btn delete" onclick="deleteAddress('<%= address._id %>')">
+                                                Delete
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="col-12 text-center py-5">
+                                <i class="fas fa-home fa-3x mb-3 text-muted"></i>
+                                <h5 class="text-muted">No addresses found</h5>
+                                <p class="text-muted mb-4">Add your first address to get started</p>
                             </div>
-                        <% }); %>
-                    <% } else { %>
-                        <div class="col-12 text-center py-5">
-                            <i class="fas fa-home fa-3x mb-3 text-muted"></i>
-                            <h5 class="text-muted">No addresses found</h5>
-                            <p class="text-muted mb-4">Add your first address to get started</p>
-                        </div>
-                    <% } %>
+                        <% } %>
+                    </div>
                 </div>
             </div>
         </div>

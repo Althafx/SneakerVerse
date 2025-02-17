@@ -1,138 +1,258 @@
 <%- include('../partials/user/header.ejs') %>
 
 <style>
+    body {
+        background-color: #1a1a1a !important;
+    }
     .wallet-container {
-        background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
-        border-radius: 20px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
         padding: 2rem;
-        margin: 1rem;
-        color: #ffffff;
+        background: rgba(255, 255, 255, 0.05);
+        min-height: 100vh;
+        border-radius: 20px;
+        margin: 2rem 1rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .card {
-        background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+    .wallet-header {
+        margin-bottom: 2.5rem;
+        position: relative;
+        padding-bottom: 1rem;
+        color: #fff;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+    .wallet-header::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 50px;
+        height: 3px;
+        background: #e69823;
+        border-radius: 2px;
+    }
+    .balance-card {
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+    .balance-label {
+        color: #bce743;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .balance-amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 1.5rem;
+    }
+    .add-money-btn {
+        background: #e69823;
+        color: #fff;
         border: none;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
-    .card-body {
-        color: #ffffff;
+    .add-money-btn:hover {
+        background: #bce743;
+        transform: translateY(-2px);
     }
-    .btn-primary {
-        background: linear-gradient(90deg, #4CAF50, #45a049);
-        border: none;
-        padding: 10px 25px;
+    .transactions-section {
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 15px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .transactions-header {
+        color: #bce743;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .transaction-card {
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         transition: all 0.3s ease;
     }
-    .btn-primary:hover {
-        background: linear-gradient(90deg, #45a049, #4CAF50);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    .transaction-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(230, 152, 35, 0.3);
+        box-shadow: 0 8px 25px rgba(230, 152, 35, 0.1);
     }
-    .table {
-        color: #ffffff;
+    .transaction-type {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
-    .table thead th {
-        border-bottom: 2px solid #4CAF50;
+    .transaction-type.credit {
         color: #4CAF50;
     }
-    .table td {
-        border-color: #333333;
+    .transaction-type.debit {
+        color: #ff4444;
     }
-    .badge {
-        padding: 8px 12px;
-        border-radius: 8px;
+    .transaction-amount {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.5rem;
     }
-    .bg-success {
-        background: #4CAF50 !important;
+    .transaction-date {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
     }
-    .bg-warning {
-        background: #FFC107 !important;
-    }
-    .bg-danger {
-        background: #f44336 !important;
-    }
-    .text-success {
-        color: #4CAF50 !important;
-    }
-    .text-danger {
-        color: #f44336 !important;
+    .transaction-description {
+        color: #fff;
+        margin-top: 0.5rem;
+        font-size: 1rem;
     }
     .modal-content {
-        background: #2d2d2d;
-        color: #ffffff;
+        background: #2a2a2a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
     }
     .modal-header {
-        border-bottom: 1px solid #333333;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
     }
-    .modal-footer {
-        border-top: 1px solid #333333;
+    .modal-title {
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+    .modal-body {
+        padding: 1.5rem;
+    }
+    .form-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
     }
     .form-control {
-        background: #1a1a1a;
-        border: 1px solid #333333;
-        color: #ffffff;
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: #fff;
+        padding: 0.8rem 1rem;
     }
     .form-control:focus {
-        background: #1a1a1a;
-        border-color: #4CAF50;
-        color: #ffffff;
-        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: #e69823;
+        box-shadow: none;
+    }
+    .modal-footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+    }
+    .no-transactions {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    .no-transactions i {
+        font-size: 3rem;
+        color: #e69823;
+        margin-bottom: 1rem;
+    }
+    .no-transactions h3 {
+        font-size: 1.3rem;
+        color: #fff;
+        margin-bottom: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .wallet-container {
+            padding: 1.5rem;
+            margin: 1rem 0.5rem;
+        }
+        .balance-card {
+            padding: 1.5rem;
+        }
+        .transactions-section {
+            padding: 1.5rem;
+        }
+        .transaction-card {
+            padding: 1.2rem;
+        }
+        .balance-amount {
+            font-size: 2rem;
+        }
     }
 </style>
 
 <div class="container-fluid">
     <div class="row">
-        <%- include('../partials/user/usersidebar') %>
+        <%- include('../partials/user/usersidebar.ejs') %>
         
         <div class="col-md-9">
             <div class="wallet-container">
+                <h4 class="wallet-header">My Wallet</h4>
                 <div class="row">
                     <div class="col-md-4">
-                        <div class="card shadow-sm">
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Wallet Balance</h5>
-                                <h2 class="text-success">₹<%= wallet.balance.toFixed(2) %></h2>
-                                <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addMoneyModal">
-                                    Add Money
-                                </button>
-                            </div>
+                        <div class="balance-card">
+                            <div class="balance-label">Wallet Balance</div>
+                            <div class="balance-amount">₹<%= wallet.balance.toFixed(2) %></div>
+                            <button class="add-money-btn" data-bs-toggle="modal" data-bs-target="#addMoneyModal">
+                                Add Money
+                            </button>
                         </div>
                     </div>
                     <div class="col-md-8">
-                        <div class="card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">Transaction History</h5>
-                                <div class="table-responsive">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Description</th>
-                                                <th>Amount</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% wallet.transactions.reverse().forEach(transaction => { %>
-                                            <tr>
-                                                <td><%= new Date(transaction.timestamp).toLocaleDateString() %></td>
-                                                <td><%= transaction.description %></td>
-                                                <td class="<%= transaction.type === 'credit' ? 'text-success' : 'text-danger' %>">
-                                                    <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toFixed(2) %>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-<%= transaction.status === 'completed' ? 'success' : (transaction.status === 'pending' ? 'warning' : 'danger') %>">
-                                                        <%= transaction.status %>
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <% }) %>
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <div class="transactions-section">
+                            <div class="transactions-header">Transaction History</div>
+                            <% if (wallet.transactions.length === 0) { %>
+                            <div class="no-transactions">
+                                <i class="fas fa-history"></i>
+                                <h3>No transactions found.</h3>
                             </div>
+                            <% } else { %>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% wallet.transactions.reverse().forEach(transaction => { %>
+                                        <tr>
+                                            <td><%= new Date(transaction.timestamp).toLocaleDateString() %></td>
+                                            <td><%= transaction.description %></td>
+                                            <td class="<%= transaction.type === 'credit' ? 'text-success' : 'text-danger' %>">
+                                                <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toFixed(2) %>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-<%= transaction.status === 'completed' ? 'success' : (transaction.status === 'pending' ? 'warning' : 'danger') %>">
+                                                    <%= transaction.status %>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>

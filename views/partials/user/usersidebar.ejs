@@ -2,7 +2,7 @@
     <div class="sidebar">
         <div class="sidebar-profile">
             <div class="profile-image">
-                <img src="https://ui-avatars.com/api/?name=<%= user.name %>&background=bef17b&color=fff" alt="Profile">
+                <img src="https://ui-avatars.com/api/?name=<%= user.name %>&background=e69823&color=fff" alt="Profile">
             </div>
             <div class="profile-name"><%= user.name %></div>
             <div class="profile-email"><%= user.email %></div>
@@ -46,54 +46,42 @@
 <style>
     .sidebar {
         min-height: 100vh;
-        background: linear-gradient(145deg, #5f8847, #ffffff);
-        border-right: 1px solid rgba(0, 0, 0, 0.05);
+        background: #1a1a1a;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
         padding-top: 2rem;
         position: sticky;
         top: 0;
-        border-radius: 20px;
     }
     .sidebar-profile {
         padding: 1.5rem;
         text-align: center;
         margin-bottom: 2rem;
-        position: relative;
-    }
-    .sidebar-profile::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 50px;
-        height: 3px;
-        background: linear-gradient(90deg, #bef17b, #e2ff62);
-        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
     }
     .profile-image {
         width: 80px;
         height: 80px;
         border-radius: 50%;
-        margin-bottom: 1rem;
-        padding: 3px;
-        background: linear-gradient(90deg, #bef17b, #e2ff62);
+        margin: 0 auto 1rem;
+        overflow: hidden;
+        border: 3px solid #e69823;
     }
     .profile-image img {
         width: 100%;
         height: 100%;
-        border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #fff;
     }
     .profile-name {
+        color: #fff;
         font-size: 1.1rem;
         font-weight: 600;
-        color: #2c3e50;
         margin-bottom: 0.3rem;
     }
     .profile-email {
+        color: rgba(255, 255, 255, 0.6);
         font-size: 0.9rem;
-        color: #feffff;
     }
     .nav-menu {
         padding: 0 1rem;
@@ -105,21 +93,20 @@
         display: flex;
         align-items: center;
         padding: 0.8rem 1.2rem;
-        color: #2c3e50;
+        color: rgba(255, 255, 255, 0.8);
         border-radius: 12px;
         transition: all 0.3s ease;
-        font-weight: 500;
         text-decoration: none;
     }
     .nav-link:hover {
-        background: rgba(190, 241, 123, 0.2);
-        color: #2c3e50;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
         transform: translateX(5px);
     }
     .nav-link.active {
-        background: linear-gradient(90deg, #bef17b, #e2ff62);
-        color: #2c3e50;
-        box-shadow: 0 4px 15px rgba(190, 241, 123, 0.2);
+        background: #e69823;
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(230, 152, 35, 0.2);
     }
     .nav-link i {
         width: 20px;
@@ -129,9 +116,15 @@
     .nav-text {
         font-size: 0.95rem;
     }
-    .divider {
-        height: 1px;
-        background: rgba(0, 0, 0, 0.05);
-        margin: 1rem 0;
+    
+    @media (max-width: 768px) {
+        .sidebar {
+            position: static;
+            min-height: auto;
+            margin-bottom: 2rem;
+        }
+        .nav-link {
+            padding: 0.8rem;
+        }
     }
 </style>
