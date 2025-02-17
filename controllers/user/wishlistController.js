@@ -99,8 +99,58 @@ const isProductInWishlist = async (userId, productId) => {
     }
 };
 
+const removeFromWishlist = async (req, res) => {
+    try {
+        if (!req.session.user) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Please login to remove items from wishlist' 
+            });
+        }
+
+        const productId = req.params.productId;
+        const userId = req.session.user._id;
+
+        // Find and update the wishlist
+        const wishlist = await Wishlist.findOne({ userId });
+        
+        if (!wishlist) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Wishlist not found' 
+            });
+        }
+
+        // Remove the product from wishlist
+        const updatedWishlist = await Wishlist.findOneAndUpdate(
+            { userId },
+            { $pull: { products: { _id: productId } } },
+            { new: true }
+        );
+
+        if (!updatedWishlist) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Failed to remove item from wishlist' 
+            });
+        }
+
+        res.json({ 
+            success: true, 
+            message: 'Item removed from wishlist successfully' 
+        });
+    } catch (error) {
+        console.error('Error in removeFromWishlist:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal server error' 
+        });
+    }
+};
+
 module.exports = {
     toggleWishlist,
     getWishlist,
-    isProductInWishlist
+    isProductInWishlist,
+    removeFromWishlist
 };

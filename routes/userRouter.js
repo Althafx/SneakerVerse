@@ -122,6 +122,7 @@ router.get("/order-product-details/:orderId/:productId", userAuth, isBlockedUser
 //wishlist routes
 router.post("/toggle-wishlist/:productId", userAuth, isBlockedUser, wishlistController.toggleWishlist);
 router.get("/wishlist", userAuth, isBlockedUser, wishlistController.getWishlist);
+router.post("/remove-from-wishlist/:productId", userAuth, isBlockedUser, wishlistController.removeFromWishlist);
 
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
