@@ -17,10 +17,9 @@ const walletController = {
             }
 
             const userId = req.session.user;
-            const [wallet, user] = await Promise.all([
-                Wallet.findOne({ userId }),
-                User.findById(userId)
-            ]);
+            // Changed from destructuring to separate declarations
+            const user = await User.findById(userId);
+            let wallet = await Wallet.findOne({ userId });
             
             if (!wallet) {
                 wallet = await new Wallet({ userId }).save();

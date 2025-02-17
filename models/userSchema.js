@@ -46,6 +46,16 @@ const userSchema = new Schema({
         type:Number,
         default:0
     },
+    referralCode: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    referredBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
     addresses: [{
         name: {
             type: String,
@@ -83,9 +93,6 @@ const userSchema = new Schema({
     createdOn:{
         type:Date,
         default:Date.now,
-    },
-    referalCode:{
-        type:String
     },
     redeemed:{
         type:Boolean

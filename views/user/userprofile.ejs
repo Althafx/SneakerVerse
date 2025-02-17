@@ -152,6 +152,30 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label fw-medium mb-2">My Referral Code</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" value="<%= user.referralCode || 'No referral code' %>" id="referralCode" readonly>
+                                <button class="btn btn-custom" onclick="copyReferralCode()">
+                                    <i class="fas fa-copy me-2"></i>Copy
+                                </button>
+                            </div>
+                            <small class="text-muted mt-2 d-block">
+                                Share this code with friends to earn ₹1500 when they sign up!
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label fw-medium mb-2">Wallet Balance</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" value="₹<%= user.wallet || 0 %>" readonly>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <h4 class="section-title mt-5">My Addresses</h4>
@@ -969,6 +993,31 @@ function closeEditModal() {
     if (bsModal) {
         bsModal.hide();
     }
+}
+
+function copyReferralCode() {
+    const referralCode = document.getElementById('referralCode');
+    navigator.clipboard.writeText(referralCode.value).then(() => {
+        Swal.fire({
+            title: 'Copied!',
+            text: 'Referral code copied to clipboard',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    }).catch(() => {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to copy referral code',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    });
 }
 </script>
 

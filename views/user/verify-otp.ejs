@@ -143,7 +143,7 @@
             <div class="heading_s1">
                 <h3>Email Verification</h3>
             </div>
-            <form id="otpForm" action="" method="post" onsubmit="return validateOTPForm()">
+            <form id="otpForm" action="" method="post">
                 <div class="form-group">
                     <label for="otp">Enter OTP:</label>
                     <input type="text" id="otp" name="otp" class="form-control" required maxlength="6" pattern="\d*" />
@@ -198,7 +198,12 @@
                 url: "/resend-otp",
                 success: function (response) {
                     if (response.success) {
-                        showAlert("OTP Resent!", "success");
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'OTP Resent!',
+                            text: 'A new OTP has been sent to your email.',
+                            confirmButtonText: 'Continue'
+                        });
                         timer = 60;
                         document.getElementById("timerValue").classList.remove("expired");
                         document.getElementById("timerValue").textContent = timer;
@@ -206,66 +211,60 @@
                         resendButton.classList.remove("enabled");
                         startTimer();
                     } else {
-                        showAlert("Failed to resend OTP.", "error");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed to resend OTP.',
+                            text: 'Please try again later.'
+                        });
                     }
                 },
                 error: function () {
-                    showAlert("An error occurred. Please try again.", "error");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'An error occurred.',
+                        text: 'Please try again later.'
+                    });
                 },
             });
         });
 
-        function validateOTPForm(event) {
-            event.preventDefault();
-            const otpInput = document.getElementById("otp").value;
-
-            $.ajax({
-                type: "POST",
-                url: "/verify-otp",
-                data: { otp: otpInput },
-                success: function (response) {
-                    if (response.success) {
-                        showAlert("OTP Verified Successfully", "success");
-                        setTimeout(() => {
-                            window.location.href = response.redirectUrl;
-                        }, 1500);
-                    } else {
-                        showAlert("Invalid OTP", "error");
+        $(document).ready(function() {
+            $('#otpForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const otp = $('#otp').val();
+                
+                $.ajax({
+                    url: '/verify-otp',
+                    method: 'POST',
+                    data: { otp },
+                    success: function(response) {
+                        if (response.success) {
+                            if (response.referralSuccess) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Referral Bonus Credited!',
+                                    text: `Congratulations! ₹1500 has been credited to your wallet. Your friend ${response.referrerEmail} also received ₹1500!`,
+                                    confirmButtonText: 'Continue to Home'
+                                }).then((result) => {
+                                    window.location.href = response.redirectUrl;
+                                });
+                            } else {
+                                window.location.href = response.redirectUrl;
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        const response = xhr.responseJSON;
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Verification Failed',
+                            text: response.message || 'Something went wrong. Please try again.'
+                        });
                     }
-                },
-                error: function () {
-                    showAlert("invalid OTP.", "error");
-                },
+                });
             });
-        }
-
-        function showAlert(message, icon) {
-            const color = icon === 'success' ? '#28a745' : '#dc3545'; // Green for success, Red for error
-            Swal.fire({
-                position: 'top-end',
-                icon: icon,
-                title: message,
-                showConfirmButton: false,
-                timer: 1500,
-                toast: true,
-                customClass: {
-                    popup: 'swal-popup',
-                    title: 'swal-title'
-                },
-                background: color,
-                animation: true,
-                showClass: {
-                    popup: 'animate__animated animate__fadeInRight'
-                },
-                hideClass: {
-                    popup: 'animate__animated animate__fadeOutRight'
-                }
-            });
-        }
-
-        document.getElementById("otpForm").addEventListener("submit", validateOTPForm);
+        });
     </script>
-
-    
 </body>
 </html>
