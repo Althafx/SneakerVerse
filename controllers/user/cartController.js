@@ -597,20 +597,22 @@ const placeOrder = async(req, res, next) => {
         await order.save();
         console.log('Order saved:', order._id);
 
-        // Update product quantities after order is placed
-        for (const item of orderItems) {
-            const product = await Product.findById(item.product);
-            if (product && product.quantities) {
-                const sizeKey = {
-                    'S': 'small',
-                    'M': 'medium',
-                    'L': 'large'
-                }[item.size] || item.size.toLowerCase();
-                
-                if (product.quantities[sizeKey] !== undefined) {
-                    product.quantities[sizeKey] -= item.quantity;
-                    await product.save();
-                    console.log(`Updated quantity for product ${product._id}, size ${sizeKey}: ${product.quantities[sizeKey]}`);
+        // Update product quantities only for COD and wallet payments
+        if (paymentMethod !== 'online') {
+            for (const item of orderItems) {
+                const product = await Product.findById(item.product);
+                if (product && product.quantities) {
+                    const sizeKey = {
+                        'S': 'small',
+                        'M': 'medium',
+                        'L': 'large'
+                    }[item.size] || item.size.toLowerCase();
+                    
+                    if (product.quantities[sizeKey] !== undefined) {
+                        product.quantities[sizeKey] -= item.quantity;
+                        await product.save();
+                        console.log(`Updated quantity for product ${product._id}, size ${sizeKey}: ${product.quantities[sizeKey]}`);
+                    }
                 }
             }
         }
@@ -733,7 +735,7 @@ const verifyPayment = async (req, res) => {
         }
 
         // Find the order
-        const order = await Order.findById(order_id);
+        const order = await Order.findById(order_id).populate('items.product');
         console.log('Database query result:', order ? 'Order found' : 'Order not found');
         
         if (!order) {
@@ -757,9 +759,6 @@ const verifyPayment = async (req, res) => {
             order.paymentStatus = 'Failed';
             await order.save();
             
-            // Clear the cart after failed payment
-            await Cart.findOneAndDelete({ userId: order.user });
-
             return res.status(200).json({
                 success: false,
                 message: 'Payment failed'
@@ -788,6 +787,25 @@ const verifyPayment = async (req, res) => {
         order.status = 'Processing';
         order.paymentStatus = 'Paid';
         order.razorpayPaymentId = razorpay_payment_id;
+        
+        // Update product quantities after successful payment
+        for (const item of order.items) {
+            const product = await Product.findById(item.product);
+            if (product && product.quantities) {
+                const sizeKey = {
+                    'S': 'small',
+                    'M': 'medium',
+                    'L': 'large'
+                }[item.size] || item.size.toLowerCase();
+                
+                if (product.quantities[sizeKey] !== undefined) {
+                    product.quantities[sizeKey] -= item.quantity;
+                    await product.save();
+                    console.log(`Updated quantity for product ${product._id}, size ${sizeKey}: ${product.quantities[sizeKey]}`);
+                }
+            }
+        }
+
         await order.save();
 
         // Clear the cart after successful payment
