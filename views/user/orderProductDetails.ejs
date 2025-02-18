@@ -171,6 +171,9 @@
         box-shadow: 0 2px 15px rgba(0,0,0,0.05);
         margin-bottom: 2rem;
     }
+    a{
+        text-decoration: none !important;
+    }
 </style>
 
 <div class="main-container">
@@ -214,8 +217,8 @@
         <% if (item && item.product) { %>
             <div class="product-card">
                 <div class="row">
-                    <div class="col-md-4">
-                        <div class="product-image">
+                    <!-- <div class="col-md-4"> -->
+                        <!-- <div class="product-image">
                             <% if (item.product.images && item.product.images.length > 0) { %>
                                 <img src="/uploads/product-images/<%= item.product.images[0] %>" 
                                      alt="<%= item.product.productName || 'Product Image' %>" 
@@ -225,9 +228,9 @@
                                      alt="No image available" 
                                      class="img-fluid rounded">
                             <% } %>
-                        </div>
-                    </div>
-                    <div class="col-md-8">
+                        </div> -->
+                    <!-- </div> -->
+                    <div class="col-md-9">
                         <div class="product-details">
                             <h4 class="product-name"><%= item.product.productName || 'Product Name Not Available' %></h4>
                             <p class="product-description"><%= item.product.description || 'No description available' %></p>
