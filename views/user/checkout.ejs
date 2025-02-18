@@ -434,12 +434,24 @@ function saveAddress() {
     async function handleOrder() {
         const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
         const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        const finalTotal = <%= subtotal %>; // Get the current order total
 
         if (!selectedAddress) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'Please select a delivery address'
+            });
+            return;
+        }
+
+        // Check if COD is selected for orders above ₹15,000
+        if (paymentMethod.value === 'cod' && finalTotal > 15000) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Cash on Delivery Not Available',
+                text: 'Cash on Delivery is not available for orders above ₹15,000. Please choose a different payment method.',
+                confirmButtonText: 'OK'
             });
             return;
         }
@@ -525,6 +537,10 @@ function saveAddress() {
                 throw new Error(orderData.message || 'Failed to create order');
             }
 
+            // Store orderId in a variable accessible to the handler
+            const orderId = orderData.orderId;
+            console.log('Created order with ID:', orderId); // Add logging
+
             const options = {
                 key: '<%= process.env.RAZORPAY_KEY_ID %>',
                 amount: orderData.amount,
@@ -533,11 +549,12 @@ function saveAddress() {
                 description: 'Order Payment',
                 order_id: orderData.razorpayOrderId,
                 handler: function (response) {
-                    verifyPayment(orderData.orderId, response);
+                    // Pass the stored orderId to verifyPayment
+                    verifyPayment(orderId, response);
                 },
                 prefill: {
-                    name: orderData.orderDetails.name,
-                    email: orderData.orderDetails.email
+                    name: orderData.orderDetails?.name || '',
+                    email: orderData.orderDetails?.email || ''
                 },
                 theme: {
                     color: '#4CAF50'
@@ -554,14 +571,13 @@ function saveAddress() {
 
             rzp.on('payment.failed', function (response) {
                 console.log('Payment failed:', response.error);
-                // Update order status through backend
                 fetch('/verify-payment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        orderId: orderData.orderId,
+                        order_id: orderId, // Changed from orderId to order_id
                         razorpay_payment_id: response.error.metadata.payment_id,
                         razorpay_order_id: response.error.metadata.order_id,
                         razorpay_signature: '',
@@ -601,35 +617,34 @@ function saveAddress() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    orderId: orderId,
+                    order_id: orderId, // Changed from orderId to order_id to match backend
                     razorpay_payment_id: response.razorpay_payment_id,
                     razorpay_order_id: response.razorpay_order_id,
-                    razorpay_signature: response.razorpay_signature
+                    razorpay_signature: response.razorpay_signature,
+                    status: 'success'
                 })
             });
 
-            const verifyData = await verifyResponse.json();
-            console.log('Verification response:', verifyData);
-
-            if (verifyData.success) {
+            const result = await verifyResponse.json();
+            
+            if (result.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Payment Successful!',
-                    text: 'Your order has been placed successfully.',
-                    showConfirmButton: false,
-                    timer: 2000
+                    title: 'Payment Successful',
+                    text: 'Your order has been placed successfully!',
+                    confirmButtonText: 'View Orders'
                 }).then(() => {
-                    window.location.href = verifyData.redirect;
+                    window.location.href = '/orders';
                 });
             } else {
-                throw new Error(verifyData.message);
+                throw new Error(result.message || 'Payment verification failed');
             }
         } catch (error) {
-            console.error('Payment verification error:', error);
+            console.error('Error verifying payment:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Payment Verification Failed',
-                text: error.message || 'Please check your order status.',
+                text: error.message || 'There was an error verifying your payment. Please contact support.',
                 confirmButtonText: 'OK'
             }).then(() => {
                 window.location.href = '/orders';

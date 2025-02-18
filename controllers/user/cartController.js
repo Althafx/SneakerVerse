@@ -674,13 +674,13 @@ const placeOrder = async(req, res, next) => {
                 // Return payment details for frontend
                 return res.json({
                     success: true,
-                    orderId: order._id,
+                    orderId: order._id.toString(), // Ensure orderId is a string
                     amount: Math.round(orderTotal * 100), // Amount in paise
                     razorpayOrderId: razorpayOrder.id,
                     orderDetails: {
                         name: user.name,
                         email: user.email,
-                        orderId: order._id
+                        orderId: order._id.toString() // Ensure orderId is a string
                     }
                 });
             } catch (error) {
@@ -724,6 +724,14 @@ const verifyPayment = async (req, res) => {
         console.log('Looking for order with ID:', order_id);
         console.log('Order ID type:', typeof order_id);
         
+        if (!order_id) {
+            console.log('Order ID is missing in request');
+            return res.status(400).json({
+                success: false,
+                message: 'Order ID is required'
+            });
+        }
+
         // Find the order
         const order = await Order.findById(order_id);
         console.log('Database query result:', order ? 'Order found' : 'Order not found');
@@ -748,56 +756,54 @@ const verifyPayment = async (req, res) => {
             order.status = 'Payment Failed';
             order.paymentStatus = 'Failed';
             await order.save();
+            
+            // Clear the cart after failed payment
+            await Cart.findOneAndDelete({ userId: order.user });
+
             return res.status(200).json({
                 success: false,
-                message: 'Payment failed',
-                redirect: '/orders'
+                message: 'Payment failed'
             });
         }
 
-        // Verify signature for successful payments
-        const signatureVerified = verifyRazorpaySignature(
+        // Verify Razorpay signature
+        const isValidSignature = verifyRazorpaySignature(
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature
         );
 
-        if (signatureVerified) {
-            console.log('Payment verified successfully');
-            
-            // Update order status
-            order.status = 'Processing';
-            order.paymentStatus = 'Paid';
-            order.razorpayPaymentId = razorpay_payment_id;
-            await order.save();
-
-            // Clear cart
-            await Cart.findOneAndDelete({ userId: order.user });
-
-            return res.status(200).json({
-                success: true,
-                message: 'Payment verified successfully',
-                redirect: '/orders'
-            });
-        } else {
-            console.log('Payment verification failed');
+        if (!isValidSignature) {
+            console.log('Invalid payment signature');
             order.status = 'Payment Failed';
             order.paymentStatus = 'Failed';
             await order.save();
-
             return res.status(400).json({
                 success: false,
-                message: 'Payment verification failed',
-                redirect: '/orders'
+                message: 'Invalid payment signature'
             });
         }
+
+        // Update order status
+        order.status = 'Processing';
+        order.paymentStatus = 'Paid';
+        order.razorpayPaymentId = razorpay_payment_id;
+        await order.save();
+
+        // Clear the cart after successful payment
+        await Cart.findOneAndDelete({ userId: order.user });
+
+        console.log('Payment verified successfully');
+        return res.json({
+            success: true,
+            message: 'Payment verified successfully'
+        });
+
     } catch (error) {
         console.error('Payment verification error:', error);
-        console.error('Error stack:', error.stack);
         return res.status(500).json({
             success: false,
-            message: 'Payment verification failed: ' + error.message,
-            redirect: '/orders'
+            message: 'Payment verification failed'
         });
     }
 };

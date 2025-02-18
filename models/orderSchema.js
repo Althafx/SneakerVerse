@@ -90,3 +90,64 @@ const orderSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Order', orderSchema);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// <!-- Include Razorpay Script -->
+// <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+// <!-- Include SweetAlert2 -->
+// <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+// <!-- Retry Payment Script -->
+// <script>
+//     document.addEventListener('DOMContentLoaded', function() {
+//         const retryButtons = document.querySelectorAll('.retry-payment-btn');
+//         // ... rest of the retry payment script ...
+//     });
+// </script>
+
+// <!-- Return Request Script -->
+// <script>
+//     async function submitReturnRequest(orderId, reason) {
+//         // ... return request script ...
+//     }
+// </script>
+
+// <%- include('../partials/user/footer') %>
