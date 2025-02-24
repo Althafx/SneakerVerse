@@ -142,6 +142,7 @@ async function sendVerificationEmail(email,otp){
             text:`Your otp is ${otp}`,
             html:`<b>YOUR OTP:${otp}</b>`
         })
+        console.log(otp)
 
         return info.accepted.length>0
 
@@ -158,6 +159,8 @@ const verifyOtp = async (req, res) => {
     try {
         const { otp } = req.body;
         console.log('Verifying OTP');
+       
+      
         
         if (otp === req.session.userOtp) {
             const user = req.session.userData;
