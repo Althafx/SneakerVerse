@@ -432,12 +432,18 @@ const loadHomepage = async (req, res) => {
         // Fetch categories with active offers
         const categoriesWithOffers = await Category.find({ categoryOffer: { $gt: 0 } }).lean();
 
-        // Get products with pagination
+        // Get products with pagination and filter out products with unlisted categories
         let products = await Product.find({ isBlocked: false })
-            .populate('category')
+            .populate({
+                path: 'category',
+                match: { isListed: true } // Only include products where category is listed
+            })
             .skip(skip)
             .limit(limit)
             .lean();
+
+        // Filter out products whose category is null (means category was not listed)
+        products = products.filter(product => product.category !== null);
 
         console.log("Original products", products);
 
@@ -463,8 +469,8 @@ const loadHomepage = async (req, res) => {
                 const discountedPrice = Math.floor(product.salesPrice * (1 - discountPercentage / 100));
 
                 product.offer = {
-                    discountPercentage, // Example: 20% OFF
-                    discountedPrice     // Example: ₹800 instead of ₹1000
+                    discountPercentage,
+                    discountedPrice
                 };
             }
 
@@ -473,8 +479,11 @@ const loadHomepage = async (req, res) => {
 
         console.log("Updated products with offers", products);
 
-        // Get total count for pagination
-        const totalProducts = await Product.countDocuments({ isBlocked: false });
+        // Get total count for pagination (only count products with listed categories)
+        const totalProducts = await Product.countDocuments({
+            isBlocked: false,
+            category: { $in: await Category.find({ isListed: true }).distinct('_id') }
+        });
         const totalPages = Math.ceil(totalProducts / limit);
 
         // Get all categories for the sidebar
@@ -499,7 +508,7 @@ const loadHomepage = async (req, res) => {
             title: 'Home',
             path: req.path,
             showBanner: true,
-            currentPage: 'home'  // Add this line to indicate we're on the home page
+            currentPage: 'home'
         });
 
     } catch (error) {
