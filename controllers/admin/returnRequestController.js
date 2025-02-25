@@ -116,7 +116,20 @@ const adminReturnRequestController = {
                         await product.save({ session });
 
                         // 2. Process refund to user's wallet
-                        const refundAmount = orderItem.price * orderItem.quantity;
+                        let refundAmount = orderItem.price * orderItem.quantity;
+                        
+                        // If a coupon was applied to the order, calculate the proportional discount
+                        if (order.couponDiscount && order.couponDiscount.amount > 0) {
+                            // Calculate what percentage this item's total is of the order total
+                            const itemTotal = orderItem.price * orderItem.quantity;
+                            const orderSubtotal = order.totalAmount + order.couponDiscount.amount;
+                            const itemPercentage = itemTotal / orderSubtotal;
+                            
+                            // Apply the proportional coupon discount to this item
+                            const itemDiscount = order.couponDiscount.amount * itemPercentage;
+                            refundAmount -= itemDiscount;
+                        }
+
                         const walletUpdate = await Wallet.findOneAndUpdate(
                             { userId: returnRequest.userId },
                             { 
