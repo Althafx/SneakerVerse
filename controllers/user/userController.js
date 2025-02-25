@@ -1255,10 +1255,16 @@ const categorySearch = async (req, res) => {
         }
 
         // Find products
-        const products = await Product.find(searchQuery)
-            .populate('category')
+        let products = await Product.find(searchQuery)
+            .populate({
+                path: 'category',
+                match: { isListed: true }
+            })
             .sort(sortOptions)
             .limit(12);
+
+        // Filter out products whose category is null (means category was not listed)
+        products = products.filter(product => product.category !== null);
 
         console.log(`Found ${products.length} products`);
 
@@ -1323,11 +1329,17 @@ const filterProducts = async (req, res) => {
         }
 
         // Find products with explicit collation for string sorting
-        const products = await Product.find(searchQuery)
-            .populate('category')
+        let products = await Product.find(searchQuery)
+            .populate({
+                path: 'category',
+                match: { isListed: true } // Only include products where category is listed
+            })
             .collation({ locale: 'en' }) // Add collation for proper string sorting
             .sort(sortOptions)
             .limit(12);
+
+        // Filter out products whose category is null (means category was not listed)
+        products = products.filter(product => product.category !== null);
 
         console.log(`Found ${products.length} products`);
 
@@ -1335,9 +1347,8 @@ const filterProducts = async (req, res) => {
             success: true,
             products
         });
-
     } catch (error) {
-        console.error('Error in filter products:', error);
+        console.error('Error in filterProducts:', error);
         res.status(500).json({
             success: false,
             message: 'Internal server error'
@@ -1385,13 +1396,21 @@ const categorySort = async (req, res) => {
         }
 
         // Find products
-        const products = await Product.find({
+        let products = await Product.find({
             category: categoryObj._id,
             isBlocked: false
         })
-        .populate('category')
+        .populate({
+            path: 'category',
+            match: { isListed: true }
+        })
         .sort(sortOptions)
         .limit(12);
+
+        // Filter out products whose category is null (means category was not listed)
+        products = products.filter(product => product.category !== null);
+
+        console.log(`Found ${products.length} products`);
 
         res.json({
             success: true,
