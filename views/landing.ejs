@@ -60,19 +60,7 @@
       display: flex;
       transition: transform 0.5s ease;
     }
-
-    .card {
-      min-width: 100%;
-      box-sizing: border-box;
-      background-color: rgba(143, 143, 143, 0.5);
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      backdrop-filter: blur(5px);
-    }
+ 
 
     .card-icon {
       font-size: 3rem;
@@ -167,39 +155,19 @@
   <div class="overlay"></div>
   <div class="container">
     <div class="title">SneakerVerse</div>
-    <p style="color: white; font-size: 0.9rem; text-align: center;">Choose your role to continue</p>
+    <p style="color: white; font-size: 0.9rem; text-align: center;">SneakerVerse is real! Enter now to upgrade your drip</p>
     <div class="carousel">
-      <div class="card-container">
-        <div class="card">
-          <i class="fas fa-user-tie card-icon"></i>
-          <div class="card-title">ADMIN</div>
-          <button class="card-button" onclick="window.location.href='/admin/login'">Login</button>
-        </div>
+
         <div class="card">
           <i class="fas fa-user card-icon"></i>
-          <div class="card-title">USER</div>
-          <button class="card-button" onclick="window.location.href='/login'">Login</button>
+
+          <button class="card-button" onclick="window.location.href='/login'">Let Me In</button>
         </div>
-      </div>
-      <button class="arrow arrow-right" onclick="toggleRole()">&#10095</button>
+
     </div>
   </div>
 
 
-  <script>
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.card-container .card');
-
-    function toggleRole() {
-      currentSlide = (currentSlide + 1) % slides.length;
-      updateCarousel();
-    }
-
-    function updateCarousel() {
-      const offset = -currentSlide * 100;
-      document.querySelector('.card-container').style.transform = `translateX(${offset}%)`;
-    }
-  </script>
 
   
 </body>
