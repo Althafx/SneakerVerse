@@ -519,7 +519,22 @@ const generateInvoice = async (req, res) => {
         // Add total
         tableY += 20;
         doc.fontSize(12).font('Helvetica-Bold');
-        doc.text('Total Amount:', 400, tableY);
+        
+        // Add subtotal
+        doc.text('Subtotal:', 400, tableY);
+        const subtotal = order.totalAmount + (order.couponDiscount?.amount || 0);
+        doc.text(`₹${subtotal.toFixed(2)}`, 500, tableY);
+        
+        // Add discount if applied
+        if (order.couponDiscount && order.couponDiscount.amount > 0) {
+            tableY += 25;
+            doc.text(`Discount (${order.couponDiscount.code}):`, 400, tableY);
+            doc.text(`-₹${order.couponDiscount.amount.toFixed(2)}`, 500, tableY);
+        }
+        
+        // Add final total
+        tableY += 25;
+        doc.text('Final Total:', 400, tableY);
         doc.text(`₹${order.totalAmount.toFixed(2)}`, 500, tableY);
 
         // Move down for footer section
