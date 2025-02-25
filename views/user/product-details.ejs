@@ -312,6 +312,40 @@
     input[type=number] {
         -moz-appearance: textfield;
     }
+
+    .size-guide-table {
+        width: 100%;
+        max-width: 400px;
+        margin: 20px 0;
+        border-collapse: collapse;
+        background-color: rgba(59, 59, 59, 0.2);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(99, 231, 11, 0.87);
+    }
+
+    .size-guide-table th, .size-guide-table td {
+        padding: 12px 15px;
+        text-align: center;
+        border: 1px solid rgba(99, 231, 11, 0.4);
+        color: #ffffff;
+    }
+
+    .size-guide-table th {
+        background-color: rgba(99, 231, 11, 0.3);
+        font-weight: bold;
+    }
+
+    .size-guide-table tr:hover {
+        background-color: rgba(99, 231, 11, 0.1);
+    }
+
+    .size-guide-title {
+        color: #ffffff;
+        margin-bottom: 10px;
+        font-size: 18px;
+        font-weight: 600;
+    }
 </style>
 
 <main class="main">
@@ -380,6 +414,32 @@
                 <p><strong>Category:</strong> <%=product.category.name%></p>
                 <p><strong>Brand:</strong> <%=product.brand%></p>
                 <div class="size-options mb-4">
+                   
+                    <div class="size-guide">
+                        <h6 class="size-guide-title">Size Guide</h6>
+                        <table class="size-guide-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Size (UK)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Small</td>
+                                    <td>4-5</td>
+                                </tr>
+                                <tr>
+                                    <td>Medium</td>
+                                    <td>6-9</td>
+                                </tr>
+                                <tr>
+                                    <td>Large</td>
+                                    <td>10-12</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <h6 class="mb-2">Select Size:</h6>
                     <div class="size-buttons mb-3">
                         <button id="sizeS" class="size-btn" onclick="selectSize('S')" 
