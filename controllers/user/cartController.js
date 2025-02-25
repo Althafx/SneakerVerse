@@ -108,6 +108,14 @@ const addToCart = async (req, res, next) => {
             });
         }
 
+        // Check if requested quantity exceeds maximum limit (10)
+        if (requestedQuantity > 10) {
+            return res.status(400).json({
+                success: false,
+                message: 'Maximum quantity limit is 10 items per product'
+            });
+        }
+
         // Get product details
         const product = await Product.findById(productId);
         if (!product) {
@@ -176,6 +184,13 @@ const addToCart = async (req, res, next) => {
         );
 
         if (existingItem) {
+            // Check if adding requested quantity would exceed maximum limit (10)
+            if (existingItem.quantity + requestedQuantity > 10) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Cannot add more items. Maximum limit is 10 items per product. You already have ${existingItem.quantity} in your cart.`
+                });
+            }
             // Check if adding requested quantity would exceed stock
             if (existingItem.quantity + requestedQuantity > product.quantities[sizeKey]) {
                 return res.status(400).json({
