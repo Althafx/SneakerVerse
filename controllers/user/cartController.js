@@ -20,20 +20,26 @@ const loadCart = async (req, res, next) => {
             .populate({
                 path: 'items.product',
                 model: 'Product',
-                select: 'productName productImage salesPrice quantities productOffer category mainPrice offer',
+                select: 'productName productImage salesPrice quantities productOffer category mainPrice offer isBlocked',
                 populate: {
                     path: 'category',
-                    select: 'categoryOffer name'
+                    select: 'categoryOffer name isBlocked'
                 }
             });
 
         if (cart && cart.items) {
+            // Filter out blocked products, products from blocked categories, and invalid items
             cart.items = cart.items.filter(item => 
                 item && 
                 item.product && 
                 item.size &&
-                typeof item.size === 'string'
+                typeof item.size === 'string' &&
+                !item.product.isBlocked &&
+                !item.product.category.isBlocked
             );
+
+            // Save the cart if any items were removed
+            await cart.save();
 
             // Calculate final prices and quantities
             cart.items.forEach(item => {

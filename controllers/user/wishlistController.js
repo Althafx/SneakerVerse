@@ -69,7 +69,25 @@ const getWishlist = async (req, res) => {
         res.locals.user = userData;
 
         const wishlist = await Wishlist.findOne({ userId })
-            .populate('products.productId');
+            .populate({
+                path: 'products.productId',
+                populate: {
+                    path: 'category',
+                    select: 'name isBlocked'
+                }
+            });
+
+        if (wishlist) {
+            // Filter out blocked products and products from blocked categories
+            wishlist.products = wishlist.products.filter(item => 
+                item.productId && 
+                !item.productId.isBlocked && 
+                !item.productId.category.isBlocked
+            );
+
+            // Save the wishlist if any items were removed
+            await wishlist.save();
+        }
         
         // Set path in locals for active menu item
         res.locals.path = '/wishlist';
