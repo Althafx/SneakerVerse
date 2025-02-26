@@ -399,12 +399,14 @@
              
                 <% if (product.offer && product.offer.discountedPrice) { %>
                     <div class="product-price">
-                        <del style="color: #ff4444; font-size: 20px;">₹<%= product.mainPrice %></del>
-                        <span style="color: #489217; font-weight: bold; font-size: 24px;">₹<%= product.offer.discountedPrice %></span>
+                        <del style="color: #ff4444; font-size: 20px;">₹<%= product.mainPrice %></del><br>
+                        <span style="color: #489217; font-weight: bold; font-size: 24px;">₹<%= product.offer.discountedPrice %></span><br>
+                        <span class="offer-label"><%= product.offer.discountPercentage %>% OFF</span>
                     </div>
                 <% } else { %>
                 
                     <div class="product-price">
+                        <del style="color: #ff4444; font-size: 20px;">₹<%= product.regularPrice.toLocaleString('en-IN') %> </del><br>
                         <span style="color: #489217; font-weight: bold; font-size: 24px;">₹<%= product.mainPrice %></span>
                     </div>
                 <% } %>

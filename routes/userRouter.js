@@ -24,6 +24,8 @@ router.get("/",(req, res) => {
 // home page
 router.get("/home", isBlockedUser, userController.loadHomepage)
 
+// paginated products API
+router.get("/api/products", isBlockedUser, userController.getPaginatedProducts)
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 

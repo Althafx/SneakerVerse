@@ -1429,6 +1429,60 @@ const categorySort = async (req, res) => {
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+// Function to get paginated products
+const getPaginatedProducts = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 8;
+        const skip = (page - 1) * limit;
+
+        // Get products with pagination and filter out products with unlisted categories
+        let products = await Product.find({ isBlocked: false })
+            .populate({
+                path: 'category',
+                match: { isListed: true }
+            })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        // Filter out products whose category is null
+        products = products.filter(product => product.category !== null);
+
+        // Check wishlist status if user is logged in
+        if (req.session.user) {
+            const userId = req.session.user._id;
+            const wishlist = await Wishlist.findOne({ userId });
+            
+            products = products.map(product => {
+                product.isInWishlist = wishlist && wishlist.products.some(item => 
+                    item.productId.toString() === product._id.toString()
+                );
+                return product;
+            });
+        }
+
+        // Get total count for pagination
+        const totalProducts = await Product.countDocuments({
+            isBlocked: false,
+            category: { $in: await Category.find({ isListed: true }).distinct('_id') }
+        });
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        res.json({
+            products,
+            currentPage: page,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+        });
+
+    } catch (error) {
+        console.error('Error in getPaginatedProducts:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
 module.exports = {
     loadSignup,
     signup,
@@ -1439,6 +1493,7 @@ module.exports = {
     logout,
     loadHomepage,
     loadProductDetails,
+    getProductDetails,
     pageNotFound,
     profile,
     updateName,
@@ -1453,7 +1508,7 @@ module.exports = {
     resetPassword,
     getCategory,
     categorySearch,
-    categorySort,
     filterProducts,
-    getProductDetails
-}
+    categorySort,
+    getPaginatedProducts
+};

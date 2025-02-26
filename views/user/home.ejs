@@ -664,7 +664,8 @@
                           <span class="current-price">₹<%= displayPrice.toLocaleString('en-IN') %></span>
                           <span class="original-price">₹<%= originalPrice.toLocaleString('en-IN') %></span>
                         <% } else { %>
-                          <span>₹<%= displayPrice.toLocaleString('en-IN') %></span>
+                          <span class="current-price">₹<%= displayPrice.toLocaleString('en-IN') %></span>
+                          <span class="original-price">₹<%= product.regularPrice.toLocaleString('en-IN') %> </span>
                         <% } %>
                       </div>
                       <h6><%= product.category ? product.category.name : '' %></h6>
@@ -690,19 +691,19 @@
               <ul class="pagination">
                   <% if (hasPrevPage) { %>
                       <li class="page-item">
-                          <a class="page-link" href="?page=<%= prevPage %>">Previous</a>
+                          <a class="page-link" href="/home?page=<%= prevPage %>">Previous</a>
                       </li>
                   <% } %>
                   
                   <% for(let i = 1; i <= totalPages; i++) { %>
                       <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                          <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                          <a class="page-link" href="/home?page=<%= i %>"><%= i %></a>
                       </li>
                   <% } %>
                   
                   <% if (hasNextPage) { %>
                       <li class="page-item">
-                          <a class="page-link" href="?page=<%= nextPage %>">Next</a>
+                          <a class="page-link" href="/home?page=<%= nextPage %>">Next</a>
                       </li>
                   <% } %>
               </ul>
