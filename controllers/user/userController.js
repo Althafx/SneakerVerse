@@ -96,7 +96,7 @@ const signup = async(req,res,next)=>{
         req.session.userData = { name, phone, email, password };
         console.log('User data stored in session, proceeding to OTP verification');
         
-        res.render("verify-Otp");
+        res.render("verify-otp");
     } catch(error){
         console.error('Signup error:', error);
         next(error);
