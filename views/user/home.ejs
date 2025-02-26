@@ -145,31 +145,6 @@
       background-color: #cfff4c;
   }
 
-  .hero {
-    height: 500px ; /* Force the height for better visibility */
-    overflow: hidden; /* Prevent overflow */
-    position: relative; /* Position relative for absolute positioning of text */
-  }
-
-  .hero__items {
-    height:500px;
-    width: 100%; /* Ensure the items take full height */
-   
-  }
-
-  .hero__items.set-bg {
-    background-size: cover; /* Ensure the background image covers the area */
-    background-position: center; /* Center the background image */
- 
-  
-  }
-
-  h6{   
-    color:"white"
-  }
-  .hero{
-  margin-bottom: 70px;
-}
 
 
   .label {
@@ -522,17 +497,7 @@
   }
 
 
-  /* .discount-badge {
-    background-color: red;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: bold;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-} */
+
 
   .product-price {
     display: flex;
@@ -569,40 +534,6 @@
   }
 </style>
 
-<% if (typeof showBanner === 'undefined' || showBanner) { %>
-<section class="hero">
-  <div class="hero__slider owl-carousel">
-      <div class="hero__items set-bg big" data-setbg="/img/sneakers/newBanner01.png">
-          <div class="container">
-              <div class="row">
-                  <div class="col-xl-5 col-lg-7 col-md-8">
-                      <div class="hero__text">
-                          <h6>Summer Collection</h6>
-                          <h2>Fall - Winter Sneaker Collections 2025</h2>
-                          <p>Limited Drops, Unlimited Drip</p>
-                          <a href="#" class="primary-btn">Shop Sneakers now <span class="arrow_right"></span></a>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-      <div class="hero__items set-bg" data-setbg="/img/sneakers/newBanner02.png">
-          <div class="container bann">
-              <div class="row">
-                  <div class="col-xl-5 col-lg-7 col-md-8 ">
-                      <div class="hero__text">
-                          <h6>Summer Collection</h6>
-                          <h2>Fall - Winter Sneaker Collections 2030</h2>
-                          <p>Exclusive sneakers for every season</p>
-                          <a href="#" class="primary-btn">Shop Sneakers now <span class="arrow_right"></span></a>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-  </div> 
-</section>
-<% } %>
 
 <section class="product spad">
   <div class="container-fluid">

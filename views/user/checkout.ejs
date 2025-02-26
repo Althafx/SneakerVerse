@@ -656,6 +656,7 @@ function saveAddress() {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let appliedDiscount = 0;
+    let appliedCouponCode = '';
     const totalAmount = parseFloat('<%= subtotal %>');
     <% if (locals.user) { %>
     const userId = '<%= user._id %>';
@@ -725,15 +726,49 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Coupon response:', data);
 
             if (response.ok) {
-                messageDiv.innerHTML = '<div class="alert alert-success">Coupon applied successfully!</div>';
+                messageDiv.innerHTML = `
+                    <div class="alert alert-success d-flex justify-content-between align-items-center">
+                        <span>Coupon "${code}" applied successfully!</span>
+                        <button type="button" class="btn btn-sm text-danger ms-2" id="removeCoupon" style="padding: 0;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>`;
                 appliedDiscount = data.discount;
+                appliedCouponCode = code;
                 updateTotal();
                 document.getElementById('couponDiscountRow').style.display = 'flex';
+                document.getElementById('couponCode').disabled = true;
+                document.getElementById('applyCoupon').disabled = true;
+
+                // Add event listener to the new remove button
+                document.getElementById('removeCoupon').addEventListener('click', function() {
+                    // Reset coupon input and enable it
+                    const couponInput = document.getElementById('couponCode');
+                    couponInput.value = '';
+                    couponInput.disabled = false;
+                    
+                    // Enable apply button
+                    document.getElementById('applyCoupon').disabled = false;
+                    
+                    // Clear message
+                    messageDiv.innerHTML = '';
+                    
+                    // Reset discount
+                    appliedDiscount = 0;
+                    appliedCouponCode = '';
+                    
+                    // Update display
+                    document.getElementById('couponDiscountRow').style.display = 'none';
+                    updateTotal();
+                });
             } else {
                 messageDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
                 appliedDiscount = 0;
+                appliedCouponCode = '';
                 updateTotal();
                 document.getElementById('couponDiscountRow').style.display = 'none';
+                document.getElementById('couponCode').disabled = false;
+                document.getElementById('applyCoupon').disabled = false;
             }
         } catch (error) {
             console.error('Error applying coupon:', error);
