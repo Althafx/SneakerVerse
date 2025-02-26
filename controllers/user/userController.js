@@ -420,32 +420,31 @@ const loadHomepage = async (req, res) => {
         const limit = 8;
         const skip = (page - 1) * limit;
 
-        let query = { isListed: true };
-
-        // Apply category filter if provided
-        if (req.query.category) {
-            query.category = req.query.category;
+        // Build query based on filters
+        let query = { isBlocked: false };
+        
+        // Apply search filter with enhanced search capability
+        if (req.query.search) {
+            const searchRegex = new RegExp(req.query.search, 'i');
+            query.$or = [
+                { productName: searchRegex },
+                { brand: searchRegex },
+                { 'category.name': searchRegex }
+            ];
         }
 
-        console.log("query", query);
-
-        // Fetch categories with active offers
-        const categoriesWithOffers = await Category.find({ categoryOffer: { $gt: 0 } }).lean();
-
         // Get products with pagination and filter out products with unlisted categories
-        let products = await Product.find({ isBlocked: false })
+        let products = await Product.find(query)
             .populate({
                 path: 'category',
-                match: { isListed: true } // Only include products where category is listed
+                match: { isListed: true }
             })
             .skip(skip)
             .limit(limit)
             .lean();
 
-        // Filter out products whose category is null (means category was not listed)
+        // Filter out products whose category is null
         products = products.filter(product => product.category !== null);
-
-        console.log("Original products", products);
 
         // Check wishlist status if user is logged in
         if (req.session.user) {
@@ -461,43 +460,47 @@ const loadHomepage = async (req, res) => {
         }
 
         // Apply category offers to products
+        const categoriesWithOffers = await Category.find({ categoryOffer: { $gt: 0 } }).lean();
         products = products.map(product => {
-            const categoryOffer = categoriesWithOffers.find(cat => cat._id.equals(product.category._id));
+            const categoryOffer = categoriesWithOffers.find(cat => 
+                cat._id.equals(product.category._id)
+            );
 
             if (categoryOffer) {
                 const discountPercentage = categoryOffer.categoryOffer;
                 const discountedPrice = Math.floor(product.salesPrice * (1 - discountPercentage / 100));
-
                 product.offer = {
                     discountPercentage,
                     discountedPrice
                 };
             }
-
             return product;
         });
 
-        console.log("Updated products with offers", products);
-
-        // Get total count for pagination (only count products with listed categories)
+        // Get total count for pagination
         const totalProducts = await Product.countDocuments({
-            isBlocked: false,
+            ...query,
             category: { $in: await Category.find({ isListed: true }).distinct('_id') }
         });
+        
         const totalPages = Math.ceil(totalProducts / limit);
-
-        // Get all categories for the sidebar
-        const categories = await Category.find({ isListed: true }).lean();
-
-        // Calculate pagination variables
         const hasPrevPage = page > 1;
         const hasNextPage = page < totalPages;
         const prevPage = hasPrevPage ? page - 1 : null;
         const nextPage = hasNextPage ? page + 1 : null;
 
+        // Get all categories for the sidebar
+        const categories = await Category.find({ isListed: true }).lean();
+
         res.render('user/home', {
             products,
             categories,
+            filters: {
+                search: req.query.search || '',
+                category: req.query.category || 'all',
+                brand: req.query.brand || 'all',
+                sort: req.query.sort || 'new'
+            },
             currentPage: page,
             totalPages,
             hasPrevPage,

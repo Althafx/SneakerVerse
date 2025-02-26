@@ -327,43 +327,32 @@
     border-radius: 6px;
   }
   .search-box {
-    position: relative;
     margin-bottom: 20px;
-    padding: 15px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
   }
-
+  
+  .search-box form {
+    display: flex;
+    gap: 10px;
+  }
+  
   .search-box input {
-    width: 100%;
-    padding: 12px 40px 12px 15px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    font-size: 14px;
-    transition: all 0.3s ease;
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
   }
-
-  .search-box input:focus {
-    outline: none;
-    border-color: rgb(240, 123, 14);
-    background-color: rgba(255, 255, 255, 0.15);
+  
+  .search-box button {
+    background: none;
+    border: none;
+    color: #666;
+    padding: 0 10px;
   }
-
-  .search-box input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+  
+  .search-box button:hover {
+    color: #333;
   }
-
-  .search-box .fas.fa-search {
-    position: absolute;
-    right: 25px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 16px;
-  }
-
   .filter-sidebar h4 {
     color: #ffffff;
     font-size: 18px;
@@ -542,8 +531,12 @@
           <div class="filter-sidebar">
             <% if (!path || !path.startsWith('/category/')) { %>
             <div class="search-box">
-              <input type="text" placeholder="Search products...">
-              <i class="fas fa-search"></i>
+              <form action="/home" method="GET" class="d-flex">
+                <input type="text" name="search" placeholder="Search products..." value="<%= filters?.search || '' %>" class="form-control">
+                <button type="submit" class="btn btn-link">
+                  <i class="fas fa-search"></i>
+                </button>
+              </form>
             </div>
             <% } else { %>
             <div class="search-box">
