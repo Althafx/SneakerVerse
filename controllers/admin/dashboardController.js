@@ -6,6 +6,8 @@ const PDFDocument = require('pdfkit-table');
 const fs = require('fs');
 const path = require('path');
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const getDashboardData = async (req, res) => {
     try {
         const range = req.query.range || 'monthly';
@@ -102,6 +104,8 @@ const getDashboardData = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 // API endpoint for chart data
 const getChartDataAPI = async (req, res) => {
     try {
@@ -113,6 +117,8 @@ const getChartDataAPI = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch chart data' });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 async function getChartData(range = 'monthly') {
     try {
@@ -204,6 +210,8 @@ async function getChartData(range = 'monthly') {
         throw error;
     }
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const generateSalesReport = async (req, res) => {
     try {

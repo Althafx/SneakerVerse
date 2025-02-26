@@ -1,13 +1,13 @@
 const ReturnRequest = require('../../models/returnRequestSchema');
 const Order = require('../../models/orderSchema');
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const returnRequestController = {
     // Submit a return request
     submitReturnRequest: async (req, res) => {
         try {
-            console.log('Return request body:', req.body);
-            console.log('User session:', req.session.user);
-
+            
             const { orderId, productId, size, reason } = req.body;
             
             // Get user ID from session
@@ -15,7 +15,7 @@ const returnRequestController = {
 
             // Validate required fields
             if (!orderId || !productId || !size || !reason) {
-                console.log('Missing required fields');
+               
                 return res.status(400).json({
                     success: false,
                     message: 'Missing required fields'
@@ -25,7 +25,7 @@ const returnRequestController = {
             // Check if order exists and belongs to the user
             const order = await Order.findOne({ _id: orderId, user: userId });
             if (!order) {
-                console.log('Order not found or does not belong to user');
+                
                 return res.status(404).json({
                     success: false,
                     message: 'Order not found'
@@ -41,14 +41,14 @@ const returnRequestController = {
             });
 
             if (existingRequest) {
-                console.log('Return request already exists');
+               
                 return res.status(400).json({
                     success: false,
                     message: 'A return request already exists for this item'
                 });
             }
 
-            console.log('Creating new return request');
+         
             // Create new return request
             const returnRequest = new ReturnRequest({
                 orderId,
@@ -59,7 +59,7 @@ const returnRequestController = {
             });
 
             await returnRequest.save();
-            console.log('Return request saved:', returnRequest._id);
+           
 
             // Update the order item with return request reference
             const updateResult = await Order.updateOne(
@@ -74,8 +74,7 @@ const returnRequestController = {
                     }
                 }
             );
-            console.log('Order update result:', updateResult);
-
+           
             res.json({
                 success: true,
                 message: 'Return request submitted successfully'
@@ -89,5 +88,7 @@ const returnRequestController = {
         }
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 module.exports = returnRequestController;

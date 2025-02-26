@@ -26,10 +26,10 @@ const login=async(req,res)=>{
         // Direct password comparison since we're not using bcrypt
         if (password === findAdmin.password) {
             req.session.admin = true;
-            console.log("login success");
+          
             return res.redirect("/admin/dashboard"); 
         } else {
-            console.log("login failed");
+          
             return res.render("admin/adminlogin", { message: "Incorrect password" });
         }
     }catch(error){
@@ -120,6 +120,10 @@ const getOrders = async (req, res) => {
     }
 };
 
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 // Get detailed view of a specific order
 const getOrderDetails = async (req, res) => {
     try {
@@ -168,11 +172,14 @@ const getOrderDetails = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 // Update order status
 const updateOrderStatus = async (req, res) => {
     try {
         const { orderId, status } = req.body;
-        console.log('Updating order status:', orderId, status);
+       
 
         const order = await Order.findByIdAndUpdate(
             orderId,
@@ -221,11 +228,13 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 // Update individual product status in an order
 const updateProductStatus = async (req, res) => {
     try {
         const { orderId, productId, status } = req.body;
-        console.log('Updating product status:', orderId, productId, status);
+       
 
         // Find the order and update the specific item's status
         const order = await Order.findOneAndUpdate(

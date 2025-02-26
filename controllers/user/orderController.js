@@ -4,19 +4,18 @@ const Product = require("../../models/productSchema");
 const Wallet = require("../../models/walletSchema");
 const PDFDocument = require('pdfkit');
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const loadOrders = async (req, res) => {
     try {
-        console.log('Session data:', req.session);
-        console.log('User in session:', req.session.user);
-
+       
         if (!req.session.user || !req.session.user._id) {
             req.flash('error', 'Please login to view orders');
             return res.redirect('/login');
         }
 
         const userId = req.session.user._id;
-        console.log('User ID:', userId);
-
+      
         // Get orders data with populated product details and return requests
         const orders = await Order.find({ user: userId })
             .populate({
@@ -80,8 +79,7 @@ const loadOrders = async (req, res) => {
         // Flatten the array of order arrays
         const flattenedOrders = processedOrders.flat();
 
-        console.log('Processed Orders:', JSON.stringify(flattenedOrders, null, 2));
-
+       
         res.render('user/orders', {
             title: 'Orders',
             orders: flattenedOrders,
@@ -98,6 +96,10 @@ const loadOrders = async (req, res) => {
         res.redirect('/');
     }
 };
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 const cancelOrder = async (req, res) => {
     try {
@@ -198,6 +200,8 @@ const cancelOrder = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const cancelOrderItem = async (req, res) => {
     try {
@@ -328,6 +332,8 @@ const cancelOrderItem = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const getOrderDetails = async (req, res) => {
     try {
         const orderId = req.params.orderId;
@@ -366,21 +372,21 @@ const getOrderDetails = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const getOrderProductDetails = async (req, res) => {
     try {
         const { orderId, productId } = req.params;
-        console.log('1. Starting getOrderProductDetails with params:', { orderId, productId });
+      
         
         if (!req.session.user) {
-            console.log('2. No user in session - redirecting to login');
+           
             req.flash('error', 'Please login to view order details');
             return res.redirect('/login');
         }
         
         const userId = req.session.user._id;
-        console.log('3. User ID:', userId);
-
-        console.log('4. Finding order...');
+       
         const order = await Order.findOne({
             _id: orderId,
             user: userId
@@ -390,26 +396,21 @@ const getOrderProductDetails = async (req, res) => {
         });
 
         if (!order) {
-            console.log('5. Order not found');
+           
             req.flash('error', 'Order not found');
             return res.redirect('/orders');
         }
 
-        console.log('6. Looking for product in order items...');
+       
         const orderItem = order.items.find(item => item.product._id.toString() === productId);
         
         if (!orderItem) {
-            console.log('7. Product not found in order');
+           
             req.flash('error', 'Product not found in order');
             return res.redirect('/orders');
         }
 
-        console.log('8. Product found:', {
-            productName: orderItem.product.productName,
-            images: orderItem.product.images,
-            hasImages: orderItem.product.images && orderItem.product.images.length > 0
-        });
-
+       
         try {
             return res.render('user/orderProductDetails', {
                 title: 'Order Details',
@@ -433,6 +434,8 @@ const getOrderProductDetails = async (req, res) => {
         return res.redirect('/orders');
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const generateInvoice = async (req, res) => {
     try {
@@ -583,6 +586,8 @@ const generateInvoice = async (req, res) => {
         res.status(500).send('Error generating invoice');
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 module.exports = {
     loadOrders,

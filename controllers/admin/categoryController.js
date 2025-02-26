@@ -50,7 +50,7 @@ const addCategory = async(req,res,next)=>{
         });
 
         if (existingCategory) {
-            console.log('Found existing category:', existingCategory); // Debug log
+          
             return res.status(400).json({
                 success: false,
                 error: "Category already exists (names are case-insensitive)"
@@ -301,6 +301,7 @@ const deleteCategory = async (req, res, next) => {
 
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const addOffer = async (req, res) => {
     try {
@@ -343,6 +344,8 @@ const addOffer = async (req, res) => {
         res.status(500).json({ status: false, message: "Internal Server Error" });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 const removeOffer = async (req, res) => {

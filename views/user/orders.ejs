@@ -553,7 +553,7 @@
 
     async function retryPayment(orderId) {
         try {
-            console.log('Retrying payment for order:', orderId);
+           
             
             const response = await fetch('/retry-payment', {
                 method: 'POST',
@@ -564,7 +564,7 @@
             });
 
             const data = await response.json();
-            console.log('Retry payment response:', data);
+           
 
             if (data.success) {
                 const options = {
@@ -575,7 +575,7 @@
                     description: "Order Payment",
                     order_id: data.order.id,
                     handler: async function (response) {
-                        console.log('Payment successful:', response);
+
                         
                         const verifyResponse = await fetch('/verify-payment', {
                             method: 'POST',
@@ -591,7 +591,7 @@
                         });
 
                         const verifyData = await verifyResponse.json();
-                        console.log('Verify payment response:', verifyData);
+                      
 
                         if (verifyData.success) {
                             await Swal.fire({
@@ -619,17 +619,17 @@
                     },
                     modal: {
                         ondismiss: function() {
-                            console.log('Payment modal dismissed');
+                           
                         }
                     }
                 };
 
-                console.log('Initializing Razorpay with options:', options);
+              
                 const rzp = new Razorpay(options);
                 rzp.open();
 
                 rzp.on('payment.failed', function (response) {
-                    console.log('Payment failed:', response);
+                   
                     Swal.fire({
                         title: 'Payment Failed',
                         text: 'The payment was not successful. Please try again.',

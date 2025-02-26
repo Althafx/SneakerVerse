@@ -5,11 +5,6 @@ require('dotenv').config();
 const key_id = process.env.RAZORPAY_KEY_ID;
 const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
-console.log('Environment variables loaded:', {
-    key_id_starts_with: key_id ? key_id.substring(0, 8) : 'undefined',
-    key_id_length: key_id ? key_id.length : 0,
-    key_secret_length: key_secret ? key_secret.length : 0
-});
 
 if (!key_id || !key_secret) {
     console.error('Razorpay keys not found in environment variables!');

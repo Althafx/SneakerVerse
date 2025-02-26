@@ -40,7 +40,7 @@ const loadSignup = async(req,res,next)=>{
 
 }
 
-
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const signup = async(req,res,next)=>{
     try{
@@ -103,6 +103,8 @@ const signup = async(req,res,next)=>{
     }
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const securePassword = async(password)=>{
     try{
         
@@ -153,7 +155,7 @@ async function sendVerificationEmail(email,otp){
     }
 }
 
-
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const verifyOtp = async (req, res) => {
     try {
@@ -214,7 +216,7 @@ const verifyOtp = async (req, res) => {
                     
                     if (referrerCredited && newUserCredited) {
                         referralSuccess = true;
-                        console.log('Successfully credited both wallets');
+                      
                     }
                     
                     // Store user in session
@@ -262,6 +264,8 @@ const verifyOtp = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 async function creditWalletForReferral(userId, amount, description) {
     try {
         // Update or create wallet
@@ -293,6 +297,8 @@ async function creditWalletForReferral(userId, amount, description) {
         return false;
     }
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const resendOtp = async (req, res) => {
     try {
@@ -342,7 +348,7 @@ const loadLogin = async (req, res, next) => {
 };
 
 
-
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 const login = async (req, res, next) => {
@@ -373,10 +379,10 @@ const login = async (req, res, next) => {
 
         // Check and generate referral code if not exists
         if (!findUser.referralCode) {
-            console.log('Generating referral code for existing user:', findUser.email);
+           
             findUser.referralCode = await generateReferralCode();
             await findUser.save();
-            console.log('Generated referral code:', findUser.referralCode);
+            
         }
 
         req.session.user = findUser;
@@ -387,12 +393,13 @@ const login = async (req, res, next) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const logout = async(req,res)=>{
     try {
         req.session.destroy((err)=>{
             if(err){
-                console.log("error in destroying session",err.message)
+               
                 res.render("user/pageNotFound", { 
                     title: 'Error', 
                     message: "Error during logout" 
@@ -520,6 +527,7 @@ const loadHomepage = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const loadProductDetails = async (req, res) => {
     try {
@@ -552,6 +560,9 @@ const loadProductDetails = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 const getProductDetails = async (req, res) => {
     try {
@@ -633,6 +644,8 @@ const profile = async(req,res)=>{
     }
 }
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const updateName = async (req, res) => {
     try {
         const { newName } = req.body;
@@ -696,6 +709,9 @@ const updateName = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 const updatePhone = async (req, res) => {
     try {
         const { newPhone } = req.body;
@@ -745,6 +761,8 @@ const updatePhone = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const updatePassword = async (req, res) => {
     try {
@@ -815,6 +833,8 @@ const updatePassword = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const addAddress = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -871,6 +891,8 @@ const addAddress = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const deleteAddress = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -901,6 +923,8 @@ const deleteAddress = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const getAddress = async (req, res) => {
     try {
@@ -935,6 +959,8 @@ const getAddress = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const updateAddress = async (req, res) => {
     try {
@@ -1053,6 +1079,8 @@ const forgotPassword = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const verifyForgotPasswordOtp = async (req, res) => {
     try {
         const { otp } = req.body;
@@ -1078,6 +1106,8 @@ const verifyForgotPasswordOtp = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const resetPassword = async (req, res) => {
     try {
@@ -1142,7 +1172,7 @@ const getCategory = async (req, res) => {
         });
 
         if (!category) {
-            console.log('Category not found:', categoryName);
+            
             return res.redirect('/home');
         }
 
@@ -1168,7 +1198,7 @@ const getCategory = async (req, res) => {
         .limit(limit)
         .sort({ createdAt: -1 }); // Show newest products first
 
-        console.log(`Found ${products.length} products for category ${categoryName}`);
+        
 
         // Get user data if logged in
         let userData = null;
@@ -1235,8 +1265,7 @@ const categorySearch = async (req, res) => {
             searchQuery.brand = brand;
         }
 
-        console.log('Search Query:', searchQuery);
-        console.log('Sort Options:', sort);
+       
 
         // Build sort options
         let sortOptions = {};
@@ -1269,8 +1298,7 @@ const categorySearch = async (req, res) => {
         // Filter out products whose category is null (means category was not listed)
         products = products.filter(product => product.category !== null);
 
-        console.log(`Found ${products.length} products`);
-
+      
         res.json({
             success: true,
             products
@@ -1284,6 +1312,8 @@ const categorySearch = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const filterProducts = async (req, res) => {
     try {
@@ -1309,9 +1339,7 @@ const filterProducts = async (req, res) => {
             searchQuery.brand = brand;
         }
 
-        console.log('Search Query:', searchQuery);
-        console.log('Sort Options:', sort);
-
+       
         // Build sort options
         let sortOptions = {};
         switch (sort) {
@@ -1344,8 +1372,7 @@ const filterProducts = async (req, res) => {
         // Filter out products whose category is null (means category was not listed)
         products = products.filter(product => product.category !== null);
 
-        console.log(`Found ${products.length} products`);
-
+       
         res.json({
             success: true,
             products
@@ -1413,8 +1440,7 @@ const categorySort = async (req, res) => {
         // Filter out products whose category is null (means category was not listed)
         products = products.filter(product => product.category !== null);
 
-        console.log(`Found ${products.length} products`);
-
+        
         res.json({
             success: true,
             products

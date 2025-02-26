@@ -8,6 +8,8 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const walletController = {
     // Get wallet page with balance and transactions
     getWalletPage: async (req, res) => {
@@ -130,5 +132,7 @@ const walletController = {
         }
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 module.exports = walletController;

@@ -52,7 +52,7 @@ const userCouponController = {
         try {
             const userId = req.session.user._id;
             const { totalAmount } = req.query;
-            console.log('Getting applicable coupons:', { userId, totalAmount });
+            
 
             const coupons = await Coupon.find({
                 isActive: true,
@@ -61,7 +61,7 @@ const userCouponController = {
                 minPurchase: { $lte: parseFloat(totalAmount) }
             });
 
-            console.log('Found coupons:', coupons);
+          
 
             // Filter out coupons where user has reached their usage limit
             const applicableCoupons = coupons.filter(coupon => {
@@ -70,7 +70,7 @@ const userCouponController = {
                 return !userUsage || userUsage.usageCount < coupon.maxUsesPerUser;
             });
 
-            console.log('Applicable coupons after filtering:', applicableCoupons);
+          
             res.status(200).json({ coupons: applicableCoupons });
         } catch (error) {
             console.error('Error in getApplicableCoupons:', error);
@@ -83,8 +83,7 @@ const userCouponController = {
         try {
             const { code, totalAmount } = req.body;
             const userId = req.session.user._id;
-            console.log('Applying coupon:', { code, totalAmount, userId });
-
+            
             const coupon = await Coupon.findOne({ 
                 code: code.toUpperCase(),
                 isActive: true,
@@ -92,7 +91,7 @@ const userCouponController = {
                 expiryDate: { $gt: new Date() }
             });
 
-            console.log('Found coupon:', coupon);
+          
 
             if (!coupon) {
                 return res.status(404).json({ message: 'Invalid or expired coupon' });
@@ -172,5 +171,7 @@ const userCouponController = {
         }
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 module.exports = userCouponController;

@@ -10,8 +10,7 @@ const productDetails = async (req, res) => {
         const userId = req.session.user;
         const userData = await User.findById(userId);
         const productId = req.query.id;
-        console.log("productId", productId);
-
+       
         const product = await Product.findById(productId).populate('category');
         const category = await Category.findById(product.category);
 
@@ -48,7 +47,7 @@ const productDetails = async (req, res) => {
 
         const filteredRelatedProducts = relatedProducts.filter(prod => prod.category);
         
-        console.log("product", product);
+     
 
         // Render the product details page with the updated product
         res.render("user/product-details", { 
@@ -65,13 +64,14 @@ const productDetails = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const filterProducts = async (req, res) => {
     try {
         const { search, category, brand, sort, page = 1 } = req.query;
         const productsPerPage = 8;
         
-        console.log('Received filter request with:', { search, category, brand, sort, page });
+       
         
         // Build the filter query
         let query = { isBlocked: false };
@@ -175,6 +175,9 @@ const filterProducts = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 const filterProductsOld = async (req, res) => {
     try {
         const { search, sort, category, brand } = req.query;
@@ -246,6 +249,8 @@ const filterProductsOld = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 module.exports = {
     productDetails,

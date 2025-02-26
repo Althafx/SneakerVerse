@@ -32,7 +32,7 @@ const getProductAddPage = async (req, res, next) => {
 //saving addded products
 const addProducts = async (req, res, next) => {
     try {
-        console.log("Request body:", req.body);
+       
         const products = req.body;
 
         // Validate required fields
@@ -57,9 +57,7 @@ const addProducts = async (req, res, next) => {
             return res.status(400).json({ message: "At least one size must have quantity greater than 0" });
         }
 
-        // Debug log
-        console.log("Quantities being saved:", quantities);
-        console.log("Total quantity:", totalQuantity);
+       
 
         const productExists = await Product.findOne({
             productName: products.productName
@@ -88,17 +86,13 @@ const addProducts = async (req, res, next) => {
             return res.status(400).json({ message: "At least one image is required" });
         }
 
-        // Find category by name and get its ID
-        console.log("Looking for category:", products.category);
         const allCategories = await Category.find({});
-        console.log("All available categories:", allCategories.map(c => c.name));
-        
+      
         const category = await Category.findOne({ 
             name: { $regex: new RegExp('^' + products.category + '$', 'i') }
         });
         
-        console.log("Found category:", category);
-        
+      
         if (!category) {
             return res.status(400).json({ 
                 message: "Invalid category",
@@ -122,7 +116,7 @@ const addProducts = async (req, res, next) => {
             status: "Available"
         });
 
-        console.log("New product data:", newProduct);
+      
         await newProduct.save();
         res.status(200).json({ message: "Product added successfully" });
     } catch (error) {
@@ -198,9 +192,7 @@ const getEditProduct = async (req, res, next) => {
             return res.redirect('/admin/products');
         }
 
-        console.log('Categories:', category); // Debug log
-        console.log('Brands:', brand); // Debug log
-        console.log('Product before transform:', product); // Debug log
+    
 
         // Transform the data to match the template
         const transformedProduct = {
@@ -218,8 +210,6 @@ const getEditProduct = async (req, res, next) => {
             status: product.status,
             size: product.size || [] // Add default empty array if size is undefined
         };
-
-        console.log('Transformed product:', transformedProduct); // Debug log
 
         res.render('admin/edit-product.ejs', {
             product: transformedProduct,
@@ -257,9 +247,7 @@ const updateProduct = async (req, res, next) => {
             deletedImages
         } = req.body;
 
-        console.log('Update request body:', req.body);
-        console.log('Files:', req.files);
-        console.log('Deleted images:', deletedImages);
+      
 
         // Parse quantities
         const quantities = {
@@ -287,7 +275,7 @@ const updateProduct = async (req, res, next) => {
         if (deletedImages) {
             try {
                 const deletedImagesArray = JSON.parse(deletedImages);
-                console.log('Parsed deleted images:', deletedImagesArray);
+               
 
                 // Remove deleted images from the productImage array
                 productImage = productImage.filter(img => !deletedImagesArray.includes(img));
@@ -297,7 +285,7 @@ const updateProduct = async (req, res, next) => {
                     try {
                         const imagePath = path.join(__dirname, '../../public/uploads/product-images', filename);
                         await fs.unlink(imagePath);
-                        console.log(`Successfully deleted image: ${filename}`);
+                       
                     } catch (err) {
                         console.error(`Error deleting image file ${filename}:`, err);
                     }
@@ -459,7 +447,7 @@ const deleteProduct = async (req, res, next) => {
                 try {
                     const imagePath = path.join(__dirname, '../../public/uploads/product-images', image);
                     await fs.unlink(imagePath);
-                    console.log(`Deleted image: ${image}`);
+                  
                 } catch (err) {
                     console.error(`Error deleting image ${image}:`, err);
                 }
@@ -528,6 +516,8 @@ const addProductOffer = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const removeProductOffer = async (req, res) => {
     try {

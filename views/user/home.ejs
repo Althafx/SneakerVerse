@@ -741,7 +741,7 @@ let currentFilters = {
 
 // Function to handle sorting for both shop and category pages
 async function handleSort(sortValue) {
-    console.log('Sort value:', sortValue);
+   
     currentFilters.sort = sortValue;
 
     const isShopPage = !window.location.pathname.startsWith('/category/');
@@ -780,7 +780,7 @@ async function filterProducts() {
             sort: currentFilters.sort
         }).toString();
 
-        console.log('Filter query:', queryString);
+       
         const response = await fetch(`/api/products/filter?${queryString}`);
         if (!response.ok) throw new Error('Failed to fetch products');
         

@@ -2,11 +2,15 @@ const Order = require('../../models/orderSchema');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 // Initialize Razorpay
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const retryPayment = async (req, res) => {
     try {
@@ -49,6 +53,8 @@ const retryPayment = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const verifyRetryPayment = async (req, res) => {
     try {
         const { orderId, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
@@ -87,6 +93,8 @@ const verifyRetryPayment = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 module.exports = {
     retryPayment,

@@ -539,7 +539,7 @@ function saveAddress() {
 
             // Store orderId in a variable accessible to the handler
             const orderId = orderData.orderId;
-            console.log('Created order with ID:', orderId); // Add logging
+          
 
             const options = {
                 key: '<%= process.env.RAZORPAY_KEY_ID %>',
@@ -561,7 +561,7 @@ function saveAddress() {
                 },
                 modal: {
                     ondismiss: function() {
-                        console.log('Payment modal closed');
+                       
                     }
                 }
             };
@@ -570,7 +570,7 @@ function saveAddress() {
             rzp.open();
 
             rzp.on('payment.failed', function (response) {
-                console.log('Payment failed:', response.error);
+               
                 fetch('/verify-payment', {
                     method: 'POST',
                     headers: {
@@ -610,7 +610,7 @@ function saveAddress() {
 
     async function verifyPayment(orderId, response) {
         try {
-            console.log('Verifying payment...', { orderId, response });
+           
             const verifyResponse = await fetch('/verify-payment', {
                 method: 'POST',
                 headers: {
@@ -665,10 +665,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load available coupons
     async function loadAvailableCoupons() {
         try {
-            console.log('Loading coupons for:', { userId, totalAmount });
+            
             const response = await fetch(`/coupons/applicable?userId=${userId}&totalAmount=${totalAmount}`);
             const data = await response.json();
-            console.log('Received coupons:', data);
+           
             
             const couponsListDiv = document.getElementById('couponsList');
             couponsListDiv.innerHTML = '';
@@ -710,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            console.log('Applying coupon:', { code, totalAmount });
+          
             const response = await fetch('/coupons/apply', {
                 method: 'POST',
                 headers: {
@@ -723,7 +723,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            console.log('Coupon response:', data);
+          
 
             if (response.ok) {
                 messageDiv.innerHTML = `

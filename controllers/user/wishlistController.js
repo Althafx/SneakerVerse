@@ -1,6 +1,8 @@
 const Wishlist = require('../../models/wishlistSchema');
 const User = require('../../models/userSchema');
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const toggleWishlist = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -50,6 +52,8 @@ const toggleWishlist = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const getWishlist = async (req, res) => {
     try {
@@ -103,6 +107,8 @@ const getWishlist = async (req, res) => {
     }
 };
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 // Helper function to check if a product is in wishlist
 const isProductInWishlist = async (userId, productId) => {
     try {
@@ -116,6 +122,8 @@ const isProductInWishlist = async (userId, productId) => {
         return false;
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 const removeFromWishlist = async (req, res) => {
     try {
@@ -165,6 +173,8 @@ const removeFromWishlist = async (req, res) => {
         });
     }
 };
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 module.exports = {
     toggleWishlist,
