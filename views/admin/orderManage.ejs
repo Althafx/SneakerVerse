@@ -558,33 +558,37 @@ async function viewReturnRequests() {
         tableBody.innerHTML = '';
         
         data.forEach(request => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${request.orderId._id}</td>
-                <td>${request.userId.username}</td>
-                <td>${request.productId.productName}</td>
-                <td>${request.size}</td>
-                <td>${request.reason}</td>
-                <td>
-                    <span class="badge ${
-                        request.status === 'Pending' ? 'bg-warning' :
-                        request.status === 'Approved' ? 'bg-success' :
-                        'bg-danger'
-                    }">${request.status}</span>
-                </td>
-                <td>
-                    ${request.status === 'Pending' ? `
-                        <button class="btn btn-sm btn-success me-1" onclick="updateReturnStatus('${request._id}', 'Approved')">
-                            Approve
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="updateReturnStatus('${request._id}', 'Rejected')">
-                            Reject
-                        </button>
-                    ` : ''}
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
+    const username = request.userId ? request.userId.username : 'Unknown User';
+    const productName = request.productId ? request.productId.productName : 'Unknown Product';
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${request.orderId ? request.orderId._id : 'N/A'}</td>
+        <td>${username}</td>
+        <td>${productName}</td>
+        <td>${request.size || 'N/A'}</td>
+        <td>${request.reason || 'No reason provided'}</td>
+        <td>
+            <span class="badge ${
+                request.status === 'Pending' ? 'bg-warning' :
+                request.status === 'Approved' ? 'bg-success' :
+                'bg-danger'
+            }">${request.status}</span>
+        </td>
+        <td>
+            ${request.status === 'Pending' ? `
+                <button class="btn btn-sm btn-success me-1" onclick="updateReturnStatus('${request._id}', 'Approved')">
+                    Approve
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="updateReturnStatus('${request._id}', 'Rejected')">
+                    Reject
+                </button>
+            ` : ''}
+        </td>
+    `;
+    tableBody.appendChild(row);
+});
+
         
         const modal = new bootstrap.Modal(document.getElementById('returnRequestsModal'));
         modal.show();
