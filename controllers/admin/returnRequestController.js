@@ -140,6 +140,7 @@ const adminReturnRequestController = {
                                     transactions: {
                                         type: 'credit',
                                         amount: refundAmount,
+                                        status:'completed',
                                         description: `Refund for returned product (Order #${order._id})`
                                     }
                                 }
