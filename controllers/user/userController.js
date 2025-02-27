@@ -46,13 +46,7 @@ const signup = async(req,res,next)=>{
     try{
         const {name, email, phone, password, confirmPassword, referralCode} = req.body
         
-        console.log('Signup attempt with data:', {
-            name,
-            email,
-            phone,
-            referralCode: referralCode || 'None provided'
-        });
-        
+      
         if(password!=confirmPassword){
             return res.render("signup",{message:"passwords do not match"})
         }
@@ -65,11 +59,11 @@ const signup = async(req,res,next)=>{
         // Validate and store referral code if provided
         if (referralCode && referralCode.trim()) {
             const cleanReferralCode = referralCode.trim().toUpperCase();
-            console.log('Validating referral code:', cleanReferralCode);
+          
             
             const referrer = await User.findOne({ referralCode: cleanReferralCode });
             if (!referrer) {
-                console.log('Invalid referral code provided');
+              
                 return res.render("signup", { 
                     message: "Invalid referral code. Please check and try again.",
                     name,
@@ -81,11 +75,11 @@ const signup = async(req,res,next)=>{
             // Store valid referral code and referrer email in session
             req.session.referralCode = cleanReferralCode;
             req.session.referrerEmail = referrer.email;
-            console.log('Valid referral code stored in session:', cleanReferralCode);
+           
         }
 
         const otp = generateOtp()
-        console.log('Generated OTP for verification');
+       
 
         const emailSent = await sendVerificationEmail(email, otp);
         if (!emailSent) {
@@ -94,8 +88,7 @@ const signup = async(req,res,next)=>{
         
         req.session.userOtp = otp;
         req.session.userData = { name, phone, email, password };
-        console.log('User data stored in session, proceeding to OTP verification');
-        
+      
         res.render("verify-otp");
     } catch(error){
         console.error('Signup error:', error);
@@ -144,7 +137,7 @@ async function sendVerificationEmail(email,otp){
             text:`Your otp is ${otp}`,
             html:`<b>YOUR OTP:${otp}</b>`
         })
-        console.log(otp)
+      
 
         return info.accepted.length>0
 
@@ -160,8 +153,7 @@ async function sendVerificationEmail(email,otp){
 const verifyOtp = async (req, res) => {
     try {
         const { otp } = req.body;
-        console.log('Verifying OTP');
-       
+      
       
         
         if (otp === req.session.userOtp) {
@@ -170,7 +162,7 @@ const verifyOtp = async (req, res) => {
 
             // Generate referral code for new user
             const newReferralCode = await generateReferralCode();
-            console.log('Generated new referral code:', newReferralCode);
+          
 
             let initialWallet = 0;
             let referrerId = null;
@@ -180,12 +172,12 @@ const verifyOtp = async (req, res) => {
             // Process referral if exists
             if (req.session.referralCode) {
                 const referralCode = req.session.referralCode;
-                console.log('Processing referral code from session:', referralCode);
+               
                 
                 const referrer = await User.findOne({ referralCode });
                 if (referrer) {
                     referrerEmail = referrer.email;
-                    console.log('Found referrer:', referrer.email);
+                  
                     
                     // Create new user first
                     const saveUserData = new User({
@@ -222,7 +214,7 @@ const verifyOtp = async (req, res) => {
                     // Store user in session
                     req.session.user = savedUser;
                 } else {
-                    console.log('Referrer not found for code:', referralCode);
+                    console.log('error Referrel not found for code:', referralCode);
                 }
             } else {
                 // Create new user without referral
@@ -252,7 +244,7 @@ const verifyOtp = async (req, res) => {
                 walletCredit: referralSuccess ? 1500 : 0
             });
         } else {
-            console.log('Invalid OTP provided');
+          
             res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
         }
     } catch (error) {
@@ -304,7 +296,7 @@ const resendOtp = async (req, res) => {
     try {
         const { email } = req.session.userData;
         const otp = generateOtp();
-        console.log("resend otp",otp)
+       
         const emailSent = await sendVerificationEmail(email, otp);
 
         if (!emailSent) {
