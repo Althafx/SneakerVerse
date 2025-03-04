@@ -44,7 +44,7 @@
                                             <td><%= order._id %></td>
                                             <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
                                             <td>
-                                                <strong><%= order.user ? order.user.username : 'Deleted User' %></strong><br>
+                                                <strong><%= order.user ? order.user.name : 'Deleted User' %></strong><br>
                                                 <small><%= order.shippingAddress.phone %></small>
                                             </td>
                                             <td>

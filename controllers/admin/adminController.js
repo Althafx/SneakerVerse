@@ -94,7 +94,7 @@ const getOrders = async (req, res) => {
         const totalPages = Math.ceil(totalOrders / limit);
 
         const orders = await Order.find()
-            .populate('user', 'username email')
+            .populate('user', 'username email name')
             .populate({
                 path: 'items.product',
                 select: 'productName productImage salesPrice'
