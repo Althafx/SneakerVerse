@@ -334,7 +334,7 @@
                         <% recentOrders.forEach(order => { %>
                             <tr>
                                 <td>#ORD-<%= order._id.toString().slice(-4) %></td>
-                                <td><%= order.user.name %></td>
+                                <td><%= order.user ? order.user.name : 'Deleted User' %></td>
                                 <td><%= order.items[0].product.productName %><%= order.items.length > 1 ? ` +${order.items.length - 1} more` : '' %></td>
                                 <td>₹<%= order.totalAmount.toLocaleString('en-IN') %></td>
                                 <td><span class="order-status status-<%= order.status.toLowerCase() %>"><%= order.status %></span></td>
