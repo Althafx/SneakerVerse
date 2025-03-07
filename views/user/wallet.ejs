@@ -196,6 +196,23 @@
             font-size: 2rem;
         }
     }
+    
+    .swal2-toast-success {
+        background: #4caf50 !important;
+        color: white !important;
+    }
+
+    .swal2-toast-error {
+        background: #dc3545 !important;
+        color: white !important;
+    }
+
+    .swal2-popup.swal2-toast {
+        padding: 0.75rem 1.5rem !important;
+        font-size: 0.875rem !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        margin: 1rem !important;
+    }
 </style>
 
 <div class="container-fluid">
@@ -282,6 +299,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 const razorpayKeyId = '<%= razorpayKeyId %>';
@@ -321,14 +339,51 @@ document.getElementById('addMoneyForm').addEventListener('submit', async (e) => 
                     const result = await verifyResponse.json();
                     
                     if (result.success) {
-                        alert('Payment successful! Money added to wallet.');
-                        location.reload();
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Money added to wallet successfully',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            customClass: {
+                                popup: 'swal2-toast-success'
+                            }
+                        }).then(() => {
+                            location.reload();
+                        });
                     } else {
-                        alert('Payment verification failed. Please contact support.');
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Payment verification failed. Please contact support.',
+                            icon: 'error',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            customClass: {
+                                popup: 'swal2-toast-error'
+                            }
+                        });
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while processing your payment',
+                        icon: 'error',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'swal2-toast-error'
+                        }
+                    });
                 }
             }
         };
@@ -336,7 +391,19 @@ document.getElementById('addMoneyForm').addEventListener('submit', async (e) => 
         rzp.open();
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+        Swal.fire({
+            title: 'Error!',
+            text: 'An error occurred. Please try again.',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'swal2-toast-error'
+            }
+        });
     }
 });
 </script>
