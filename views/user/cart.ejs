@@ -517,7 +517,9 @@
             });
 
             if (result.isConfirmed) {
-                const response = await fetch(`/cart/remove/${productId}/${size}`, {
+                // Encode the size parameter to handle special characters
+                const encodedSize = encodeURIComponent(size);
+                const response = await fetch(`/cart/remove/${productId}/${encodedSize}`, {
                     method: 'DELETE'
                 });
 

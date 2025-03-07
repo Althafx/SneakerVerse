@@ -361,16 +361,6 @@ const removeFromCart = async (req, res, next) => {
             });
         }
       
-
-        const sizeKey = sizeMap[size.toUpperCase()];
-        if (!sizeKey) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid size selected'
-            });
-        }
-       
-
         // Find the item to remove and calculate its price
         const itemToRemove = cart.items.find(item => 
             item.product.toString() === productId && item.size === size
