@@ -271,6 +271,19 @@ document.getElementById('addCouponForm').addEventListener('submit', async functi
     const data = {};
     formData.forEach((value, key) => data[key] = value);
     
+    // Add date validation
+    const startDate = new Date(data.startDate);
+    const endDate = new Date(data.expiryDate);
+    
+    if (endDate < startDate) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Dates',
+            text: 'End date cannot be before start date'
+        });
+        return;
+    }
+    
     try {
         const response = await fetch('/admin/coupons/add', {
             method: 'POST',
@@ -390,10 +403,21 @@ async function deleteCoupon(couponId) {
     }
 }
 
-// Set min date for date inputs
+// Set min date for date inputs and add end date validation
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
-    document.querySelector('input[name="startDate"]').min = today;
-    document.querySelector('input[name="expiryDate"]').min = today;
+    const startDateInput = document.querySelector('input[name="startDate"]');
+    const endDateInput = document.querySelector('input[name="expiryDate"]');
+    
+    startDateInput.min = today;
+    endDateInput.min = today;
+    
+    // Update min end date when start date changes
+    startDateInput.addEventListener('change', function() {
+        endDateInput.min = this.value;
+        if (endDateInput.value && new Date(endDateInput.value) < new Date(this.value)) {
+            endDateInput.value = this.value;
+        }
+    });
 });
 </script>
