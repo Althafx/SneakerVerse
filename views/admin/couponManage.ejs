@@ -283,6 +283,19 @@ document.getElementById('addCouponForm').addEventListener('submit', async functi
         });
         return;
     }
+
+    // Add offer amount validation
+    const offerAmount = parseFloat(data.offerAmount);
+    const minPurchase = parseFloat(data.minPurchase);
+
+    if (offerAmount >= minPurchase) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Amount',
+            text: 'Offer amount must be less than minimum purchase amount'
+        });
+        return;
+    }
     
     try {
         const response = await fetch('/admin/coupons/add', {
@@ -408,6 +421,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
     const startDateInput = document.querySelector('input[name="startDate"]');
     const endDateInput = document.querySelector('input[name="expiryDate"]');
+    const offerAmountInput = document.querySelector('input[name="offerAmount"]');
+    const minPurchaseInput = document.querySelector('input[name="minPurchase"]');
     
     startDateInput.min = today;
     endDateInput.min = today;
@@ -419,5 +434,20 @@ document.addEventListener('DOMContentLoaded', function() {
             endDateInput.value = this.value;
         }
     });
+
+    // Add real-time validation for offer amount
+    function validateOfferAmount() {
+        const offerAmount = parseFloat(offerAmountInput.value) || 0;
+        const minPurchase = parseFloat(minPurchaseInput.value) || 0;
+        
+        if (offerAmount >= minPurchase && minPurchase !== 0) {
+            offerAmountInput.setCustomValidity('Offer amount must be less than minimum purchase amount');
+        } else {
+            offerAmountInput.setCustomValidity('');
+        }
+    }
+
+    offerAmountInput.addEventListener('input', validateOfferAmount);
+    minPurchaseInput.addEventListener('input', validateOfferAmount);
 });
 </script>
