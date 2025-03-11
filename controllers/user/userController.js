@@ -8,6 +8,7 @@ const env = require("dotenv").config()
 const bcrypt = require("bcrypt") // Fixed path to offerController
 const Address = require('../../models/addressSchema');
 const Wallet = require('../../models/walletSchema');
+const Brand = require('../../models/brandSchema'); // Added Brand model import
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -419,8 +420,14 @@ const loadHomepage = async (req, res) => {
         const limit = 8;
         const skip = (page - 1) * limit;
 
+        // Get list of blocked brand names
+        const blockedBrands = await Brand.find({ isBlocked: true }).distinct('brandName');
+
         // Build query based on filters
-        let query = { isBlocked: false };
+        let query = { 
+            isBlocked: false,
+            brand: { $nin: blockedBrands } // Exclude products from blocked brands
+        };
         
         // Apply search filter with enhanced search capability
         if (req.query.search) {

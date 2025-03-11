@@ -51,11 +51,11 @@
                                                 <div class="order-products">
                                                     <% order.items.forEach(function(item) { %>
                                                     <div class="product-item mb-2">
-                                                        <img src="/uploads/product-images/<%= item.product.productImage[0] %>" 
-                                                             alt="<%= item.product.productName %>" 
+                                                        <img src="<%= item.product ? `/uploads/product-images/${item.product.productImage[0]}` : '/img/default-product.jpg' %>" 
+                                                             alt="<%= item.product ? item.product.productName : 'Deleted Product' %>" 
                                                              class="product-thumb">
                                                         <div class="product-info">
-                                                            <span class="product-name"><%= item.product.productName %></span>
+                                                            <span class="product-name"><%= item.product ? item.product.productName : 'Deleted Product' %></span>
                                                             <span class="product-details">
                                                                 Size: <%= item.size %> | Qty: <%= item.quantity %>
                                                             </span>
@@ -513,20 +513,20 @@ async function viewOrderDetails(orderId) {
             // Order items
             const orderItemsHtml = order.items.map(item => `
                 <tr>
-                    <td>${item.product.productName}</td>
+                    <td>${item.product ? item.product.productName : 'Deleted Product'}</td>
                     <td>
-                        <img src="/uploads/product-images/${item.product.productImage[0]}" 
-                             alt="${item.product.productName}"
+                        <img src="${item.product ? `/uploads/product-images/${item.product.productImage[0]}` : '/img/default-product.jpg'}" 
+                             alt="${item.product ? item.product.productName : 'Deleted Product'}"
                              style="width: 50px; height: 50px; object-fit: cover;">
                     </td>
-                    <td>₹${item.product.salesPrice}</td>
+                    <td>₹${item.product ? item.product.salesPrice : 'N/A'}</td>
                     <td>${item.quantity}</td>
                     <td>
                         <span class="badge ${item.status === 'Delivered' ? 'bg-success' : 'bg-warning'}">
                             ${item.status}
                         </span>
                     </td>
-                    <td>₹${item.product.salesPrice * item.quantity}</td>
+                    <td>₹${item.product ? item.product.salesPrice * item.quantity : 'N/A'}</td>
                 </tr>
             `).join('');
             

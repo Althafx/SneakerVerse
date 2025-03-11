@@ -84,7 +84,18 @@ const getDashboardData = async (req, res) => {
             .populate('user', 'name')
             .populate('items.product', 'productName')
             .sort({ orderDate: -1 })
-            .limit(5);
+            .limit(5)
+            .lean(); // Convert to plain JavaScript objects for easier manipulation
+
+        // Handle deleted products in orders
+        recentOrders.forEach(order => {
+            order.items = order.items.map(item => {
+                if (!item.product) {
+                    item.product = { productName: 'Deleted Product' };
+                }
+                return item;
+            });
+        });
 
         res.render('admin/dashboard', {
             totalUsers,

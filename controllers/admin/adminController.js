@@ -101,7 +101,21 @@ const getOrders = async (req, res) => {
             })
             .sort({ orderDate: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean(); // Convert to plain JavaScript objects
+
+        // Handle deleted products
+        orders.forEach(order => {
+            order.items = order.items.map(item => {
+                if (!item.product) {
+                    item.product = {
+                        productName: 'Deleted Product',
+                        productImage: ['default-product.jpg']
+                    };
+                }
+                return item;
+            });
+        });
 
         res.render('admin/orderManage', {
             orders,
