@@ -488,7 +488,6 @@ const placeOrder = async(req, res, next) => {
         // Get cart and validate it's not empty
         const cart = await Cart.findOne({ userId })
             .populate('items.product');
-
       
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({
@@ -822,6 +821,73 @@ const verifyPayment = async (req, res) => {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
+const checkStock = async (req, res, next) => {
+    try {
+        const userId = req.session.user;
+        const cart = await Cart.findOne({ userId }).populate({
+            path: 'items.product',
+            select: 'quantities productName'
+        });
+
+        if (!cart || !cart.items || cart.items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your cart is empty'
+            });
+        }
+
+        const outOfStockItems = [];
+
+        // Check each item's stock
+        for (const item of cart.items) {
+            const sizeMap = {
+                'S': 'small',
+                'M': 'medium',
+                'L': 'large'
+            };
+            const sizeKey = sizeMap[item.size.toUpperCase()] || item.size.toLowerCase();
+            
+            // Check if product exists and has the requested size in stock
+            if (!item.product || !item.product.quantities || 
+                typeof item.product.quantities[sizeKey] !== 'number' || 
+                item.product.quantities[sizeKey] < item.quantity) {
+                
+                outOfStockItems.push({
+                    name: item.product ? item.product.productName : 'Unknown Product',
+                    size: item.size,
+                    requestedQuantity: item.quantity,
+                    availableQuantity: item.product?.quantities[sizeKey] || 0
+                });
+            }
+        }
+
+        if (outOfStockItems.length > 0) {
+            let message = 'Some items in your cart are out of stock:\n';
+            outOfStockItems.forEach(item => {
+                message += `\n${item.name} (Size ${item.size}): Requested ${item.requestedQuantity}, Available ${item.availableQuantity}`;
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: message
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: 'All items are in stock'
+        });
+    } catch (error) {
+        console.error('Error checking stock:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to verify stock availability'
+        });
+    }
+};
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------
+
 const verifyRazorpaySignature = (razorpay_order_id, razorpay_payment_id, razorpay_signature) => {
     try {
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -930,5 +996,7 @@ module.exports = {
     checkout,
     placeOrder,
     verifyPayment,
-    retryPayment
+    verifyRazorpaySignature,
+    retryPayment,
+    checkStock
 }

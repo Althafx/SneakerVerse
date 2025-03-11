@@ -189,11 +189,11 @@
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-action <%= coupon.isActive ? 'btn-danger' : 'btn-success' %>"
-                                            onclick="toggleCouponStatus('<%= coupon._id %>', <%= coupon.isActive %>)">
+                                            onclick="toggleCouponStatus('<%= coupon._id %>', '<%= coupon.isActive %>')">
                                             <%= coupon.isActive ? 'Deactivate' : 'Activate' %>
                                         </button>
                                         <button class="btn btn-sm btn-action btn-danger" onclick="deleteCoupon('<%= coupon._id %>')">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="fas fa-trash-alt"></i> Delete
                                         </button>
                                     </td>
                                 </tr>

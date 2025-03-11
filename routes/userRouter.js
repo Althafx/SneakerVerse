@@ -95,6 +95,7 @@ router.delete("/cart/remove/:productId/:size", userAuth, isBlockedUser, cartCont
 
 //checkout routes
 router.get("/checkout", userAuth, isBlockedUser, cartController.checkout)
+router.get("/checkout/check-stock", userAuth, isBlockedUser, cartController.checkStock)
 router.post("/checkout/place-order", userAuth, isBlockedUser, cartController.placeOrder)
 router.post("/verify-payment", userAuth, isBlockedUser, cartController.verifyPayment)
 router.post("/retry-payment", userAuth, isBlockedUser, cartController.retryPayment)

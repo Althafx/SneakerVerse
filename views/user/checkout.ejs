@@ -431,6 +431,39 @@ function saveAddress() {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+    async function checkStockAvailability() {
+        try {
+            const response = await fetch('/checkout/check-stock', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+            if (!result.success) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Out of Stock',
+                    text: result.message || 'Some items in your cart are out of stock.',
+                    confirmButtonText: 'View Cart'
+                }).then(() => {
+                    window.location.href = '/cart';
+                });
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('Error checking stock:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to verify stock availability. Please try again.'
+            });
+            return false;
+        }
+    }
+
     async function handleOrder() {
         const selectedAddress = document.querySelector('input[name="selectedAddress"]:checked');
         const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
@@ -442,6 +475,12 @@ function saveAddress() {
                 title: 'Error',
                 text: 'Please select a delivery address'
             });
+            return;
+        }
+
+        // Check stock availability before proceeding
+        const stockAvailable = await checkStockAvailability();
+        if (!stockAvailable) {
             return;
         }
 
@@ -458,8 +497,8 @@ function saveAddress() {
 
         // Check if wallet has sufficient balance
         if (paymentMethod.value === 'wallet') {
-            const walletBalance = <%= wallet?.balance || 0 %>;
-            const orderTotal = <%= subtotal %>;
+            const walletBalance = parseFloat('<%= wallet?.balance || 0 %>');
+            const orderTotal = parseFloat('<%= subtotal %>');
             
             if (walletBalance < orderTotal) {
                 Swal.fire({
@@ -489,7 +528,8 @@ function saveAddress() {
                     },
                     body: JSON.stringify({
                         addressId: selectedAddress.value,
-                        paymentMethod: paymentMethod.value
+                        paymentMethod: paymentMethod.value,
+                        appliedCouponCode: document.getElementById('appliedCouponCode')?.value || null
                     })
                 });
 
@@ -539,7 +579,6 @@ function saveAddress() {
 
             // Store orderId in a variable accessible to the handler
             const orderId = orderData.orderId;
-          
 
             const options = {
                 key: '<%= process.env.RAZORPAY_KEY_ID %>',
@@ -548,9 +587,8 @@ function saveAddress() {
                 name: 'SneakerVerse',
                 description: 'Order Payment',
                 order_id: orderData.razorpayOrderId,
-                handler: function (response) {
-                    // Pass the stored orderId to verifyPayment
-                    verifyPayment(orderId, response);
+                handler: async (response) => {
+                    await verifyPayment(orderId, response);
                 },
                 prefill: {
                     name: orderData.orderDetails?.name || '',
@@ -558,11 +596,6 @@ function saveAddress() {
                 },
                 theme: {
                     color: '#4CAF50'
-                },
-                modal: {
-                    ondismiss: function() {
-                       
-                    }
                 }
             };
 
@@ -577,7 +610,7 @@ function saveAddress() {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        order_id: orderId, // Changed from orderId to order_id
+                        order_id: orderId, 
                         razorpay_payment_id: response.error.metadata.payment_id,
                         razorpay_order_id: response.error.metadata.order_id,
                         razorpay_signature: '',
@@ -617,7 +650,7 @@ function saveAddress() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    order_id: orderId, // Changed from orderId to order_id to match backend
+                    order_id: orderId, 
                     razorpay_payment_id: response.razorpay_payment_id,
                     razorpay_order_id: response.razorpay_order_id,
                     razorpay_signature: response.razorpay_signature,
