@@ -21,7 +21,7 @@ process.on('uncaughtException', (err) => {
 
 // Connect to MongoDB
 connectDB().then(() => {
-    // console.log('mongodb is connected');
+    
 }).catch((err) => {
     console.error('MongoDB connection error:', err);
     process.exit(1);

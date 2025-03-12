@@ -238,7 +238,14 @@ const editCategory = async (req, res, next) => {
                 updatedAt: Date.now()
             },
             { new: true }
+
+
+        
         );
+
+        
+
+        await Category.findByIdAndDelete(categoryId);
 
         if (!updatedCategory) {
             return res.status(404).json({
@@ -257,6 +264,8 @@ const editCategory = async (req, res, next) => {
     }
 
 };
+
+//adasdasd
 
 
 
