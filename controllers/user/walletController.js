@@ -19,7 +19,10 @@ const walletController = {
             }
 
             const userId = req.session.user;
-            // Changed from destructuring to separate declarations
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = 10;
+            
+            // Get user and wallet data
             const user = await User.findById(userId);
             let wallet = await Wallet.findOne({ userId });
             
@@ -27,11 +30,42 @@ const walletController = {
                 wallet = await new Wallet({ userId }).save();
             }
 
+            // Convert wallet to object and sort transactions by timestamp
+            const walletObj = wallet.toObject();
+            walletObj.transactions = walletObj.transactions.sort((a, b) => {
+                const dateA = a.timestamp || a.date || new Date(0);
+                const dateB = b.timestamp || b.date || new Date(0);
+                return new Date(dateB) - new Date(dateA);
+            });
+
+            // Get total number of transactions
+            const totalTransactions = walletObj.transactions.length;
+            const totalPages = Math.max(1, Math.ceil(totalTransactions / limit));
+            
+            // Ensure page is within valid range
+            const currentPage = Math.min(page, totalPages);
+            
+            // Get paginated transactions
+            const startIndex = (currentPage - 1) * limit;
+            const endIndex = startIndex + limit;
+            const paginatedTransactions = walletObj.transactions.slice(startIndex, endIndex);
+
+            // Create wallet object with paginated transactions
+            const walletWithPaginatedTransactions = {
+                ...walletObj,
+                transactions: paginatedTransactions
+            };
+
             res.render('user/wallet', {
-                wallet,
+                wallet: walletWithPaginatedTransactions,
                 user,
                 razorpayKeyId: process.env.RAZORPAY_KEY_ID,
-                path: '/wallet'
+                path: '/wallet',
+                pagination: {
+                    currentPage,
+                    totalPages,
+                    totalItems: totalTransactions
+                }
             });
         } catch (error) {
             console.error('Error in getWalletPage:', error);
