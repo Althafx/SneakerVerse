@@ -3,7 +3,18 @@ const Coupon = require('../../models/couponModel');
 const couponController = {
     getCouponPage: async (req, res) => {
         try {
-            const coupons = await Coupon.find().sort({ createdAt: -1 });
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = 10;
+            const skip = (page - 1) * limit;
+
+            // Get total count for pagination
+            const totalCoupons = await Coupon.countDocuments();
+            
+            // Get paginated coupons
+            const coupons = await Coupon.find()
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit);
             
             // Format coupon data for display
             const formattedCoupons = coupons.map(coupon => ({
@@ -13,7 +24,20 @@ const couponController = {
                 isFullyUsed: (coupon.usedCount || 0) >= coupon.totalUses
             }));
 
-            res.render('admin/couponManage', { coupons: formattedCoupons });
+            // Calculate pagination info
+            const totalPages = Math.max(1, Math.ceil(totalCoupons / limit));
+            
+            // Ensure page is within valid range
+            const currentPage = Math.min(page, totalPages);
+
+            res.render('admin/couponManage', { 
+                coupons: formattedCoupons,
+                pagination: {
+                    currentPage,
+                    totalPages,
+                    totalItems: totalCoupons
+                }
+            });
         } catch (error) {
             console.error('Error in getCouponPage:', error);
             res.status(500).send('Internal Server Error');

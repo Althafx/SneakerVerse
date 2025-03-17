@@ -142,6 +142,55 @@
         margin-bottom: 15px;
         color: #dee2e6;
     }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .pagination {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        gap: 5px;
+    }
+
+    .page-item {
+        margin: 0 2px;
+    }
+
+    .page-link {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 8px;
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+        color: #0056b3;
+        text-decoration: none;
+    }
+
+    .page-item.active .page-link {
+        background-color: #1e88e5;
+        border-color: #1e88e5;
+        color: #fff;
+    }
+
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
 </style>
 
 <div class="content-wrapper">
@@ -200,17 +249,68 @@
                             <% }); %>
                         <% } else { %>
                             <tr>
-                                <td colspan="8">
-                                    <div class="empty-state">
-                                        <i class="fas fa-ticket-alt"></i>
-                                        <p>No coupons found. Create your first coupon!</p>
-                                    </div>
+                                <td colspan="8" class="empty-state">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    <p>No coupons found. Create your first coupon!</p>
                                 </td>
                             </tr>
                         <% } %>
                     </tbody>
                 </table>
             </div>
+
+            <% if (pagination && pagination.totalPages > 1) { %>
+                <div class="pagination-container">
+                    <ul class="pagination">
+                        <!-- Previous button -->
+                        <li class="page-item <%= pagination.currentPage === 1 ? 'disabled' : '' %>">
+                            <a class="page-link" href="?page=<%= pagination.currentPage - 1 %>" <%= pagination.currentPage === 1 ? 'tabindex="-1" aria-disabled="true"' : '' %>>
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        <!-- First page -->
+                        <li class="page-item <%= pagination.currentPage === 1 ? 'active' : '' %>">
+                            <a class="page-link" href="?page=1">1</a>
+                        </li>
+
+                        <!-- Ellipsis if needed -->
+                        <% if (pagination.currentPage > 3) { %>
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        <% } %>
+
+                        <!-- Pages around current page -->
+                        <% for(let i = Math.max(2, pagination.currentPage - 1); i <= Math.min(pagination.totalPages - 1, pagination.currentPage + 1); i++) { %>
+                            <li class="page-item <%= pagination.currentPage === i ? 'active' : '' %>">
+                                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                            </li>
+                        <% } %>
+
+                        <!-- Ellipsis if needed -->
+                        <% if (pagination.currentPage < pagination.totalPages - 2) { %>
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        <% } %>
+
+                        <!-- Last page if not already shown -->
+                        <% if (pagination.totalPages > 1) { %>
+                            <li class="page-item <%= pagination.currentPage === pagination.totalPages ? 'active' : '' %>">
+                                <a class="page-link" href="?page=<%= pagination.totalPages %>"><%= pagination.totalPages %></a>
+                            </li>
+                        <% } %>
+
+                        <!-- Next button -->
+                        <li class="page-item <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>">
+                            <a class="page-link" href="?page=<%= pagination.currentPage + 1 %>" <%= pagination.currentPage === pagination.totalPages ? 'tabindex="-1" aria-disabled="true"' : '' %>>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            <% } %>
         </div>
     </div>
 </div>
