@@ -220,6 +220,7 @@
                           <button class="btn btn-success btn-sm" onclick="toggleCategoryStatus('<%= category._id %>', true)">List</button>
                         <% } %>
                         <button class="btn btn-primary btn-sm" onclick="openEditModal('<%= category._id %>', '<%= category.name %>', '<%= category.description %>')">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCategory('<%= category._id %>')">Delete</button>
                       </td>
                     </tr>
                   <% }) %>
@@ -451,11 +452,11 @@
     function deleteCategory(categoryId) {
       Swal.fire({
         title: 'Are you sure?',
-        text: "You won't be able to revert this!",
+        text: "This category will be permanently deleted. This action cannot be undone.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, delete it!'
       }).then((result) => {
         if (result.isConfirmed) {
@@ -467,7 +468,7 @@
                 Swal.fire({
                   icon: 'success',
                   title: 'Deleted!',
-                  text: response.message,
+                  text: 'Category has been deleted successfully.',
                   timer: 2000,
                   showConfirmButton: false
                 }).then(() => {
@@ -477,7 +478,7 @@
                 Swal.fire({
                   icon: 'error',
                   title: 'Error!',
-                  text: response.message
+                  text: response.message || 'Failed to delete category'
                 });
               }
             },
