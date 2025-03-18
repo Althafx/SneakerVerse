@@ -297,8 +297,11 @@
                                                 <div class="product-details">
                                                     <h6 class="mb-2"><%= item.product.productName %></h6>
                                                     <p class="mb-1 text-warning">Size: <%= item.size %> | Quantity: <%= item.quantity %></p>
+                                                    <%if(order.totalAmount<item.price){%>
+                                                    <p class="mb-1 badge bg-success">Discount: ₹<%= (item.price-order.totalAmount).toFixed(2) %></p>
+                                                    <%}%>
                                                     <p class="mb-1 text-success">Price: ₹<%= item.price.toFixed(2) %></p>
-                                                    <p class="mb-0">Status: <span class="badge bg-primary"><%= item.status %></span></p>
+                                                    <p class="mb-0">Status: <span class="badge bg-warning"><%= item.status %></span></p>
                                                 </div>
                                                 <div class="product-actions">
                                                     <a href="/order-product-details/<%= order._id %>/<%= item.product._id %>" 

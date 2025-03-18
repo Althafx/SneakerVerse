@@ -238,7 +238,8 @@
                                 <p><strong>Size:</strong> <%= item.size || 'N/A' %></p>
                                 <p><strong>Quantity:</strong> <%= item.quantity || 0 %></p>
                                 <p><strong>Price:</strong> ₹<%= item.price ? item.price.toFixed(2) : '0.00' %></p>
-                                <p><strong>Total:</strong> ₹<%= (item.price && item.quantity) ? (item.price * item.quantity).toFixed(2) : '0.00' %></p>
+                                <p><strong>Discount:</strong> ₹<%= (item.price - order.totalAmount).toFixed(2) || 0 %></p>
+                                <p><strong>Total:</strong> ₹<%= order.totalAmount.toFixed(2) %></p>
                                 <p><strong>Status:</strong> 
                                     <span class="badge <%= 
                                         item.status === 'Delivered' ? 'bg-success' : 
