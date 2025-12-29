@@ -36,7 +36,7 @@ const addProducts = async (req, res, next) => {
         const products = req.body;
 
         // Validate required fields
-        const requiredFields = ['productName', 'description', 'brand', 'category', 'regularPrice', 'salePrice', 'color'];
+        const requiredFields = ['productName', 'description', 'brand', 'category', 'regularPrice', 'salesPrice', 'color'];
         for (const field of requiredFields) {
             if (!products[field]) {
                 return res.status(400).json({ message: `${field} is required` });
@@ -108,7 +108,7 @@ const addProducts = async (req, res, next) => {
             brand: products.brand,
             category: category._id,
             regularPrice: products.regularPrice,
-            salesPrice: products.salePrice,
+            salesPrice: products.salesPrice,
             color: products.color,
             quantities: quantities,
             totalQuantity: totalQuantity,

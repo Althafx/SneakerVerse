@@ -134,8 +134,8 @@
 
                                 <div class="col-md-4 mb-4">
                                     <label class="form-label">Sale Price</label>
-                                    <input placeholder="$" name="salePrice" type="text" class="form-control">
-                                    <div id="salePrice-error" class="error-message"></div>
+                                    <input placeholder="$" name="salesPrice" type="text" class="form-control">
+                                    <div id="salesPrice-error" class="error-message"></div>
                                 </div>
 
                                 <div class="col-md-4 mb-4">
@@ -371,7 +371,7 @@
             const brand = document.getElementsByName('brand')[0].value;
             const category = document.getElementsByName('category')[0].value;
             const regularPrice = document.getElementsByName('regularPrice')[0].value;
-            const salePrice = document.getElementsByName('salePrice')[0].value;
+            const salesPrice = document.getElementsByName('salesPrice')[0].value;
             const color = document.getElementsByName('color')[0].value;
             
             // Validate product name
@@ -404,12 +404,12 @@
                 isValid = false;
             }
             
-            if (!salePrice || isNaN(salePrice) || parseFloat(salePrice) <= 0) {
-                displayErrorMessage('salePrice-error', 'Please enter a valid sale price');
+            if (!salesPrice || isNaN(salesPrice) || parseFloat(salesPrice) <= 0) {
+                displayErrorMessage('salesPrice-error', 'Please enter a valid sale price');
                 isValid = false;
             }
             
-            if (parseFloat(regularPrice) <= parseFloat(salePrice)) {
+            if (parseFloat(regularPrice) <= parseFloat(salesPrice)) {
                 displayErrorMessage('regularPrice-error', 'Regular price must be greater than sale price');
                 isValid = false;
             }
@@ -448,7 +448,7 @@
                     brand,
                     category,
                     regularPrice,
-                    salePrice,
+                    salesPrice,
                     color
                 });
             }

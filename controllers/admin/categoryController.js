@@ -256,7 +256,7 @@ const editCategory = async (req, res, next) => {
 
         res.json({
             success: true,
-            message: "Category updated successfully",
+            message: "Category updated succe ssfully",
             category: updatedCategory
         });
     } catch (error) {

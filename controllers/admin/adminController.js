@@ -5,17 +5,23 @@ const Order = require("../../models/orderSchema") // Assuming you have an order 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //admin login
-const loadLogin=(req,res)=>{
-    if(req.session.admin){
+const loadLogin = (req, res) => {
+    if (req.session.admin) {
         return res.redirect("/admin/dashboard")
     }
-    res.render("admin/adminlogin",{message:null})
+    res.render("admin/adminlogin", { message: null })
 }
 
-const login=async(req,res)=>{
-   
-    try{
-        const {email,password} = req.body
+const login = async (req, res) => {
+
+    try {
+        const { email, password } = req.body
+
+        // [MODIFIED] Check hardcoded credentials from .env
+        if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+            req.session.admin = true;
+            return res.redirect("/admin/dashboard");
+        }
 
         // Find the admin user in the database
         const findAdmin = await User.findOne({ email: email, isAdmin: true });
@@ -26,34 +32,32 @@ const login=async(req,res)=>{
         // Direct password comparison since we're not using bcrypt
         if (password === findAdmin.password) {
             req.session.admin = true;
-          
-            return res.redirect("/admin/dashboard"); 
+            return res.redirect("/admin/dashboard");
         } else {
-          
             return res.render("admin/adminlogin", { message: "Incorrect password" });
         }
-    }catch(error){
-        console.log("login error",error)
+    } catch (error) {
+        console.log("login error", error)
         res.render("user/pageNotFound", { title: 'Error', message: "An error occurred during login" })
     }
 }
 
 
-const logout=async(req,res)=>{
-    try{
-        req.session.destroy(err=>{
-            if(err){
-                console.log("error destroying session",err)
+const logout = async (req, res) => {
+    try {
+        req.session.destroy(err => {
+            if (err) {
+                console.log("error destroying session", err)
                 return res.render("user/pageNotFound", { title: 'Error', message: "Error destroying session" })
             }
             res.redirect("/")
         })
-       
-    } catch(error){
-        console.log("logout error",error)
+
+    } catch (error) {
+        console.log("logout error", error)
         res.render("user/pageNotFound", { title: 'Error', message: "An error occurred during logout" })
     }
-   
+
 }
 
 
@@ -193,17 +197,17 @@ const getOrderDetails = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
     try {
         const { orderId, status } = req.body;
-       
+
 
         const order = await Order.findByIdAndUpdate(
             orderId,
-            { 
-                $set: { 
+            {
+                $set: {
                     'items.$[].status': status,
-                    status: status 
+                    status: status
                 }
             },
-            { 
+            {
                 new: true,
                 populate: {
                     path: 'items.product',
@@ -248,20 +252,20 @@ const updateOrderStatus = async (req, res) => {
 const updateProductStatus = async (req, res) => {
     try {
         const { orderId, productId, status } = req.body;
-       
+
 
         // Find the order and update the specific item's status
         const order = await Order.findOneAndUpdate(
-            { 
+            {
                 _id: orderId,
                 'items._id': productId // Using item's _id instead of product._id
             },
-            { 
-                $set: { 
-                    'items.$.status': status 
+            {
+                $set: {
+                    'items.$.status': status
                 }
             },
-            { 
+            {
                 new: true,
                 populate: {
                     path: 'items.product',
