@@ -90,7 +90,7 @@
                             <% data.forEach(product => { %>
                                 <tr>
                                     <td>
-                                        <img src="/uploads/product-images/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                                        <img src="<%= getImageUrl(product.productImage[0]) %>" alt="<%= product.productName %>" class="product-image">
                                     </td>
                                     <td><%= product.productName %></td>
                                     <td><%= product.brand %></td>

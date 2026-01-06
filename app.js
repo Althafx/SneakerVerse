@@ -21,7 +21,7 @@ process.on('uncaughtException', (err) => {
 
 // Connect to MongoDB
 connectDB().then(() => {
-    
+
 }).catch((err) => {
     console.error('MongoDB connection error:', err);
     process.exit(1);
@@ -40,7 +40,7 @@ app.use(session({
     cookie: {
         secure: false,
         httpOnly: true,
-        maxAge: 72*60*60*1000
+        maxAge: 72 * 60 * 60 * 1000
     }
 }));
 
@@ -56,7 +56,7 @@ app.use((req, res, next) => {
 
 // Basic middleware
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "Public")));
 app.use("/uploads", express.static(path.join(__dirname, "Public/uploads")));
 
@@ -76,6 +76,18 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
     res.locals.user = req.user || null;
+    res.locals.getImageUrl = (image, folder = 'product-images') => {
+        if (!image) return '/img/no-image.png'; // Fallback
+        if (image.startsWith('http') || image.startsWith('https')) {
+            return image;
+        }
+        // Check if it's a Cloudinary ID (assuming it contains the folder name)
+        if (image.includes('sneakerverse-products')) {
+            return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${image}`;
+        }
+        // Default to local/relative path
+        return `/uploads/${folder}/${image}`;
+    };
     next();
 });
 
@@ -128,7 +140,7 @@ app.set('io', io);
 // Socket.IO connection handling
 io.on('connection', (socket) => {
     console.log('A user connected');
-    
+
     socket.on('disconnect', () => {
         console.log('User disconnected');
     });

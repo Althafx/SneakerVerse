@@ -1,501 +1,552 @@
 <%- include("../../views/admin/adminPartials/sidebar") %>
-<%- include('../admin/adminPartials/cursor') %>
+    <%- include('../admin/adminPartials/cursor') %>
 
-<div class="main-content">
-    <div class="page-content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title mb-0">Order Management</h4>
-                            <div class="d-flex gap-3">
-                                <button class="btn btn-warning" onclick="viewReturnRequests()">
-                                    Returns
-                                    <span id="returnRequestCount" class="badge bg-danger ms-1"></span>
-                                </button>
-                                <div class="search-box">
-                                    <input type="text" 
-                                           id="orderSearchInput" 
-                                           class="form-control" 
-                                           placeholder="Search by Order ID..."
-                                           style="min-width: 250px;">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h4 class="card-title mb-0">Order Management</h4>
+                                    <div class="d-flex gap-3">
+                                        <button class="btn btn-warning" onclick="viewReturnRequests()">
+                                            Returns
+                                            <span id="returnRequestCount" class="badge bg-danger ms-1"></span>
+                                        </button>
+                                        <div class="search-box">
+                                            <input type="text" id="orderSearchInput" class="form-control"
+                                                placeholder="Search by Order ID..." style="min-width: 250px;">
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Order ID</th>
-                                            <th>Date</th>
-                                            <th>Customer</th>
-                                            <th>Products</th>
-                                            <th>Total</th>
-                                            <th>Payment</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% orders.forEach(function(order) { %>
-                                        <tr>
-                                            <td><%= order._id %></td>
-                                            <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
-                                            <td>
-                                                <strong><%= order.user ? order.user.name : 'Deleted User' %></strong><br>
-                                                <small><%= order.shippingAddress.phone %></small>
-                                            </td>
-                                            <td>
-                                                <div class="order-products">
-                                                    <% order.items.forEach(function(item) { %>
-                                                    <div class="product-item mb-2">
-                                                        <img src="<%= item.product ? `/uploads/product-images/${item.product.productImage[0]}` : '/img/default-product.jpg' %>" 
-                                                             alt="<%= item.product ? item.product.productName : 'Deleted Product' %>" 
-                                                             class="product-thumb">
-                                                        <div class="product-info">
-                                                            <span class="product-name"><%= item.product ? item.product.productName : 'Deleted Product' %></span>
-                                                            <span class="product-details">
-                                                                Size: <%= item.size %> | Qty: <%= item.quantity %>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Date</th>
+                                                    <th>Customer</th>
+                                                    <th>Products</th>
+                                                    <th>Total</th>
+                                                    <th>Payment</th>
+                                                    <th>Status</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% orders.forEach(function(order) { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= order._id %>
+                                                        </td>
+                                                        <td>
+                                                            <%= new Date(order.orderDate).toLocaleDateString() %>
+                                                        </td>
+                                                        <td>
+                                                            <strong>
+                                                                <%= order.user ? order.user.name : 'Deleted User' %>
+                                                            </strong><br>
+                                                            <small>
+                                                                <%= order.shippingAddress.phone %>
+                                                            </small>
+                                                        </td>
+                                                        <td>
+                                                            <div class="order-products">
+                                                                <% order.items.forEach(function(item) { %>
+                                                                    <div class="product-item mb-2">
+                                                                        <img src="<%= getImageUrl(item.product ? item.product.productImage[0] : null) %>"
+                                                                            alt="<%= item.product ? item.product.productName : 'Deleted Product' %>"
+                                                                            class="product-thumb">
+                                                                        <div class="product-info">
+                                                                            <span class="product-name">
+                                                                                <%= item.product ?
+                                                                                    item.product.productName
+                                                                                    : 'Deleted Product' %>
+                                                                            </span>
+                                                                            <span class="product-details">
+                                                                                Size: <%= item.size %> | Qty: <%=
+                                                                                        item.quantity %>
+                                                                            </span>
+                                                                            <select
+                                                                                class="form-select status-select mt-2"
+                                                                                data-order-id="<%= order._id %>"
+                                                                                data-product-id="<%= item._id %>"
+                                                                                data-item-id="<%= item._id %>"
+                                                                                onchange="updateProductStatus(this)">
+                                                                                <option value="Pending"
+                                                                                    <%=item.status==='Pending'
+                                                                                    ? 'selected' : '' %>>Pending
+                                                                                </option>
+                                                                                <option value="Processing"
+                                                                                    <%=item.status==='Processing'
+                                                                                    ? 'selected' : '' %>>Processing
+                                                                                </option>
+                                                                                <option value="Shipped"
+                                                                                    <%=item.status==='Shipped'
+                                                                                    ? 'selected' : '' %>>Shipped
+                                                                                </option>
+                                                                                <option value="Out for Delivery"
+                                                                                    <%=item.status==='Out for Delivery'
+                                                                                    ? 'selected' : '' %>>Out for
+                                                                                    Delivery</option>
+                                                                                <option value="Delivered"
+                                                                                    <%=item.status==='Delivered'
+                                                                                    ? 'selected' : '' %>>Delivered
+                                                                                </option>
+                                                                                <option value="Cancelled"
+                                                                                    <%=item.status==='Cancelled'
+                                                                                    ? 'selected' : '' %>>Cancelled
+                                                                                </option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <% }); %>
+                                                            </div>
+                                                        </td>
+                                                        <td>₹<%= order.totalAmount %>
+                                                        </td>
+                                                        <td><span class="badge bg-success">
+                                                                <%= order.paymentMethod %>
+                                                            </span></td>
+                                                        <td>
+                                                            <span
+                                                                class="badge <%= order.status === 'Delivered' ? 'bg-success' : 'bg-warning' %>">
+                                                                <%= order.status %>
                                                             </span>
-                                                            <select class="form-select status-select mt-2" 
-                                                                    data-order-id="<%= order._id %>"
-                                                                    data-product-id="<%= item._id %>"
-                                                                    data-item-id="<%= item._id %>"
-                                                                    onchange="updateProductStatus(this)">
-                                                                <option value="Pending" <%= item.status === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                                                <option value="Processing" <%= item.status === 'Processing' ? 'selected' : '' %>>Processing</option>
-                                                                <option value="Shipped" <%= item.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                                                <option value="Out for Delivery" <%= item.status === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
-                                                                <option value="Delivered" <%= item.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                                                <option value="Cancelled" <%= item.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-info btn-sm"
+                                                                onclick="viewOrderDetails('<%= order._id %>')">
+                                                                View Details
+                                                            </button>
+                                                        </td>
+                                                    </tr>
                                                     <% }); %>
-                                                </div>
-                                            </td>
-                                            <td>₹<%= order.totalAmount %></td>
-                                            <td><span class="badge bg-success"><%= order.paymentMethod %></span></td>
-                                            <td>
-                                                <span class="badge <%= order.status === 'Delivered' ? 'bg-success' : 'bg-warning' %>">
-                                                    <%= order.status %>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-info btn-sm" 
-                                                        onclick="viewOrderDetails('<%= order._id %>')">
-                                                    View Details
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <% }); %>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <!-- Pagination Controls -->
-                            <% if (totalPages > 1) { %>
-                            <div class="mt-4">
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/admin/orders?page=<%= currentPage - 1 %>" <%= currentPage === 1 ? 'tabindex="-1" aria-disabled="true"' : '' %>>Previous</a>
-                                        </li>
-                                        
-                                        <% for(let i = 1; i <= totalPages; i++) { %>
-                                            <% if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) { %>
-                                                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                                    <a class="page-link" href="/admin/orders?page=<%= i %>"><%= i %></a>
-                                                </li>
-                                            <% } else if (i === currentPage - 3 || i === currentPage + 3) { %>
-                                                <li class="page-item disabled">
-                                                    <span class="page-link">...</span>
-                                                </li>
-                                            <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Pagination Controls -->
+                                    <% if (totalPages> 1) { %>
+                                        <div class="mt-4">
+                                            <nav aria-label="Page navigation">
+                                                <ul class="pagination justify-content-center">
+                                                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                                                        <a class="page-link"
+                                                            href="/admin/orders?page=<%= currentPage - 1 %>"
+                                                            <%=currentPage===1 ? 'tabindex="-1" aria-disabled="true"'
+                                                            : '' %>>Previous</a>
+                                                    </li>
+
+                                                    <% for(let i=1; i <=totalPages; i++) { %>
+                                                        <% if (i===1 || i===totalPages || (i>= currentPage - 2 && i <=
+                                                                currentPage + 2)) { %>
+                                                                <li
+                                                                    class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                                                    <a class="page-link"
+                                                                        href="/admin/orders?page=<%= i %>">
+                                                                        <%= i %>
+                                                                    </a>
+                                                                </li>
+                                                                <% } else if (i===currentPage - 3 || i===currentPage +
+                                                                    3) { %>
+                                                                    <li class="page-item disabled">
+                                                                        <span class="page-link">...</span>
+                                                                    </li>
+                                                                    <% } %>
+                                                                        <% } %>
+
+                                                                            <li
+                                                                                class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                                                                                <a class="page-link"
+                                                                                    href="/admin/orders?page=<%= currentPage + 1 %>"
+                                                                                    <%=currentPage===totalPages
+                                                                                    ? 'tabindex="-1" aria-disabled="true"'
+                                                                                    : '' %>>Next</a>
+                                                                            </li>
+                                                </ul>
+                                            </nav>
+                                            <div class="text-center mt-2">
+                                                <small class="text-muted">
+                                                    Showing page <%= currentPage %> of <%= totalPages %> (<%=
+                                                                totalOrders %> total orders)
+                                                </small>
+                                            </div>
+                                        </div>
                                         <% } %>
-                                        
-                                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-                                            <a class="page-link" href="/admin/orders?page=<%= currentPage + 1 %>" <%= currentPage === totalPages ? 'tabindex="-1" aria-disabled="true"' : '' %>>Next</a>
-                                        </li>
-                                    </ul>
-                                </nav>
-                                <div class="text-center mt-2">
-                                    <small class="text-muted">
-                                        Showing page <%= currentPage %> of <%= totalPages %> (<%= totalOrders %> total orders)
-                                    </small>
                                 </div>
                             </div>
-                            <% } %>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Order Details Modal -->
-<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- Order Details Modal -->
+        <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h6>Order Information</h6>
+                                <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
+                                <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
+                                <p><strong>Payment Method:</strong> <span id="modalPaymentMethod"></span></p>
+                                <p><strong>Total Amount:</strong> ₹<span id="modalTotalAmount"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Customer Information</h6>
+                                <p><strong>Name:</strong> <span id="modalCustomerName"></span></p>
+                                <p><strong>Email:</strong> <span id="modalCustomerEmail"></span></p>
+                                <p><strong>Phone:</strong> <span id="modalCustomerPhone"></span></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <h6>Shipping Address</h6>
+                                <div id="modalShippingAddress"></div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <h6>Order Items</h6>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Image</th>
+                                                <th>Price</th>
+                                                <th>Quantity</th>
+                                                <th>Status</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modalOrderItems">
+                                            <!-- Order items will be populated here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <h6>Order Information</h6>
-                        <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
-                        <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
-                        <p><strong>Payment Method:</strong> <span id="modalPaymentMethod"></span></p>
-                        <p><strong>Total Amount:</strong> ₹<span id="modalTotalAmount"></span></p>
+        </div>
+
+        <!-- Return Requests Modal -->
+        <div class="modal fade" id="returnRequestsModal" tabindex="-1" aria-labelledby="returnRequestsModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="returnRequestsModalLabel">Return Requests</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="col-md-6">
-                        <h6>Customer Information</h6>
-                        <p><strong>Name:</strong> <span id="modalCustomerName"></span></p>
-                        <p><strong>Email:</strong> <span id="modalCustomerEmail"></span></p>
-                        <p><strong>Phone:</strong> <span id="modalCustomerPhone"></span></p>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <h6>Shipping Address</h6>
-                        <div id="modalShippingAddress"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-12">
-                        <h6>Order Items</h6>
+                    <div class="modal-body">
                         <div class="table-responsive">
                             <table class="table">
                                 <thead>
                                     <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
                                         <th>Product</th>
-                                        <th>Image</th>
-                                        <th>Price</th>
-                                        <th>Quantity</th>
+                                        <th>Size</th>
+                                        <th>Reason</th>
                                         <th>Status</th>
-                                        <th>Total</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="modalOrderItems">
-                                    <!-- Order items will be populated here -->
+                                <tbody id="returnRequestsTableBody">
+                                    <!-- Return requests will be populated here -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
         </div>
-    </div>
-</div>
 
-<!-- Return Requests Modal -->
-<div class="modal fade" id="returnRequestsModal" tabindex="-1" aria-labelledby="returnRequestsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="returnRequestsModalLabel">Return Requests</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Product</th>
-                                <th>Size</th>
-                                <th>Reason</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="returnRequestsTableBody">
-                            <!-- Return requests will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-.main-content {
-    margin-left: 250px;
-    padding: 20px;
-    background-image: url("/img/sneakers/addproductadmin.jpg");
-    background-size: cover;
-    background-position: center;
-    min-height: 100vh;
-    color: #ffffff;
-}
-
-.card {
-    background-color: rgba(33, 33, 33, 0.9);
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-    background-color: rgba(218, 144, 8, 0.9);
-    border-bottom: none;
-    border-radius: 15px 15px 0 0;
-    padding: 1.5rem;
-}
-
-.card-title {
-    color: #ffffff;
-    margin: 0;
-    font-weight: 600;
-}
-
-.table {
-    color: #ffffff;
-}
-
-.table thead th {
-    border-bottom: 2px solid rgba(218, 144, 8, 0.5);
-    background-color: rgba(33, 33, 33, 0.8);
-}
-
-.table td, .table th {
-    vertical-align: middle;
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-.product-thumb {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.product-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.product-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.product-name {
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.product-quantity {
-    font-size: 0.8rem;
-    color: #666;
-}
-
-.product-details {
-    display: block;
-    font-size: 0.875rem;
-    color: #666;
-    margin: 4px 0;
-}
-
-.status-select {
-    min-width: 150px;
-    background-color: rgba(33, 33, 33, 0.9);
-    color: #ffffff;
-    border: 1px solid rgba(218, 144, 8, 0.5);
-}
-
-.status-select option {
-    background-color: #212121;
-    color: #ffffff;
-}
-
-.badge {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-}
-
-.btn-info {
-    background-color: rgba(218, 144, 8, 0.9);
-    border-color: rgba(218, 144, 8, 0.9);
-    color: #ffffff;
-}
-
-.btn-info:hover {
-    background-color: rgba(218, 144, 8, 1);
-    border-color: rgba(218, 144, 8, 1);
-    color: #ffffff;
-}
-
-.modal-content {
-    background-color: rgba(33, 33, 33, 0.95);
-    color: #ffffff;
-    border: 1px solid rgba(218, 144, 8, 0.5);
-}
-
-.modal-header {
-    border-bottom: 1px solid rgba(218, 144, 8, 0.5);
-    background-color: rgba(218, 144, 8, 0.9);
-}
-
-.modal-footer {
-    border-top: 1px solid rgba(218, 144, 8, 0.5);
-}
-
-.btn-close {
-    color: #ffffff;
-}
-
-.modal-body h6 {
-    color: rgba(218, 144, 8, 1);
-    margin-bottom: 1rem;
-}
-
-#modalShippingAddress {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    border-radius: 4px;
-    margin-top: 0.5rem;
-}
-
-.shipping-details {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    border-radius: 4px;
-    margin-top: 0.5rem;
-}
-
-.shipping-details p {
-    margin-bottom: 0.5rem;
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(218, 144, 8, 0.2);
-    padding-bottom: 0.5rem;
-}
-
-.shipping-details p:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.shipping-details strong {
-    color: rgba(218, 144, 8, 1);
-    min-width: 150px;
-}
-
-.search-box {
-    position: relative;
-}
-
-.search-box input {
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(218, 144, 8, 0.3);
-    color: #333;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-
-.search-box input:focus {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(218, 144, 8, 0.6);
-    box-shadow: 0 0 0 0.2rem rgba(218, 144, 8, 0.25);
-    outline: none;
-}
-
-.search-box input::placeholder {
-    color: #666;
-}
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-async function updateProductStatus(selectElement) {
-    const orderId = selectElement.dataset.orderId;
-    const productId = selectElement.dataset.itemId; 
-    const newStatus = selectElement.value;
-    
-    try {
-        const response = await fetch('/admin/api/updateProductStatus', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                orderId: orderId,
-                productId: productId,
-                status: newStatus
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            // Update the order status in the UI
-            const orderRow = selectElement.closest('tr');
-            const orderStatusBadge = orderRow.querySelector('td:nth-last-child(2) .badge');
-            
-            if (orderStatusBadge) {
-                orderStatusBadge.textContent = data.order.status;
-                orderStatusBadge.className = 'badge ' + 
-                    (data.order.status === 'Delivered' ? 'bg-success' : 'bg-warning');
+        <style>
+            .main-content {
+                margin-left: 250px;
+                padding: 20px;
+                background-image: url("/img/sneakers/addproductadmin.jpg");
+                background-size: cover;
+                background-position: center;
+                min-height: 100vh;
+                color: #ffffff;
             }
 
-            // Show success message
-            Swal.fire({
-                title: 'Success!',
-                text: 'Status updated successfully',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-            });
-        } else {
-            throw new Error(data.message || 'Failed to update status');
-        }
-    } catch (error) {
-        console.error('Error updating status:', error);
-        Swal.fire({
-            title: 'Error!',
-            text: error.message || 'Failed to update status',
-            icon: 'error'
-        });
-    }
-}
+            .card {
+                background-color: rgba(33, 33, 33, 0.9);
+                border: none;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
 
-async function viewOrderDetails(orderId) {
-    try {
-        const response = await fetch(`/admin/order/${orderId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            const order = data.order;
-            
-            // Populate modal with order details
-            document.getElementById('modalOrderId').textContent = order._id;
-            document.getElementById('modalOrderDate').textContent = new Date(order.orderDate).toLocaleDateString();
-            document.getElementById('modalPaymentMethod').textContent = order.paymentMethod;
-            document.getElementById('modalTotalAmount').textContent = order.totalAmount;
-            
-            // Customer details
-            document.getElementById('modalCustomerName').textContent = order.user ? order.user.name : 'Deleted User';
-            document.getElementById('modalCustomerEmail').textContent = order.user ? order.user.email : 'N/A';
-            document.getElementById('modalCustomerPhone').textContent = order.user ? order.user.phone : 'N/A';
-            
-            // Shipping address - Format with all fields
-            const address = order.shippingAddress;
-            const addressHTML = `
+            .card-header {
+                background-color: rgba(218, 144, 8, 0.9);
+                border-bottom: none;
+                border-radius: 15px 15px 0 0;
+                padding: 1.5rem;
+            }
+
+            .card-title {
+                color: #ffffff;
+                margin: 0;
+                font-weight: 600;
+            }
+
+            .table {
+                color: #ffffff;
+            }
+
+            .table thead th {
+                border-bottom: 2px solid rgba(218, 144, 8, 0.5);
+                background-color: rgba(33, 33, 33, 0.8);
+            }
+
+            .table td,
+            .table th {
+                vertical-align: middle;
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .product-thumb {
+                width: 50px;
+                height: 50px;
+                object-fit: cover;
+                border-radius: 4px;
+            }
+
+            .product-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .product-info {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .product-name {
+                font-size: 0.9rem;
+                font-weight: 500;
+            }
+
+            .product-quantity {
+                font-size: 0.8rem;
+                color: #666;
+            }
+
+            .product-details {
+                display: block;
+                font-size: 0.875rem;
+                color: #666;
+                margin: 4px 0;
+            }
+
+            .status-select {
+                min-width: 150px;
+                background-color: rgba(33, 33, 33, 0.9);
+                color: #ffffff;
+                border: 1px solid rgba(218, 144, 8, 0.5);
+            }
+
+            .status-select option {
+                background-color: #212121;
+                color: #ffffff;
+            }
+
+            .badge {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+
+            .btn-info {
+                background-color: rgba(218, 144, 8, 0.9);
+                border-color: rgba(218, 144, 8, 0.9);
+                color: #ffffff;
+            }
+
+            .btn-info:hover {
+                background-color: rgba(218, 144, 8, 1);
+                border-color: rgba(218, 144, 8, 1);
+                color: #ffffff;
+            }
+
+            .modal-content {
+                background-color: rgba(33, 33, 33, 0.95);
+                color: #ffffff;
+                border: 1px solid rgba(218, 144, 8, 0.5);
+            }
+
+            .modal-header {
+                border-bottom: 1px solid rgba(218, 144, 8, 0.5);
+                background-color: rgba(218, 144, 8, 0.9);
+            }
+
+            .modal-footer {
+                border-top: 1px solid rgba(218, 144, 8, 0.5);
+            }
+
+            .btn-close {
+                color: #ffffff;
+            }
+
+            .modal-body h6 {
+                color: rgba(218, 144, 8, 1);
+                margin-bottom: 1rem;
+            }
+
+            #modalShippingAddress {
+                background-color: rgba(255, 255, 255, 0.1);
+                padding: 1rem;
+                border-radius: 4px;
+                margin-top: 0.5rem;
+            }
+
+            .shipping-details {
+                background-color: rgba(255, 255, 255, 0.1);
+                padding: 1rem;
+                border-radius: 4px;
+                margin-top: 0.5rem;
+            }
+
+            .shipping-details p {
+                margin-bottom: 0.5rem;
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 1px solid rgba(218, 144, 8, 0.2);
+                padding-bottom: 0.5rem;
+            }
+
+            .shipping-details p:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+
+            .shipping-details strong {
+                color: rgba(218, 144, 8, 1);
+                min-width: 150px;
+            }
+
+            .search-box {
+                position: relative;
+            }
+
+            .search-box input {
+                background-color: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(218, 144, 8, 0.3);
+                color: #333;
+                padding: 8px 12px;
+                border-radius: 4px;
+                transition: all 0.3s ease;
+            }
+
+            .search-box input:focus {
+                background-color: rgba(255, 255, 255, 0.2);
+                border-color: rgba(218, 144, 8, 0.6);
+                box-shadow: 0 0 0 0.2rem rgba(218, 144, 8, 0.25);
+                outline: none;
+            }
+
+            .search-box input::placeholder {
+                color: #666;
+            }
+        </style>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            async function updateProductStatus(selectElement) {
+                const orderId = selectElement.dataset.orderId;
+                const productId = selectElement.dataset.itemId;
+                const newStatus = selectElement.value;
+
+                try {
+                    const response = await fetch('/admin/api/updateProductStatus', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            orderId: orderId,
+                            productId: productId,
+                            status: newStatus
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Update the order status in the UI
+                        const orderRow = selectElement.closest('tr');
+                        const orderStatusBadge = orderRow.querySelector('td:nth-last-child(2) .badge');
+
+                        if (orderStatusBadge) {
+                            orderStatusBadge.textContent = data.order.status;
+                            orderStatusBadge.className = 'badge ' +
+                                (data.order.status === 'Delivered' ? 'bg-success' : 'bg-warning');
+                        }
+
+                        // Show success message
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Status updated successfully',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        throw new Error(data.message || 'Failed to update status');
+                    }
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: error.message || 'Failed to update status',
+                        icon: 'error'
+                    });
+                }
+            }
+
+            async function viewOrderDetails(orderId) {
+                try {
+                    const response = await fetch(`/admin/order/${orderId}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const order = data.order;
+
+                        // Populate modal with order details
+                        document.getElementById('modalOrderId').textContent = order._id;
+                        document.getElementById('modalOrderDate').textContent = new Date(order.orderDate).toLocaleDateString();
+                        document.getElementById('modalPaymentMethod').textContent = order.paymentMethod;
+                        document.getElementById('modalTotalAmount').textContent = order.totalAmount;
+
+                        // Customer details
+                        document.getElementById('modalCustomerName').textContent = order.user ? order.user.name : 'Deleted User';
+                        document.getElementById('modalCustomerEmail').textContent = order.user ? order.user.email : 'N/A';
+                        document.getElementById('modalCustomerPhone').textContent = order.user ? order.user.phone : 'N/A';
+
+                        // Shipping address - Format with all fields
+                        const address = order.shippingAddress;
+                        const addressHTML = `
                 <div class="shipping-details">
                     <p><strong>Name:</strong> ${address.name || 'N/A'}</p>
                     <p><strong>Street:</strong> ${address.street || 'N/A'}</p>
@@ -507,15 +558,15 @@ async function viewOrderDetails(orderId) {
                     <p><strong>Alternative Phone:</strong> ${address.alternativePhone || 'N/A'}</p>
                 </div>
             `;
-            
-            document.getElementById('modalShippingAddress').innerHTML = addressHTML;
-            
-            // Order items
-            const orderItemsHtml = order.items.map(item => `
+
+                        document.getElementById('modalShippingAddress').innerHTML = addressHTML;
+
+                        // Order items
+                        const orderItemsHtml = order.items.map(item => `
                 <tr>
                     <td>${item.product ? item.product.productName : 'Deleted Product'}</td>
                     <td>
-                        <img src="${item.product ? `/uploads/product-images/${item.product.productImage[0]}` : '/img/default-product.jpg'}" 
+                        <img src="${item.product ? getImageUrl(item.product.productImage[0]) : '/img/default-product.jpg'}" 
                              alt="${item.product ? item.product.productName : 'Deleted Product'}"
                              style="width: 50px; height: 50px; object-fit: cover;">
                     </td>
@@ -529,51 +580,50 @@ async function viewOrderDetails(orderId) {
                     <td>₹${item.product ? item.product.salesPrice * item.quantity : 'N/A'}</td>
                 </tr>
             `).join('');
-            
-            document.getElementById('modalOrderItems').innerHTML = orderItemsHtml;
-            
-            // Show the modal
-            const orderDetailsModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-            orderDetailsModal.show();
-        } else {
-            throw new Error(data.message || 'Failed to fetch order details');
-        }
-    } catch (error) {
-        console.error('Error viewing order details:', error);
-        Swal.fire({
-            title: 'Error!',
-            text: 'Failed to load order details',
-            icon: 'error'
-        });
-    }
-}
 
-// Function to load and display return requests
-async function viewReturnRequests() {
-    try {
-        const response = await fetch('/admin/return-requests');
-        const data = await response.json();
-        
-        const tableBody = document.getElementById('returnRequestsTableBody');
-        tableBody.innerHTML = '';
-        
-        data.forEach(request => {
-    const username = request.userId ? request.userId.username : 'Unknown User';
-    const productName = request.productId ? request.productId.productName : 'Unknown Product';
+                        document.getElementById('modalOrderItems').innerHTML = orderItemsHtml;
 
-    const row = document.createElement('tr');
-    row.innerHTML = `
+                        // Show the modal
+                        const orderDetailsModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+                        orderDetailsModal.show();
+                    } else {
+                        throw new Error(data.message || 'Failed to fetch order details');
+                    }
+                } catch (error) {
+                    console.error('Error viewing order details:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Failed to load order details',
+                        icon: 'error'
+                    });
+                }
+            }
+
+            // Function to load and display return requests
+            async function viewReturnRequests() {
+                try {
+                    const response = await fetch('/admin/return-requests');
+                    const data = await response.json();
+
+                    const tableBody = document.getElementById('returnRequestsTableBody');
+                    tableBody.innerHTML = '';
+
+                    data.forEach(request => {
+                        const username = request.userId ? request.userId.username : 'Unknown User';
+                        const productName = request.productId ? request.productId.productName : 'Unknown Product';
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
         <td>${request.orderId ? request.orderId._id : 'N/A'}</td>
         <td>${username}</td>
         <td>${productName}</td>
         <td>${request.size || 'N/A'}</td>
         <td>${request.reason || 'No reason provided'}</td>
         <td>
-            <span class="badge ${
-                request.status === 'Pending' ? 'bg-warning' :
-                request.status === 'Approved' ? 'bg-success' :
-                'bg-danger'
-            }">${request.status}</span>
+            <span class="badge ${request.status === 'Pending' ? 'bg-warning' :
+                                request.status === 'Approved' ? 'bg-success' :
+                                    'bg-danger'
+                            }">${request.status}</span>
         </td>
         <td>
             ${request.status === 'Pending' ? `
@@ -586,102 +636,102 @@ async function viewReturnRequests() {
             ` : ''}
         </td>
     `;
-    tableBody.appendChild(row);
-});
+                        tableBody.appendChild(row);
+                    });
 
-        
-        const modal = new bootstrap.Modal(document.getElementById('returnRequestsModal'));
-        modal.show();
-        
-        // Update the return request count badge
-        const pendingCount = data.filter(req => req.status === 'Pending').length;
-        document.getElementById('returnRequestCount').textContent = pendingCount || '';
-        
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Failed to load return requests');
-    }
-}
 
-// Function to update return request status
-async function updateReturnStatus(requestId, status) {
-    try {
-        // Show loading indicator
-        Swal.fire({
-            title: 'Processing...',
-            text: 'Updating return request status',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
+                    const modal = new bootstrap.Modal(document.getElementById('returnRequestsModal'));
+                    modal.show();
+
+                    // Update the return request count badge
+                    const pendingCount = data.filter(req => req.status === 'Pending').length;
+                    document.getElementById('returnRequestCount').textContent = pendingCount || '';
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to load return requests');
+                }
             }
-        });
 
-        const response = await fetch('/admin/update-return-status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ requestId, status })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            await Swal.fire({
-                title: 'Success!',
-                text: `Return request ${status.toLowerCase()} successfully`,
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
+            // Function to update return request status
+            async function updateReturnStatus(requestId, status) {
+                try {
+                    // Show loading indicator
+                    Swal.fire({
+                        title: 'Processing...',
+                        text: 'Updating return request status',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const response = await fetch('/admin/update-return-status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ requestId, status })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        await Swal.fire({
+                            title: 'Success!',
+                            text: `Return request ${status.toLowerCase()} successfully`,
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        viewReturnRequests(); // Refresh the return requests table
+                    } else {
+                        throw new Error(data.message || 'Failed to update return status');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: error.message || 'Failed to update return status. Please try again.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            }
+
+            // Load return request count on page load
+            document.addEventListener('DOMContentLoaded', async () => {
+                try {
+                    const response = await fetch('/admin/return-requests');
+                    const data = await response.json();
+                    const pendingCount = data.filter(req => req.status === 'Pending').length;
+                    document.getElementById('returnRequestCount').textContent = pendingCount || '';
+                } catch (error) {
+                    console.error('Error:', error);
+                }
             });
-            viewReturnRequests(); // Refresh the return requests table
-        } else {
-            throw new Error(data.message || 'Failed to update return status');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-            title: 'Error!',
-            text: error.message || 'Failed to update return status. Please try again.',
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
-    }
-}
 
-// Load return request count on page load
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        const response = await fetch('/admin/return-requests');
-        const data = await response.json();
-        const pendingCount = data.filter(req => req.status === 'Pending').length;
-        document.getElementById('returnRequestCount').textContent = pendingCount || '';
-    } catch (error) {
-        console.error('Error:', error);
-    }
-});
+            document.getElementById('orderSearchInput').addEventListener('input', function (e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const orderRows = document.querySelectorAll('tbody tr');
 
-document.getElementById('orderSearchInput').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase().trim();
-    const orderRows = document.querySelectorAll('tbody tr');
-    
-    orderRows.forEach(row => {
-        const orderId = row.querySelector('td:first-child').textContent.toLowerCase();
-        if (orderId.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-});
+                orderRows.forEach(row => {
+                    const orderId = row.querySelector('td:first-child').textContent.toLowerCase();
+                    if (orderId.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
 
-document.getElementById('orderSearchInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        this.value = '';
-        const event = new Event('input');
-        this.dispatchEvent(event);
-        this.blur();
-    }
-});
-</script>
+            document.getElementById('orderSearchInput').addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    const event = new Event('input');
+                    this.dispatchEvent(event);
+                    this.blur();
+                }
+            });
+        </script>

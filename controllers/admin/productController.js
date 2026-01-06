@@ -32,7 +32,7 @@ const getProductAddPage = async (req, res, next) => {
 //saving addded products
 const addProducts = async (req, res, next) => {
     try {
-       
+
         const products = req.body;
 
         // Validate required fields
@@ -57,12 +57,12 @@ const addProducts = async (req, res, next) => {
             return res.status(400).json({ message: "At least one size must have quantity greater than 0" });
         }
 
-       
+
 
         const productExists = await Product.findOne({
             productName: products.productName
         });
-        
+
         if (productExists) {
             return res.status(400).json({ message: "Product already exists, try another name" });
         }
@@ -87,14 +87,14 @@ const addProducts = async (req, res, next) => {
         }
 
         const allCategories = await Category.find({});
-      
-        const category = await Category.findOne({ 
+
+        const category = await Category.findOne({
             name: { $regex: new RegExp('^' + products.category + '$', 'i') }
         });
-        
-      
+
+
         if (!category) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 message: "Invalid category",
                 availableCategories: allCategories.map(c => c.name),
                 receivedCategory: products.category
@@ -116,7 +116,7 @@ const addProducts = async (req, res, next) => {
             status: "Available"
         });
 
-      
+
         await newProduct.save();
         res.status(200).json({ message: "Product added successfully" });
     } catch (error) {
@@ -192,7 +192,7 @@ const getEditProduct = async (req, res, next) => {
             return res.redirect('/admin/products');
         }
 
-    
+
 
         // Transform the data to match the template
         const transformedProduct = {
@@ -247,7 +247,7 @@ const updateProduct = async (req, res, next) => {
             deletedImages
         } = req.body;
 
-      
+
 
         // Parse quantities
         const quantities = {
@@ -275,7 +275,7 @@ const updateProduct = async (req, res, next) => {
         if (deletedImages) {
             try {
                 const deletedImagesArray = JSON.parse(deletedImages);
-               
+
 
                 // Remove deleted images from the productImage array
                 productImage = productImage.filter(img => !deletedImagesArray.includes(img));
@@ -284,8 +284,11 @@ const updateProduct = async (req, res, next) => {
                 for (const filename of deletedImagesArray) {
                     try {
                         const imagePath = path.join(__dirname, '../../public/uploads/product-images', filename);
-                        await fs.unlink(imagePath);
-                       
+                        // With Cloudinary, we don't delete from local FS, 
+                        // but we might want to delete from Cloudinary using the API.
+                        // For now, we just skip local deletion since it doesn't exist.
+                        // await fs.unlink(imagePath);
+
                     } catch (err) {
                         console.error(`Error deleting image file ${filename}:`, err);
                     }
@@ -309,11 +312,11 @@ const updateProduct = async (req, res, next) => {
 
         // Get the product with its current state
         const product = await Product.findById(productId);
-        
+
         // Update mainPrice if salesPrice is changing and there are no active offers
-        const shouldUpdateMainPrice = 
-            salesPrice !== product.salesPrice && 
-            (!product.productOffer || product.productOffer <= 0) && 
+        const shouldUpdateMainPrice =
+            salesPrice !== product.salesPrice &&
+            (!product.productOffer || product.productOffer <= 0) &&
             (!product.category?.categoryOffer || product.category.categoryOffer <= 0);
 
         // Update the product
@@ -368,19 +371,19 @@ const updateProduct = async (req, res, next) => {
 const blockProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
-        await Product.findByIdAndUpdate(productId, { 
+        await Product.findByIdAndUpdate(productId, {
             status: 'Blocked',
             isBlocked: true
         });
-        
+
         // Return JSON response for AJAX request
         if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.json({ 
-                success: true, 
+            return res.json({
+                success: true,
                 message: 'Product blocked successfully'
             });
         }
-        
+
         req.session.message = {
             type: 'success',
             text: 'Product blocked successfully!'
@@ -400,15 +403,15 @@ const blockProduct = async (req, res, next) => {
 const unblockProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
-        await Product.findByIdAndUpdate(productId, { 
+        await Product.findByIdAndUpdate(productId, {
             status: 'Available',
             isBlocked: false
         });
-        
+
         // Return JSON response for AJAX request
         if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-            return res.json({ 
-                success: true, 
+            return res.json({
+                success: true,
                 message: 'Product unblocked successfully'
             });
         }
@@ -433,7 +436,7 @@ const deleteProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
         const product = await Product.findById(productId);
-        
+
         if (!product) {
             return res.status(404).json({
                 success: false,
@@ -447,7 +450,7 @@ const deleteProduct = async (req, res, next) => {
                 try {
                     const imagePath = path.join(__dirname, '../../public/uploads/product-images', image);
                     await fs.unlink(imagePath);
-                  
+
                 } catch (err) {
                     console.error(`Error deleting image ${image}:`, err);
                 }
@@ -455,7 +458,7 @@ const deleteProduct = async (req, res, next) => {
         }
 
         await Product.findByIdAndDelete(productId);
-        
+
         res.json({
             success: true,
             message: 'Product deleted successfully'
@@ -473,19 +476,19 @@ const deleteProduct = async (req, res, next) => {
 const addProductOffer = async (req, res) => {
     try {
         const { productId, percentage } = req.body;
-        
+
         if (!productId || !percentage) {
-            return res.status(400).json({ 
-                status: false, 
-                message: "Product ID and percentage are required" 
+            return res.status(400).json({
+                status: false,
+                message: "Product ID and percentage are required"
             });
         }
 
         const findProduct = await Product.findById(productId).populate('category');
         if (!findProduct) {
-            return res.status(404).json({ 
-                status: false, 
-                message: "Product not found" 
+            return res.status(404).json({
+                status: false,
+                message: "Product not found"
             });
         }
 
@@ -499,10 +502,10 @@ const addProductOffer = async (req, res) => {
 
         // Set the product offer percentage
         findProduct.productOffer = parseInt(percentage);
-        
+
         // Let the schema's pre-save middleware handle the price calculations
         await findProduct.save();
-        
+
         res.json({
             status: true,
             message: "Product offer added successfully"
@@ -522,28 +525,28 @@ const addProductOffer = async (req, res) => {
 const removeProductOffer = async (req, res) => {
     try {
         const { productId } = req.body;
-        
+
         if (!productId) {
-            return res.status(400).json({ 
-                status: false, 
-                message: "Product ID is required" 
+            return res.status(400).json({
+                status: false,
+                message: "Product ID is required"
             });
         }
 
         const findProduct = await Product.findById(productId).populate('category');
         if (!findProduct) {
-            return res.status(404).json({ 
-                status: false, 
-                message: "Product not found" 
+            return res.status(404).json({
+                status: false,
+                message: "Product not found"
             });
         }
 
         // Reset product offer to 0
         findProduct.productOffer = 0;
-        
+
         // Let the schema's pre-save middleware handle price restoration
         await findProduct.save();
-        
+
         res.json({
             status: true,
             message: "Product offer removed successfully"
